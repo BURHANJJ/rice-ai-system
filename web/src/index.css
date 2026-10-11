@@ -541,19 +541,33 @@ body {
   100% { transform: translate(60px, -150px); opacity: 0; }
 }
 
-.pf-bird { animation: pf-fly 28s linear var(--bd, 0s) infinite; }
+.pf-bird { animation: pf-fly var(--bdur, 30s) linear var(--bd, 0s) infinite; }
 @keyframes pf-fly {
-  0% { transform: translate(-80px, var(--by, 40px)); opacity: 0; }
-  3% { opacity: .85; }
-  52% { opacity: .85; }
-  56% { transform: translate(1700px, calc(var(--by, 40px) - 34px)); opacity: 0; }
-  100% { transform: translate(1700px, calc(var(--by, 40px) - 34px)); opacity: 0; }
+  0% { transform: translate(-60px, var(--by, 96px)); opacity: 0; }
+  3% { opacity: .9; }
+  55% { opacity: .9; }
+  58% { transform: translate(1680px, calc(var(--by, 96px) - 40px)); opacity: 0; }
+  100% { transform: translate(1680px, calc(var(--by, 96px) - 40px)); opacity: 0; }
 }
-.pf-flap { transform-box: fill-box; transform-origin: center; animation: pf-flap .55s ease-in-out infinite alternate; }
-@keyframes pf-flap { from { transform: scaleY(1); } to { transform: scaleY(-.35); } }
+.pf-bob { animation: pf-bob var(--bob, 2s) ease-in-out infinite alternate; }
+@keyframes pf-bob { from { transform: translateY(-3px); } to { transform: translateY(4px); } }
+/* Wings hinge at the shoulders: a few strong beats, then a short glide. */
+.pf-wing-l, .pf-wing-r { transform-box: fill-box; animation: pf-beat calc(var(--flap, .4s) * 8) ease-in-out infinite; }
+.pf-wing-l { transform-origin: 100% 60%; }
+.pf-wing-r { transform-origin: 0% 60%; animation-name: pf-beat-r; }
+@keyframes pf-beat {
+  0%, 12.5%, 25%, 37.5%, 50% { transform: rotate(0deg); }
+  6.25%, 18.75%, 31.25%, 43.75% { transform: rotate(-48deg) scaleY(.7); }
+  60%, 100% { transform: rotate(-8deg); }
+}
+@keyframes pf-beat-r {
+  0%, 12.5%, 25%, 37.5%, 50% { transform: rotate(0deg); }
+  6.25%, 18.75%, 31.25%, 43.75% { transform: rotate(48deg) scaleY(.7); }
+  60%, 100% { transform: rotate(8deg); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .pf-sway, .pf-shimmer line, .pf-sun, .pf-pollen, .pf-flap { animation: none !important; }
+  .pf-sway, .pf-shimmer line, .pf-sun, .pf-pollen, .pf-bob, .pf-wing-l, .pf-wing-r { animation: none !important; }
   .pf-bird { display: none; }
 }
 

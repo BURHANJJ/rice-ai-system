@@ -63,6 +63,14 @@ const POLLEN = Array.from({ length: 22 }, (_, i) => {
   return { x: r() * W, y: 150 + r() * 130, r: 1.4 + r() * 2.2, dur: 9 + r() * 8, delay: -r() * 16 };
 });
 
+// Flock: lead bird first, the rest trail behind and to the sides (start delay = gap behind).
+const BIRDS = [
+  { y: 96, size: 1.25, delay: '0s', dur: 30, bob: 1.9, flap: 0.42 },
+  { y: 110, size: 1.05, delay: '-0.55s', dur: 30, bob: 2.2, flap: 0.38 },
+  { y: 84, size: 1.0, delay: '-0.7s', dur: 30.5, bob: 1.7, flap: 0.46 },
+  { y: 122, size: 0.85, delay: '-1.2s', dur: 31, bob: 2.4, flap: 0.36 },
+];
+
 const LEAF_TONES = {
   back: ['#a9d7a3', '#93cb92'],
   mid: ['#6cb47a', '#5aa56c', '#7fc287'],
@@ -142,10 +150,20 @@ export default function PaddyField({ className = '' }) {
         <Row plants={MID} tones={LEAF_TONES.mid} className="pf-mid" />
 
         {/* birds crossing the sky */}
-        <g fill="none" stroke="#3f5f4c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          {[['0s', '96px', 1.6], ['-0.8s', '112px', 1.3], ['-1.5s', '84px', 1.1]].map(([bd, by, sc], i) => (
-            <g key={i} className="pf-bird" style={{ '--bd': bd, '--by': by }}>
-              <path className="pf-flap" d="M0 0 q6 -6 12 0 q6 -6 12 0" style={{ scale: sc }} />
+        {/* a small flock: body + two hinged wings, flying in a loose V */}
+        <g fill="#2f4a3a">
+          {BIRDS.map((b, i) => (
+            <g key={i} className="pf-bird" style={{ '--bd': b.delay, '--by': `${b.y}px`, '--bdur': `${b.dur}s` }}>
+              <g className="pf-bob" style={{ '--bob': `${b.bob}s` }}>
+                <g transform={`scale(${b.size})`}>
+                  <g className="pf-flapper" style={{ '--flap': `${b.flap}s` }}>
+                    <path className="pf-wing-l" d="M0 0 C -5 -6 -11 -8 -19 -5 C -13 -4 -7 -1 -1 2 Z" />
+                    <path className="pf-wing-r" d="M0 0 C 5 -6 11 -8 19 -5 C 13 -4 7 -1 1 2 Z" />
+                  </g>
+                  <ellipse cx="0" cy="1.2" rx="3.4" ry="1.8" />
+                  <circle cx="3.6" cy="0.4" r="1.4" />
+                </g>
+              </g>
             </g>
           ))}
         </g>
