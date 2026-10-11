@@ -1,11 +1,12 @@
 ﻿import { Link } from 'react-router-dom';
 import { FileText, LockKeyhole, LogIn, UserPlus } from 'lucide-react';
+import FooterScene from './landing/FooterScene';
 
 export default function PublicFooter({ subtitle = 'ระบบสนับสนุนการวินิจฉัยโรคข้าวด้วย AI', description = 'แพลตฟอร์มสำหรับเชื่อมโยงข้อมูลภาคสนาม นักวิชาการ และผู้ดูแลระบบ เพื่อสนับสนุนการเฝ้าระวังโรคข้าวอย่างเป็นระบบ' }) {
   return (
-    <footer className="relative overflow-hidden border-t border-emerald-800/40 bg-[#0f172a] text-white">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/50 to-transparent" />
-      <div className="absolute inset-0 opacity-[0.04] rb-soft-grid" />
+    <footer className="relative overflow-hidden bg-[#0f172a] text-white">
+      <FooterScene />
+      <div className="absolute inset-x-0 top-[170px] bottom-0 opacity-[0.04] rb-soft-grid sm:top-[220px] lg:top-[260px]" />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 py-8 sm:px-5 sm:py-12 lg:px-6">
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
@@ -37,7 +38,7 @@ export default function PublicFooter({ subtitle = 'ระบบสนับส�
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 border-t border-white/10 pt-5 text-center sm:mt-10 lg:grid-cols-[1fr_auto] lg:items-center lg:text-left">
+        <div className="mt-6 grid gap-4 border-t border-white/10 pt-5 text-center sm:mt-10 lg:grid-cols-[1fr_auto] lg:items-center lg:pr-28 lg:text-left">
           <div>
             <p className="text-xs font-medium text-slate-300 sm:text-sm">© 2026 Rice AI Project. All rights reserved.</p>
             <p className="mt-1 text-[11px] font-medium text-slate-500 sm:text-xs">Powered by Burhan Jewjoub</p>

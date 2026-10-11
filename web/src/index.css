@@ -584,3 +584,47 @@ body {
 @media (min-width: 1024px) and (max-height: 720px) { .rice-hero-inner { zoom: .7; } }
 /* Narrow laptops wrap the title onto more lines. */
 @media (min-width: 1024px) and (max-width: 1199px) and (max-height: 760px) { .rice-hero-inner { zoom: .66; } }
+
+/* ── Footer night paddy scene (components/landing/FooterScene.jsx) ── */
+.fs-khao { bottom: max(4vw, 40px); }
+@media (min-width: 640px) { .fs-khao { bottom: max(4vw, 52px); } }
+@media (min-width: 1024px) { .fs-khao { bottom: max(4vw, 62px); } }
+.fs-scene::after { /* blend the bottom of the scene into the footer colour */
+  content: ''; position: absolute; inset: auto 0 0 0; height: 26px; z-index: 30;
+  background: linear-gradient(to bottom, transparent, #0f172a);
+}
+.fs-star { animation: fs-twinkle var(--d, 3s) ease-in-out var(--dl, 0s) infinite alternate; }
+@keyframes fs-twinkle { from { opacity: .25; } to { opacity: 1; } }
+.fs-fly { animation: fs-fly var(--d, 8s) ease-in-out var(--dl, 0s) infinite; }
+@keyframes fs-fly {
+  0% { transform: translate(0, 0); opacity: 0; }
+  20% { opacity: 1; }
+  50% { transform: translate(26px, -22px); opacity: .5; }
+  80% { opacity: 1; }
+  100% { transform: translate(-10px, -40px); opacity: 0; }
+}
+.fs-ripple line { stroke-dasharray: 10 14; opacity: .6; animation: pf-shimmer 4s linear var(--dl, 0s) infinite; }
+.fs-walking { animation: fs-bob .42s ease-in-out infinite alternate; }
+@keyframes fs-bob { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(-5px) rotate(2deg); } }
+.fs-bubble {
+  position: absolute; left: 50%; bottom: calc(100% + 4px); transform: translate(-50%, 6px) scale(.9);
+  white-space: nowrap; border-radius: 999px; background: #fff; color: #143327;
+  padding: 5px 11px; font-size: 12px; font-weight: 700; line-height: 1.3;
+  box-shadow: 0 8px 20px -8px rgba(0,0,0,.45); opacity: 0;
+  transition: opacity .3s, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.fs-bubble::after {
+  content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: #fff; border-bottom: 0;
+}
+.fs-bubble-on { opacity: 1; transform: translate(-50%, 0) scale(1); }
+@media (min-width: 1024px) { .fs-bubble { font-size: 13px; padding: 6px 13px; } }
+@media (prefers-reduced-motion: reduce) {
+  .fs-star, .fs-fly, .fs-ripple line, .fs-walking { animation: none !important; }
+}
+.fs-bubble-l { left: 0; transform: translate(-14%, 6px) scale(.9); }
+.fs-bubble-l.fs-bubble-on { transform: translate(-14%, 0) scale(1); }
+.fs-bubble-l::after { left: 30%; }
+.fs-bubble-r { left: auto; right: 0; transform: translate(14%, 6px) scale(.9); }
+.fs-bubble-r.fs-bubble-on { transform: translate(14%, 0) scale(1); }
+.fs-bubble-r::after { left: 70%; }

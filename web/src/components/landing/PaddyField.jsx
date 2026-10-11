@@ -4,7 +4,7 @@
 const W = 1600;
 
 // Deterministic randomness so the field looks the same on every render and on the server.
-function rng(seed) {
+export function rng(seed) {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -22,7 +22,7 @@ const blade = (x, y, h, lean, w) => {
   return `M${x - w} ${y} Q${x - w * 0.3 + lean * 0.15} ${y - h * 0.75} ${x + lean} ${tipY} Q${x + w * 0.3 + lean * 0.1} ${y - h * 0.7} ${x + w} ${y}Z`;
 };
 
-function makeRow({ seed, count, y, hMin, hMax, spread, wBase, panicle }) {
+export function makeRow({ seed, count, y, hMin, hMax, spread, wBase, panicle }) {
   const r = rng(seed);
   return Array.from({ length: count }, (_, i) => {
     const x = (i + 0.5) * (W / count) + (r() - 0.5) * (W / count) * 0.8;
@@ -69,7 +69,7 @@ const LEAF_TONES = {
   front: ['#2f7d4b', '#3b8d56', '#256b3e', '#4a9a5f'],
 };
 
-function Row({ plants, tones, className, grain }) {
+export function Row({ plants, tones, className, grain }) {
   return (
     <g className={className}>
       {plants.map((p, i) => (
