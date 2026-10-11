@@ -181,17 +181,8 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     if (password != confirmPassword) throw Exception('passwords-do-not-match');
 
-    // Check for username uniqueness in Firestore
-    final usernameQuery = await _db
-        .collection('users')
-        .where('username', isEqualTo: username)
-        .limit(1)
-        .get();
-
-    if (usernameQuery.docs.isNotEmpty) {
-      throw Exception('username-already-in-use');
-    }
-
+    // Sign-in is by email, so the username is a display name only. (A uniqueness query here
+    // ran before sign-in and was always refused by the Firestore rules, breaking sign-up.)
     final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
     if (cred.user != null) {
       final uid = cred.user!.uid;

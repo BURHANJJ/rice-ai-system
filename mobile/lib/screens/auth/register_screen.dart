@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:remixicon/remixicon.dart';
@@ -280,7 +281,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
+              _ConsentNote(color: p.muted, link: p.primaryText),
+              const SizedBox(height: 14),
               step(AppButton(label: 'สมัครสมาชิก', busyLabel: 'กำลังสมัคร...', busy: _busy, onPressed: _submit)),
               const SizedBox(height: 12),
               step(GoogleButton(label: 'สมัครด้วยบัญชี Google', onPressed: _busy ? null : _signInWithGoogle)),
@@ -297,6 +300,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// PDPA notice: signing up means accepting the terms and the privacy policy (both open on the web).
+class _ConsentNote extends StatelessWidget {
+  const _ConsentNote({required this.color, required this.link});
+  final Color color;
+  final Color link;
+
+  Widget _link(String label, String path) => GestureDetector(
+        onTap: () => launchUrl(Uri.parse('https://rice-ai-appp.web.app$path'), mode: LaunchMode.externalApplication),
+        child: Text(label,
+            style: TextStyle(fontSize: 12.5, color: link, fontWeight: FontWeight.w700, decoration: TextDecoration.underline)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(fontSize: 12.5, color: color, height: 1.5);
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text('การสมัครถือว่าคุณยอมรับ', style: style),
+        _link('เงื่อนไขการให้บริการ', '/terms'),
+        Text(' และ', style: style),
+        _link('นโยบายความเป็นส่วนตัว', '/privacy'),
+      ],
     );
   }
 }

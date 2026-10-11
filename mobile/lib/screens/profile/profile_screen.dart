@@ -322,8 +322,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: isEn ? 'Academic Menu' : 'เมนูนักวิชาการ',
                 subtitle: isEn ? 'Disease data & AI models' : 'จัดการข้อมูลโรคและแบบจำลอง AI',
                 onTap: () async {
-                  if (user?.role.toUpperCase() == 'EXPERT' || user?.role.toUpperCase() == 'ADMIN') {
-                    final url = Uri.parse('https://rice-ai-research.web.app');
+                  if (user?.role.toUpperCase() == 'RESEARCHER' || user?.role.toUpperCase() == 'ADMIN') {
+                    final url = Uri.parse('https://rice-ai-appp.web.app/login');
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url, mode: LaunchMode.externalApplication);
                     }
@@ -402,6 +402,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () => _showLanguageSheet(auth, currentLang),
               ),
             ])),
+            step(ProfileSectionHeader(title: isEn ? 'Privacy & Terms' : 'ความเป็นส่วนตัวและเงื่อนไข')),
+            step(_buildMenuCard([
+              ProfileMenuItem(
+                icon: Remix.shield_user_line,
+                tone: Tone.info,
+                title: isEn ? 'Privacy Policy' : 'นโยบายความเป็นส่วนตัว',
+                subtitle: isEn ? 'What we collect and your rights' : 'ข้อมูลที่เก็บและสิทธิของคุณ',
+                onTap: () => _openWeb('/privacy'),
+              ),
+              ProfileMenuItem(
+                icon: Remix.file_text_line,
+                tone: Tone.neutral,
+                title: isEn ? 'Terms of Service' : 'เงื่อนไขการให้บริการ',
+                subtitle: isEn ? 'Rules for using Rice AI' : 'ข้อตกลงการใช้งาน Rice AI',
+                showBorder: false,
+                onTap: () => _openWeb('/terms'),
+              ),
+            ])),
             const SizedBox(height: 24),
             step(AppButton(
               label: isEn ? 'Log out' : 'ออกจากระบบ',
@@ -410,11 +428,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: _confirmLogout,
             )),
             const SizedBox(height: 16),
-            Center(child: Text('Rice AI · v1.0.0', style: TextStyle(fontSize: 11.5, color: p.faint))),
+            Center(child: Text('Rice AI · v0.9.1 (เบต้า)', style: TextStyle(fontSize: 11.5, color: p.faint))),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _openWeb(String path) async {
+    final url = Uri.parse('https://rice-ai-appp.web.app$path');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication) && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('เปิดหน้าเว็บไม่ได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต')));
+    }
   }
 
   Widget _buildMenuCard(List<Widget> children) {

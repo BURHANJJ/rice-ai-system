@@ -24,9 +24,9 @@ service cloud.firestore {
 
     // 1. Users Collection Rules
     match /users/{userId} {
-      // Anyone authenticated can read their own profile
-      // Admins and Researchers can read all profiles
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isResearcher());
+      // Users read their own profile; only admins read others'. Researchers work with
+      // anonymized diagnosis data and never need names or emails.
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
       
       // Users can only create/update their own profile
       // Admins can update any profile
