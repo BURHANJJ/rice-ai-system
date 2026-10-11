@@ -1,0 +1,464 @@
+[
+  {
+    "province": "เชียงใหม่",
+    "region": "เหนือ",
+    "centroid_lat": 18.7883,
+    "centroid_lng": 98.9853
+  },
+  {
+    "province": "เชียงราย",
+    "region": "เหนือ",
+    "centroid_lat": 19.9105,
+    "centroid_lng": 99.8406
+  },
+  {
+    "province": "ลำปาง",
+    "region": "เหนือ",
+    "centroid_lat": 18.2888,
+    "centroid_lng": 99.4909
+  },
+  {
+    "province": "ลำพูน",
+    "region": "เหนือ",
+    "centroid_lat": 18.5776,
+    "centroid_lng": 99.0087
+  },
+  {
+    "province": "แม่ฮ่องสอน",
+    "region": "เหนือ",
+    "centroid_lat": 19.302,
+    "centroid_lng": 97.9654
+  },
+  {
+    "province": "น่าน",
+    "region": "เหนือ",
+    "centroid_lat": 18.7756,
+    "centroid_lng": 100.773
+  },
+  {
+    "province": "พะเยา",
+    "region": "เหนือ",
+    "centroid_lat": 19.1664,
+    "centroid_lng": 99.9018
+  },
+  {
+    "province": "แพร่",
+    "region": "เหนือ",
+    "centroid_lat": 18.1445,
+    "centroid_lng": 100.1405
+  },
+  {
+    "province": "อุตรดิตถ์",
+    "region": "เหนือ",
+    "centroid_lat": 17.62,
+    "centroid_lng": 100.0993
+  },
+  {
+    "province": "ตาก",
+    "region": "เหนือ",
+    "centroid_lat": 16.884,
+    "centroid_lng": 99.1258
+  },
+  {
+    "province": "สุโขทัย",
+    "region": "เหนือ",
+    "centroid_lat": 17.0068,
+    "centroid_lng": 99.8265
+  },
+  {
+    "province": "พิษณุโลก",
+    "region": "เหนือ",
+    "centroid_lat": 16.8211,
+    "centroid_lng": 100.2659
+  },
+  {
+    "province": "กำแพงเพชร",
+    "region": "เหนือ",
+    "centroid_lat": 16.4827,
+    "centroid_lng": 99.5226
+  },
+  {
+    "province": "พิจิตร",
+    "region": "เหนือ",
+    "centroid_lat": 16.4429,
+    "centroid_lng": 100.3487
+  },
+  {
+    "province": "เพชรบูรณ์",
+    "region": "เหนือ",
+    "centroid_lat": 16.4194,
+    "centroid_lng": 101.1591
+  },
+  {
+    "province": "นครสวรรค์",
+    "region": "เหนือ",
+    "centroid_lat": 15.703,
+    "centroid_lng": 100.137
+  },
+  {
+    "province": "อุทัยธานี",
+    "region": "เหนือ",
+    "centroid_lat": 15.3835,
+    "centroid_lng": 100.0247
+  },
+  {
+    "province": "นครราชสีมา",
+    "region": "อีสาน",
+    "centroid_lat": 14.9799,
+    "centroid_lng": 102.0977
+  },
+  {
+    "province": "ขอนแก่น",
+    "region": "อีสาน",
+    "centroid_lat": 16.4322,
+    "centroid_lng": 102.8236
+  },
+  {
+    "province": "อุดรธานี",
+    "region": "อีสาน",
+    "centroid_lat": 17.4138,
+    "centroid_lng": 102.787
+  },
+  {
+    "province": "อุบลราชธานี",
+    "region": "อีสาน",
+    "centroid_lat": 15.2287,
+    "centroid_lng": 104.8564
+  },
+  {
+    "province": "บุรีรัมย์",
+    "region": "อีสาน",
+    "centroid_lat": 14.993,
+    "centroid_lng": 103.103
+  },
+  {
+    "province": "สุรินทร์",
+    "region": "อีสาน",
+    "centroid_lat": 14.8818,
+    "centroid_lng": 103.4936
+  },
+  {
+    "province": "ศรีสะเกษ",
+    "region": "อีสาน",
+    "centroid_lat": 15.1186,
+    "centroid_lng": 104.322
+  },
+  {
+    "province": "ร้อยเอ็ด",
+    "region": "อีสาน",
+    "centroid_lat": 16.0538,
+    "centroid_lng": 103.652
+  },
+  {
+    "province": "มหาสารคาม",
+    "region": "อีสาน",
+    "centroid_lat": 16.1852,
+    "centroid_lng": 103.3033
+  },
+  {
+    "province": "กาฬสินธุ์",
+    "region": "อีสาน",
+    "centroid_lat": 16.4315,
+    "centroid_lng": 103.506
+  },
+  {
+    "province": "สกลนคร",
+    "region": "อีสาน",
+    "centroid_lat": 17.1545,
+    "centroid_lng": 104.142
+  },
+  {
+    "province": "นครพนม",
+    "region": "อีสาน",
+    "centroid_lat": 17.4085,
+    "centroid_lng": 104.7692
+  },
+  {
+    "province": "มุกดาหาร",
+    "region": "อีสาน",
+    "centroid_lat": 16.5453,
+    "centroid_lng": 104.7241
+  },
+  {
+    "province": "ชัยภูมิ",
+    "region": "อีสาน",
+    "centroid_lat": 15.8068,
+    "centroid_lng": 102.0316
+  },
+  {
+    "province": "หนองคาย",
+    "region": "อีสาน",
+    "centroid_lat": 17.8783,
+    "centroid_lng": 102.742
+  },
+  {
+    "province": "หนองบัวลำภู",
+    "region": "อีสาน",
+    "centroid_lat": 17.2216,
+    "centroid_lng": 102.426
+  },
+  {
+    "province": "เลย",
+    "region": "อีสาน",
+    "centroid_lat": 17.486,
+    "centroid_lng": 101.722
+  },
+  {
+    "province": "ยโสธร",
+    "region": "อีสาน",
+    "centroid_lat": 15.7922,
+    "centroid_lng": 104.145
+  },
+  {
+    "province": "อำนาจเจริญ",
+    "region": "อีสาน",
+    "centroid_lat": 15.8656,
+    "centroid_lng": 104.626
+  },
+  {
+    "province": "บึงกาฬ",
+    "region": "อีสาน",
+    "centroid_lat": 18.3609,
+    "centroid_lng": 103.6466
+  },
+  {
+    "province": "กรุงเทพมหานคร",
+    "region": "กลาง",
+    "centroid_lat": 13.7563,
+    "centroid_lng": 100.5018
+  },
+  {
+    "province": "นนทบุรี",
+    "region": "กลาง",
+    "centroid_lat": 13.8622,
+    "centroid_lng": 100.514
+  },
+  {
+    "province": "ปทุมธานี",
+    "region": "กลาง",
+    "centroid_lat": 14.0208,
+    "centroid_lng": 100.525
+  },
+  {
+    "province": "พระนครศรีอยุธยา",
+    "region": "กลาง",
+    "centroid_lat": 14.3532,
+    "centroid_lng": 100.568
+  },
+  {
+    "province": "อ่างทอง",
+    "region": "กลาง",
+    "centroid_lat": 14.5896,
+    "centroid_lng": 100.455
+  },
+  {
+    "province": "ลพบุรี",
+    "region": "กลาง",
+    "centroid_lat": 14.7995,
+    "centroid_lng": 100.6534
+  },
+  {
+    "province": "สิงห์บุรี",
+    "region": "กลาง",
+    "centroid_lat": 14.8907,
+    "centroid_lng": 100.397
+  },
+  {
+    "province": "ชัยนาท",
+    "region": "กลาง",
+    "centroid_lat": 15.1852,
+    "centroid_lng": 100.125
+  },
+  {
+    "province": "สระบุรี",
+    "region": "กลาง",
+    "centroid_lat": 14.5289,
+    "centroid_lng": 100.9105
+  },
+  {
+    "province": "นครปฐม",
+    "region": "กลาง",
+    "centroid_lat": 13.8199,
+    "centroid_lng": 100.0623
+  },
+  {
+    "province": "สมุทรปราการ",
+    "region": "กลาง",
+    "centroid_lat": 13.5991,
+    "centroid_lng": 100.5998
+  },
+  {
+    "province": "สมุทรสาคร",
+    "region": "กลาง",
+    "centroid_lat": 13.5475,
+    "centroid_lng": 100.274
+  },
+  {
+    "province": "สมุทรสงคราม",
+    "region": "กลาง",
+    "centroid_lat": 13.4098,
+    "centroid_lng": 100.0022
+  },
+  {
+    "province": "นครนายก",
+    "region": "กลาง",
+    "centroid_lat": 14.2069,
+    "centroid_lng": 101.213
+  },
+  {
+    "province": "สุพรรณบุรี",
+    "region": "กลาง",
+    "centroid_lat": 14.4744,
+    "centroid_lng": 100.1177
+  },
+  {
+    "province": "กาญจนบุรี",
+    "region": "กลาง",
+    "centroid_lat": 14.0227,
+    "centroid_lng": 99.5328
+  },
+  {
+    "province": "ราชบุรี",
+    "region": "ตะวันตก",
+    "centroid_lat": 13.5282,
+    "centroid_lng": 99.8134
+  },
+  {
+    "province": "เพชรบุรี",
+    "region": "ตะวันตก",
+    "centroid_lat": 13.1119,
+    "centroid_lng": 99.9438
+  },
+  {
+    "province": "ประจวบคีรีขันธ์",
+    "region": "ตะวันตก",
+    "centroid_lat": 11.8125,
+    "centroid_lng": 99.7957
+  },
+  {
+    "province": "ชลบุรี",
+    "region": "ตะวันออก",
+    "centroid_lat": 13.3611,
+    "centroid_lng": 100.9847
+  },
+  {
+    "province": "ระยอง",
+    "region": "ตะวันออก",
+    "centroid_lat": 12.6833,
+    "centroid_lng": 101.2372
+  },
+  {
+    "province": "จันทบุรี",
+    "region": "ตะวันออก",
+    "centroid_lat": 12.6113,
+    "centroid_lng": 102.1039
+  },
+  {
+    "province": "ตราด",
+    "region": "ตะวันออก",
+    "centroid_lat": 12.2428,
+    "centroid_lng": 102.5178
+  },
+  {
+    "province": "ฉะเชิงเทรา",
+    "region": "ตะวันออก",
+    "centroid_lat": 13.6904,
+    "centroid_lng": 101.0779
+  },
+  {
+    "province": "ปราจีนบุรี",
+    "region": "ตะวันออก",
+    "centroid_lat": 14.0508,
+    "centroid_lng": 101.372
+  },
+  {
+    "province": "สระแก้ว",
+    "region": "ตะวันออก",
+    "centroid_lat": 13.8241,
+    "centroid_lng": 102.0645
+  },
+  {
+    "province": "นครศรีธรรมราช",
+    "region": "ใต้",
+    "centroid_lat": 8.4304,
+    "centroid_lng": 99.9631
+  },
+  {
+    "province": "สุราษฎร์ธานี",
+    "region": "ใต้",
+    "centroid_lat": 9.1382,
+    "centroid_lng": 99.3215
+  },
+  {
+    "province": "กระบี่",
+    "region": "ใต้",
+    "centroid_lat": 8.0863,
+    "centroid_lng": 98.9063
+  },
+  {
+    "province": "พังงา",
+    "region": "ใต้",
+    "centroid_lat": 8.451,
+    "centroid_lng": 98.531
+  },
+  {
+    "province": "ภูเก็ต",
+    "region": "ใต้",
+    "centroid_lat": 7.8804,
+    "centroid_lng": 98.3923
+  },
+  {
+    "province": "ระนอง",
+    "region": "ใต้",
+    "centroid_lat": 9.9528,
+    "centroid_lng": 98.6084
+  },
+  {
+    "province": "ชุมพร",
+    "region": "ใต้",
+    "centroid_lat": 10.493,
+    "centroid_lng": 99.18
+  },
+  {
+    "province": "สงขลา",
+    "region": "ใต้",
+    "centroid_lat": 7.1897,
+    "centroid_lng": 100.5951
+  },
+  {
+    "province": "สตูล",
+    "region": "ใต้",
+    "centroid_lat": 6.6238,
+    "centroid_lng": 100.0673
+  },
+  {
+    "province": "ตรัง",
+    "region": "ใต้",
+    "centroid_lat": 7.559,
+    "centroid_lng": 99.6114
+  },
+  {
+    "province": "พัทลุง",
+    "region": "ใต้",
+    "centroid_lat": 7.6167,
+    "centroid_lng": 100.074
+  },
+  {
+    "province": "ปัตตานี",
+    "region": "ใต้",
+    "centroid_lat": 6.8693,
+    "centroid_lng": 101.25
+  },
+  {
+    "province": "ยะลา",
+    "region": "ใต้",
+    "centroid_lat": 6.541,
+    "centroid_lng": 101.28
+  },
+  {
+    "province": "นราธิวาส",
+    "region": "ใต้",
+    "centroid_lat": 6.4264,
+    "centroid_lng": 101.823
+  }
+]

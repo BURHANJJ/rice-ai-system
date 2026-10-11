@@ -1,0 +1,509 @@
+﻿@import "tailwindcss";
+
+
+:root {
+  --color-paper: #FAF7F0;
+  --color-ink: #1C2620;
+  --color-muted: #6B7568;
+  --color-paddy: #1F4D3A;
+  --color-paddy-dark: #143327;
+  --color-gold: #C89B3C;
+  --color-risk-low: #4C7A55;
+  --color-risk-medium: #C89B3C;
+  --color-risk-high: #B4432F;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display { font-family: 'Noto Serif Thai', 'Noto Serif', serif; font-synthesis-weight: none; }
+.font-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+.rice-public-header {
+  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+  font-synthesis-weight: none;
+  text-rendering: geometricPrecision;
+}
+
+.rice-public-brand {
+  font-family: 'Noto Serif Thai', 'Noto Serif', serif;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-synthesis-weight: none;
+}
+
+.rice-public-nav-link {
+  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  letter-spacing: -0.006em;
+  font-synthesis-weight: none;
+  text-rendering: geometricPrecision;
+}
+
+.rice-public-nav-strong {
+  font-weight: 800;
+}
+
+/* DFD-inspired signature markers: circle = process, square = data store */
+.dfd-node-process {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.75rem; height: 1.75rem; border-radius: 9999px;
+  border: 1.5px solid currentColor; font-size: 0.7rem; font-weight: 600;
+}
+.dfd-node-store {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.75rem; height: 1.75rem; border-radius: 2px;
+  border: 1.5px solid currentColor; font-size: 0.7rem; font-weight: 600;
+}
+
+::selection { background: var(--color-gold); color: var(--color-paddy-dark); }
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* ReactBits-inspired production motion utilities */
+.rb-reveal {
+  animation: rb-reveal-up 720ms cubic-bezier(.2,.8,.2,1) both;
+}
+.rb-delay-1 { animation-delay: 90ms; }
+.rb-delay-2 { animation-delay: 180ms; }
+.rb-delay-3 { animation-delay: 270ms; }
+.rb-delay-4 { animation-delay: 360ms; }
+.rb-delay-5 { animation-delay: 450ms; }
+
+.rb-float {
+  animation: rb-float 6s ease-in-out infinite;
+}
+.rb-float-slow {
+  animation: rb-float 8s ease-in-out infinite;
+}
+.rb-logo-breathe {
+  animation: rb-logo-breathe 5s ease-in-out infinite;
+}
+.rb-menu-pop {
+  transform-origin: top right;
+  animation: rb-menu-pop 160ms cubic-bezier(.2,.8,.2,1) both;
+}
+.rb-shiny-text {
+  background-image: linear-gradient(110deg, var(--color-paddy) 0%, #0f766e 28%, #d6a94b 48%, var(--color-paddy) 68%, #0f766e 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rb-shine 6s linear infinite;
+}
+.rb-glare {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.rb-glare::after {
+  content: '';
+  position: absolute;
+  inset: -120% auto -120% -45%;
+  width: 34%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.34), transparent);
+  opacity: 0;
+  transition: transform 700ms ease, opacity 250ms ease;
+  pointer-events: none;
+}
+.rb-glare:hover::after {
+  opacity: 1;
+  transform: translateX(420%) rotate(18deg);
+}
+.rb-pulse-ring {
+  position: relative;
+}
+.rb-pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  border: 1px solid rgba(31, 77, 58, .16);
+  animation: rb-pulse-ring 2.8s ease-out infinite;
+  pointer-events: none;
+}
+.rb-soft-grid {
+  background-image: linear-gradient(rgba(31, 77, 58, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(31, 77, 58, .06) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle at center, black 0%, transparent 72%);
+}
+
+@keyframes rb-reveal-up {
+  from { opacity: 0; transform: translateY(18px) scale(.98); filter: blur(8px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes rb-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -12px, 0); }
+}
+@keyframes rb-logo-breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 18px 22px rgba(20, 51, 39, .18)); }
+  50% { transform: scale(1.025); filter: drop-shadow(0 24px 28px rgba(20, 51, 39, .24)); }
+}
+@keyframes rb-menu-pop {
+  from { opacity: 0; transform: translateY(-6px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes rb-shine {
+  to { background-position: 220% center; }
+}
+@keyframes rb-pulse-ring {
+  0% { opacity: .7; transform: scale(.96); }
+  75%, 100% { opacity: 0; transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-reveal,
+  .rb-float,
+  .rb-float-slow,
+  .rb-logo-breathe,
+  .rb-menu-pop,
+  .rb-shiny-text,
+  .rb-pulse-ring::before {
+    animation: none !important;
+  }
+  .rb-glare::after { display: none; }
+}
+
+.rice-hero-kicker {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(209 250 229);
+  background: rgb(236 253 245);
+  padding: 0.5rem 0.75rem;
+  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--color-paddy);
+}
+
+.rice-hero-title {
+  font-family: 'Noto Serif Thai', 'Noto Serif', serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: rgb(3 7 18);
+}
+
+.rice-hero-copy {
+  margin-top: 1.25rem;
+  max-width: 42rem;
+  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.75rem;
+  color: rgb(75 85 99);
+}
+
+@media (min-width: 640px) {
+  .rice-hero-kicker {
+    margin-bottom: 1.25rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .rice-hero-title {
+    font-size: 3rem;
+  }
+
+  .rice-hero-copy {
+    margin-top: 1.5rem;
+    font-size: 1.125rem;
+    line-height: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rice-hero-title {
+    font-size: 3.75rem;
+  }
+}
+
+
+
+.rice-summary-title {
+  font-family: 'Noto Serif Thai', 'Noto Serif', serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: rgb(3 7 18);
+  font-synthesis-weight: none;
+}
+
+@media (min-width: 640px) {
+  .rice-summary-title {
+    font-size: 1.5rem;
+  }
+}
+
+
+.rice-map-tooltip {
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16) !important;
+  padding: 9px 12px !important;
+  backdrop-filter: blur(12px);
+}
+
+.rice-map-tooltip::before {
+  border-top-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+.leaflet-control-zoom {
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12) !important;
+}
+
+.leaflet-control-zoom a {
+  border: 0 !important;
+  color: #0f2a20 !important;
+  font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', sans-serif !important;
+  font-weight: 900 !important;
+}
+
+.rice-map-province {
+  cursor: pointer;
+  transition: fill-opacity 160ms ease, stroke-width 160ms ease, filter 160ms ease;
+}
+
+.rice-map-province-selected {
+  cursor: pointer;
+  filter: drop-shadow(0 10px 16px rgba(15, 42, 32, 0.28));
+}
+
+/* ── Landing: real-app showcase ─────────────────────────────── */
+.rb-phone {
+  aspect-ratio: 390 / 844;
+  border-radius: 13% / 6%;
+  padding: 3.2%;
+  background: linear-gradient(145deg, #2a3a31, #0d1712 55%, #22322a);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 30px 60px -18px rgba(15,42,30,.45), 0 12px 24px -12px rgba(15,42,30,.3);
+}
+.rb-phone-glow { box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 40px 80px -20px rgba(15,42,30,.55), 0 0 0 10px rgba(255,255,255,.35), 0 0 60px rgba(52,211,153,.25); }
+.rb-phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 10.5% / 4.9%;
+  background: #f4f1e8;
+}
+.rb-phone-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 600ms ease, transform 900ms cubic-bezier(.2,.8,.2,1);
+  user-select: none;
+}
+.rb-phone-shot.is-on { opacity: 1; transform: none; }
+.rb-phone-shot.rb-shot-scroll.is-on { animation: rb-shot-scroll 9s ease-in-out infinite alternate; }
+.rb-phone-island {
+  position: absolute;
+  top: 1.6%;
+  left: 50%;
+  width: 30%;
+  height: 3.3%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #0a0f0c;
+}
+.rb-scanline {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 22%;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #86efac, transparent);
+  box-shadow: 0 0 18px 4px rgba(134,239,172,.55);
+  animation: rb-scanline 1.8s ease-in-out infinite alternate;
+}
+
+/* hero stage: pointer tilt + parallax layers */
+.rb-stage { perspective: 1200px; --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 50%; }
+.rb-stage-layer {
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--d, 0));
+  transition: transform 500ms cubic-bezier(.2,.8,.2,1);
+}
+.rb-stage-glare { background: radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.75), transparent 45%); opacity: .7; }
+.rb-pop { animation: rb-pop 520ms cubic-bezier(.2,1.4,.4,1) both; }
+.rb-peek { animation: rb-peek 4.5s ease-in-out infinite; transform-origin: 50% 95%; }
+.rb-tour-in { animation: rb-reveal-up 600ms cubic-bezier(.2,.8,.2,1) both; }
+
+/* scroll reveal */
+.rv { opacity: 0; transform: translateY(26px); transition: opacity 800ms ease, transform 800ms cubic-bezier(.2,.8,.2,1); transition-delay: var(--rv-delay, 0ms); }
+.rv.in { opacity: 1; transform: none; }
+
+/* pointer spotlight cards */
+.rb-spot { position: relative; isolation: isolate; }
+.rb-spot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(360px circle at var(--sx, 50%) var(--sy, 50%), var(--spot, rgba(16,185,129,.12)), transparent 60%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.rb-spot:hover::before { opacity: 1; }
+
+/* marquee */
+.rb-marquee { overflow: hidden; }
+.rb-marquee-track { display: flex; width: max-content; animation: rb-marquee var(--speed, 40s) linear infinite; }
+.rb-marquee:hover .rb-marquee-track { animation-play-state: paused; }
+.rb-marquee-fade { mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent); }
+.rb-marquee-fade-dark { mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); }
+
+/* phone fan in the app section */
+.rb-fan > * { transition: transform 700ms cubic-bezier(.2,.8,.2,1); }
+.rb-fan-l { transform: rotate(-10deg); }
+.rb-fan-r { transform: rotate(10deg); }
+.rb-fan-c { transform: translateX(-50%); }
+.rv.in .rb-fan:hover .rb-fan-l { transform: translateX(-14%) rotate(-14deg); }
+.rv.in .rb-fan:hover .rb-fan-r { transform: translateX(14%) rotate(14deg); }
+.rv.in .rb-fan:hover .rb-fan-c { transform: translateX(-50%) translateY(-4%) scale(1.03); }
+.rv:not(.in) .rb-fan-l, .rv:not(.in) .rb-fan-r { transform: rotate(0); }
+
+@keyframes rb-shot-scroll { 0%, 15% { transform: translateY(0); } 85%, 100% { transform: translateY(-25%); } }
+@keyframes rb-scanline { from { top: 20%; } to { top: 52%; } }
+@keyframes rb-pop { from { opacity: 0; transform: translateY(10px) scale(.85); } to { opacity: 1; transform: none; } }
+@keyframes rb-peek { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(-3deg); } }
+@keyframes rb-marquee { to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-phone-shot.rb-shot-scroll.is-on, .rb-scanline, .rb-pop, .rb-peek, .rb-tour-in, .rb-marquee-track { animation: none !important; }
+  .rb-stage-layer { transform: none !important; }
+  .rv { opacity: 1; transform: none; transition: none; }
+  .rb-marquee { overflow-x: auto; }
+}
+
+/* ── Public risk map ───────────────────────────────────────── */
+.rb-drawer { animation: rb-drawer-up 380ms cubic-bezier(.2,.8,.2,1) both; }
+@media (min-width: 640px) { .rb-drawer { animation-name: rb-drawer-left; } }
+@keyframes rb-drawer-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes rb-drawer-left { from { transform: translateX(48px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .rb-drawer { animation: none; } }
+
+/* ── Admin portal ─────────────────────────────────────────── */
+.rb-dialog { animation: rb-dialog 220ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes rb-dialog { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.rb-fade { animation: rb-fade 200ms ease-out both; }
+@keyframes rb-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .rb-dialog, .rb-fade { animation: none !important; } }
+.rb-kbd { display: inline-flex; min-width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 6px; padding: 0 5px; font: 700 10.5px/1 'IBM Plex Mono', ui-monospace, monospace; color: #4b5563; background: #fff; box-shadow: inset 0 -1px 0 #d1d5db, 0 0 0 1px #e5e7eb; }
+
+/* Printing (monthly report): drop the app chrome, let the page flow. */
+@media print {
+  @page { size: A4; margin: 14mm 12mm; }
+  html, body, #root { height: auto !important; overflow: visible !important; background: #fff !important; }
+  .rb-shell { display: block !important; height: auto !important; overflow: visible !important; }
+  .rb-shell main { overflow: visible !important; height: auto !important; }
+  .rb-shell main > div { max-width: none !important; padding: 0 !important; }
+  .rb-print-hide { display: none !important; }
+  .rb-print-sheet { box-shadow: none !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; margin: 0 !important; }
+  .rb-print-break { break-before: page; }
+  .rb-print-avoid { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Portal dark theme ----------
+   Tailwind v4 utilities read colours from theme variables, so remapping the
+   neutrals and the light tints here turns every portal page dark without
+   touching component code. Applied by useApplyPreferences() via <html data-theme>. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #0e1512;
+  --color-ink: #e6eee9;
+  --color-muted: #9aa8a0;
+  --color-paddy: #2e7a5a;
+  --color-white: #16201b;
+  --color-gray-50: #1a2520;
+  --color-gray-100: #212e27;
+  --color-gray-200: #2b3a32;
+  --color-gray-300: #3c4c43;
+  --color-gray-400: #6f7f76;
+  --color-gray-500: #95a49b;
+  --color-gray-600: #b3c0b8;
+  --color-gray-700: #c9d4cd;
+  --color-gray-800: #dce4df;
+  --color-gray-900: #ecf2ee;
+  --color-gray-950: #f6f9f7;
+  --color-emerald-50: #11261d;
+  --color-emerald-100: #173427;
+  --color-emerald-200: #22493a;
+  --color-emerald-700: #7fd1a8;
+  --color-emerald-800: #9adcb9;
+  --color-emerald-900: #b8e8cd;
+  --color-green-50: #11261d;
+  --color-green-100: #173427;
+  --color-green-700: #7fd1a8;
+  --color-green-800: #9adcb9;
+  --color-red-50: #2a1516;
+  --color-red-100: #3a1b1c;
+  --color-red-200: #552426;
+  --color-red-700: #f6a3a3;
+  --color-red-800: #fbc4c4;
+  --color-red-900: #fdd8d8;
+  --color-amber-50: #2a2112;
+  --color-amber-100: #3a2d15;
+  --color-amber-200: #5a451c;
+  --color-amber-700: #f2c66d;
+  --color-amber-800: #f6d48e;
+  --color-amber-900: #f9e0ae;
+  --color-amber-950: #fbe9c6;
+  --color-orange-50: #2a1b12;
+  --color-orange-700: #f7b47d;
+  --color-sky-50: #10212c;
+  --color-sky-100: #15303f;
+  --color-sky-200: #1d4258;
+  --color-sky-700: #8ccdf0;
+  --color-sky-800: #a9daf4;
+  --color-sky-900: #c4e6f8;
+  --color-blue-50: #121d33;
+  --color-blue-100: #182746;
+  --color-blue-700: #9cb9f5;
+  --color-blue-800: #b7cbf8;
+  --color-violet-50: #1e1830;
+  --color-violet-700: #c3b2f6;
+}
+/* elements that were dark on purpose (tooltips, bulk-action bar, avatars) stay dark */
+:root[data-theme="dark"] .bg-gray-950 { background-color: #050907; }
+:root[data-theme="dark"] .bg-gray-900 { background-color: #0a120e; }
+:root[data-theme="dark"] .text-white { color: #fff; }
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea { color-scheme: dark; }
+:root[data-theme="dark"] img:not([src$=".svg"]) { filter: brightness(.92); }
+
+.rb-reduce-motion *, .rb-reduce-motion *::before, .rb-reduce-motion *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}

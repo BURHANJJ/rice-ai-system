@@ -1,0 +1,137 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function to get the user's role from their user document
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // Function to check specific roles
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    function isResearcher() {
+      return isAuthenticated() && getUserRole() == 'researcher';
+    }
+
+    // 1. Users Collection Rules
+    match /users/{userId} {
+      // Anyone authenticated can read their own profile
+      // Admins and Researchers can read all profiles
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin() || isResearcher());
+      
+      // Users can only create/update their own profile
+      // Admins can update any profile
+      allow create, update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    // 2. Diagnoses (Scans) Collection Rules
+    match /diagnoses/{diagnosisId} {
+      // Allow public read access to diagnoses for the Public Risk Map to work
+      allow read: if true;
+      
+      // Any authenticated user (farmers) can create a scan, must assign their own user_id
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+      
+      // Owners may attach GPS to their own scan (mobile "บันทึกข้อมูล + GPS");
+      // nothing else on a scan can change. Admins can update or delete anything.
+      allow update: if isAdmin() || (isAuthenticated()
+        && resource.data.user_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['location']));
+      allow delete: if isAdmin();
+    }
+
+    // Notifications created by the app after each scan, private to their owner.
+    // Admins may also create them for anyone (outbreak broadcasts from the web portal).
+    match /notifications/{notificationId} {
+      // owners read their own; admins read broadcast notifications for delivery stats
+      allow read: if (isAuthenticated() && resource.data.user_id == request.auth.uid) || isAdmin();
+      allow create: if isAdmin() || (isAuthenticated() && request.resource.data.user_id == request.auth.uid);
+      // Only the read flag can be flipped (mark all as read)
+      allow update: if isAuthenticated()
+        && resource.data.user_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_read']);
+      allow delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+    
+    // 3. Audit Logs Collection Rules
+    match /audit_logs/{logId} {
+      // Only Admins can read audit logs
+      allow read: if isAdmin();
+      
+      // System/Admin can write (or any authenticated user if the system logs their actions, but let's restrict to authenticated for now)
+      allow write: if isAuthenticated();
+    }
+    
+    // 4. Field notebook (สมุดแปลงนา) — private to the farmer who owns it
+    match /fields/{fieldId} {
+      allow read, delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+      // Owner may edit, but can never hand the field to someone else
+      allow update: if isAuthenticated()
+        && resource.data.user_id == request.auth.uid
+        && request.resource.data.user_id == request.auth.uid;
+
+      // Activity diary entries follow the parent field's owner
+      match /logs/{logId} {
+        allow read, write: if isAuthenticated()
+          && get(/databases/$(database)/documents/fields/$(fieldId)).data.user_id == request.auth.uid;
+      }
+    }
+
+    // 5. Human review of AI results (one doc per diagnosis) — admin only
+    match /reviews/{diagnosisId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 6. System settings — public read (site banner, application toggle), admin write
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 7. Encyclopedia edits laid over the built-in Rice Department content
+    match /wiki_content/{slug} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 8. Outbreak alert handling and broadcast history — admin only
+    match /alert_actions/{province} {
+      allow read, write: if isAdmin();
+    }
+    match /broadcasts/{broadcastId} {
+      allow read, create, update: if isAdmin();
+    }
+
+    // 9. Public Android beta download counter shown on the landing page.
+    //    Anyone may read it; a write can only add exactly one download.
+    match /stats/{statId} {
+      allow read: if true;
+      allow create: if statId == 'app_beta'
+        && request.resource.data.keys().hasOnly(['downloads', 'last_download_at'])
+        && request.resource.data.downloads == 1
+        && request.resource.data.last_download_at == request.time;
+      allow update: if statId == 'app_beta'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloads', 'last_download_at'])
+        && request.resource.data.downloads == resource.data.downloads + 1
+        && request.resource.data.last_download_at == request.time;
+    }
+
+    // Default deny all for any other collections not explicitly defined
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,64 @@
+name: rice_ai_mobile
+description: "Rice AI — Farmer mobile app: AI-powered rice leaf disease diagnosis (Rice Blast, Bacterial Leaf Blight, Rice Tungro Virus, Healthy)."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  meta: ^1.11.0
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  provider: ^6.1.2
+  image_picker: ^1.1.2
+  geolocator: ^13.0.4
+  shared_preferences: ^2.3.2
+  intl: ^0.19.0
+  flutter_secure_storage: ^9.2.2
+  cached_network_image: ^3.4.1
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  geocoding: ^3.0.0
+  firebase_core: ^3.3.0
+  firebase_auth: ^5.1.3
+  cloud_firestore: ^5.2.0
+  firebase_storage: ^12.1.0
+  google_sign_in: ^6.2.1
+  google_fonts: ^6.3.0
+  remixicon: ^4.9.3
+  url_launcher: ^6.3.1
+  countries_world_map: ^1.3.0
+  firebase_messaging: ^15.2.10
+  flutter_local_notifications: ^19.5.0
+  workmanager: ^0.7.0
+  tflite_flutter: ^0.11.0
+  image: ^4.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/brand/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#1B4332"
+  adaptive_icon_foreground: "assets/brand/icon_foreground.png"
+  remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/brand/
+    - assets/geo/
+    - assets/geo/districts/
+    - assets/model/
+

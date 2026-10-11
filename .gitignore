@@ -1,0 +1,58 @@
+# Dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+**/android/.gradle/
+**/android/local.properties
+**/android/app/release/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local databases and runtime data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+backend/local-mock-storage/
+
+# Secrets: never commit these (examples live in *.env.example)
+.env
+.env.*
+!.env.example
+serviceAccountKey*.json
+*service-account*.json
+kaggle.json
+*.keystore
+*.jks
+key.properties
+
+# Release binaries are published on GitHub Releases, not in the repo
+*.apk
+*.aab
+web/public/downloads/*.apk
+
+# Rendered videos (regenerate with `npm run render` in video/)
+video/out/
+
+# Editor, OS and tool caches
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.github/modernize/
+.firebase/
+.DS_Store
+Thumbs.db
+*.log
+
+# Old exported report (the current one is built from docs/)
+/การจำเเนกโรคของใบข้าวด้วย (Machine Learning) ล่าสุด.pdf
+
+# Old 800-byte placeholder from before the real model existed
+ai-service/model/*.h5
