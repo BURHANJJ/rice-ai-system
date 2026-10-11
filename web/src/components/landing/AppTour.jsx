@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ScanLine, CloudRain, Map as MapIcon, NotebookPen, BookOpenText, BellRing, CheckCircle2 } from 'lucide-react';
 import { Phone } from './LandingKit';
 import { useCycle } from './landingHooks';
@@ -75,14 +75,13 @@ function TourPhone({ feature, className = '' }) {
   return (
     <div className={`relative ${className}`}>
       <div className="pointer-events-none absolute inset-[-12%] rounded-full bg-[radial-gradient(circle,rgba(52,211,153,0.28),transparent_62%)] blur-2xl" />
-      <Phone key={feature.tag} screens={feature.screens} active={i} scroll={feature.scroll} glow className="relative mx-auto w-[250px] sm:w-[280px] rb-tour-in" />
-      {feature.screens.length > 1 && (
-        <div className="mt-5 flex justify-center gap-1.5">
-          {feature.screens.map((s, k) => (
-            <span key={s} className={`h-1.5 rounded-full transition-all duration-500 ${k === i ? 'w-6 bg-[var(--color-paddy)]' : 'w-1.5 bg-emerald-900/20'}`} />
-          ))}
-        </div>
-      )}
+      <Phone key={feature.tag} screens={feature.screens} active={i} scroll={feature.scroll} glow className="relative mx-auto w-[250px] sm:w-[280px] lg:w-[min(280px,calc((100vh-210px)*0.462))] rb-tour-in" />
+      {/* always reserve the row so the pinned phone keeps one height across features */}
+      <div className={`mt-5 flex h-1.5 justify-center gap-1.5 ${feature.screens.length > 1 ? '' : 'invisible'}`}>
+        {feature.screens.map((s, k) => (
+          <span key={s} className={`h-1.5 rounded-full transition-all duration-500 ${k === i ? 'w-6 bg-[var(--color-paddy)]' : 'w-1.5 bg-emerald-900/20'}`} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -97,36 +96,90 @@ function Points({ items }) {
   );
 }
 
-/** Guided tour of the real app: sticky phone that follows the feature being read (desktop), tabs (mobile). */
+// The header covers the top 80px, so "the middle of the screen" is 40px below 50vh.
+const HEADER = 80;
+const centerLine = () => HEADER + (window.innerHeight - HEADER) / 2;
+
+/**
+ * Guided tour of the real app. Desktop: the phone stays pinned at the centre of the visible
+ * area while the feature texts scroll past. Each text block is exactly as tall as the pinned
+ * phone, so the first text reaches the centre the moment the phone pins and the last one is
+ * centred the moment it unpins. The active feature is the block closest to the centre line,
+ * which behaves the same scrolling down and up. Mobile/tablet: tabs.
+ */
 export default function AppTour() {
   const [active, setActive] = useState(0);
+  const [pinH, setPinH] = useState(0);
   const steps = useRef([]);
+  const pin = useRef(null);
 
-  useEffect(() => {
-    if (!('IntersectionObserver' in window)) return undefined;
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) setActive(Number(e.target.dataset.i));
-      }),
-      { rootMargin: '-45% 0px -45% 0px' },
-    );
-    steps.current.forEach((el) => el && io.observe(el));
-    return () => io.disconnect();
+  useLayoutEffect(() => {
+    const el = pin.current;
+    if (!el || !('ResizeObserver' in window)) return undefined;
+    const ro = new ResizeObserver(() => setPinH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
+  useEffect(() => {
+    let frame = 0;
+    const pick = () => {
+      frame = 0;
+      const c = centerLine();
+      let best = 0;
+      let bestD = Infinity;
+      steps.current.forEach((el, i) => {
+        if (!el || !el.offsetParent) return; // hidden on mobile
+        const r = el.getBoundingClientRect();
+        const d = Math.abs(r.top + r.height / 2 - c);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      setActive((a) => (a === best ? a : best));
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(pick); };
+    pick();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  const goTo = (i) => {
+    const el = steps.current[i];
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    window.scrollBy({ top: r.top + r.height / 2 - centerLine(), behavior: 'smooth' });
+  };
+
   const f = FEATURES[active];
+  const blockH = pinH ? `${pinH}px` : '58vh';
 
   return (
     <>
       {/* Desktop: scroll-driven */}
       <div className="hidden gap-16 lg:grid lg:grid-cols-[1fr_minmax(0,420px)]">
-        <div>
+        <div className="relative pl-12">
+          {/* progress rail */}
+          <div aria-hidden="true" className="absolute bottom-0 left-[11px] top-0 w-[2px] rounded-full bg-emerald-900/10" style={{ top: `calc(${blockH} / 2)`, bottom: `calc(${blockH} / 2)` }}>
+            <div className="w-full rounded-full bg-gradient-to-b from-[var(--color-paddy)] to-[var(--color-gold)] transition-[height] duration-500 ease-out" style={{ height: `${(active / (FEATURES.length - 1)) * 100}%` }} />
+          </div>
           {FEATURES.map((ft, i) => {
             const Icon = ft.icon;
             const on = i === active;
             return (
-              <div key={ft.tag} ref={(el) => { steps.current[i] = el; }} data-i={i} className="flex min-h-[58vh] items-center">
-                <div className={`max-w-xl transition-all duration-500 ${on ? 'opacity-100' : 'opacity-35'}`}>
+              <div key={ft.tag} ref={(el) => { steps.current[i] = el; }} data-i={i} className="relative flex items-center" style={{ height: blockH }}>
+                <button
+                  type="button"
+                  aria-label={`ไปที่ ${ft.tag}`}
+                  onClick={() => goTo(i)}
+                  className={`absolute -left-12 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 bg-[var(--color-paper)] transition-all duration-300 ${on ? 'scale-110 border-[var(--color-gold)]' : i < active ? 'border-[var(--color-paddy)]' : 'border-emerald-900/20'}`}
+                >
+                  <span className={`h-2 w-2 rounded-full transition-colors ${on ? 'bg-[var(--color-gold)]' : i < active ? 'bg-[var(--color-paddy)]' : 'bg-transparent'}`} />
+                </button>
+                <div className={`max-w-xl transition-all duration-500 ease-out ${on ? 'translate-x-0 opacity-100' : 'translate-x-2 opacity-30'}`}>
                   <div className="flex items-center gap-3">
                     <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${TINT[ft.tint]}`}><Icon size={24} /></span>
                     <span className="text-sm font-extrabold text-gray-400">{String(i + 1).padStart(2, '0')} / {String(FEATURES.length).padStart(2, '0')}</span>
@@ -141,7 +194,7 @@ export default function AppTour() {
           })}
         </div>
         <div>
-          <div className="sticky top-[calc(50vh-300px)] flex flex-col items-center">
+          <div ref={pin} className="sticky flex flex-col items-center py-4" style={{ top: pinH ? `calc(${HEADER}px + (100vh - ${HEADER}px - ${pinH}px) / 2)` : `calc(50vh - 300px)` }}>
             <TourPhone feature={f} />
             <div className="mt-6 flex gap-2">
               {FEATURES.map((ft, i) => (
@@ -149,7 +202,7 @@ export default function AppTour() {
                   key={ft.tag}
                   type="button"
                   aria-label={ft.tag}
-                  onClick={() => steps.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  onClick={() => goTo(i)}
                   className={`h-2.5 rounded-full transition-all duration-300 ${i === active ? 'w-8 bg-[var(--color-gold)]' : 'w-2.5 bg-emerald-900/15 hover:bg-emerald-900/35'}`}
                 />
               ))}
