@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
+import { ThaiOnly } from '../../lib/i18n';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import FormField from '../../components/FormField';
 import { useAuth } from '../../lib/AuthContext';
@@ -117,6 +118,7 @@ export default function Login() {
   const backToPassword = () => { cancel2fa(); setOtp(null); setCode(''); setError(''); };
 
   return (
+    <ThaiOnly>
     <div className="min-h-screen flex flex-col md:flex-row bg-[var(--color-paper)]">
       <div className="hidden md:flex flex-[1.05] flex-col justify-center items-center bg-gradient-to-br from-[#0f3f3a] via-[#124d40] to-[var(--color-paddy-dark)] relative overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[#34D399] rounded-full mix-blend-overlay filter blur-3xl opacity-25 animate-blob" />
@@ -277,5 +279,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </ThaiOnly>
   );
 }

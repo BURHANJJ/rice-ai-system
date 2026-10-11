@@ -9,6 +9,16 @@ import PublicFooter from '../components/PublicFooter';
 import ChipScroller from '../components/riskmap/ChipScroller';
 import { categories, practices, RKB_ACCESSED } from '../lib/riceDiseases';
 import { isCaution, slugOf, useWikiDiseases } from '../lib/wikiContent';
+import { useI18n, useDocTitle } from '../lib/i18n';
+
+// Category names are Thai keys in the data; these are the English labels shown in English mode.
+const CAT_EN = { ทั้งหมด: 'All', เชื้อรา: 'Fungal', แบคทีเรีย: 'Bacterial', ไวรัส: 'Viral', ไฟโตพลาสมา: 'Phytoplasma', ไส้เดือนฝอย: 'Nematode', ไม่ทราบสาเหตุชัดเจน: 'Cause unclear', ไม่มีเชื้อสาเหตุ: 'Non-infectious' };
+const PRACTICES_EN = [
+  'Photograph the leaf, stem or panicle so the symptom is clear in daylight',
+  'Note the growth stage, such as seedling, tillering, booting or heading',
+  'Describe field conditions before the symptom: rain, humidity, standing water, fertiliser and insect vectors',
+  'If symptoms are severe or spreading fast, contact a local agricultural officer or researcher',
+];
 
 const ALL = categories[0];
 
@@ -38,35 +48,38 @@ function Highlight({ text, term }) {
 }
 
 function CategoryBadge({ category, className = '' }) {
+  const { lang } = useI18n();
   const c = CAT[category];
   const Icon = c.icon;
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold ring-1 ${c.chip} ${className}`}>
-      <Icon size={13} />{category}
+      <Icon size={13} />{lang === 'en' ? CAT_EN[category] || category : category}
     </span>
   );
 }
 
 function DiseaseCard({ disease, index, term, onOpen }) {
+  const { t, lang } = useI18n();
+  const en = lang === 'en';
   return (
     <article className="group flex min-w-0 flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm shadow-emerald-950/5 transition-shadow duration-300 hover:shadow-lg hover:shadow-emerald-950/5">
       <div className="relative aspect-[16/10] overflow-hidden bg-emerald-950/5">
-        <img src={disease.thumb} alt={`อาการ${disease.name}`} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+        <img src={disease.thumb} alt={en ? `${disease.tag} symptoms` : `อาการ${disease.name}`} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
         <CategoryBadge category={disease.category} className="absolute left-3 top-3 shadow-sm" />
         <span className="absolute right-3 top-3 rounded-full bg-black/35 px-2 py-0.5 text-[11px] font-extrabold text-white/90 backdrop-blur">{String(index + 1).padStart(2, '0')}</span>
         {disease.images.length > 1 && (
-          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur"><Images size={12} />{disease.images.length} ภาพ</span>
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur"><Images size={12} />{disease.images.length} {t({ th: 'ภาพ', en: 'photos' })}</span>
         )}
       </div>
       <div className="flex flex-1 flex-col p-5 pt-4">
       <h3 className="font-display text-[1.35rem] font-extrabold leading-snug text-gray-950">
-        <Highlight text={disease.name} term={term} />
+        <Highlight text={en ? disease.tag : disease.name} term={term} />
       </h3>
-      <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-[var(--color-paddy)]/70">{disease.tag}</p>
-      <p className="mt-3 text-sm italic leading-6 text-gray-500 [overflow-wrap:anywhere]">{disease.cause}</p>
+      <p lang={en ? 'th' : undefined} className="mt-0.5 text-xs font-bold uppercase tracking-wide text-[var(--color-paddy)]/70">{en ? disease.name : disease.tag}</p>
+      <p lang="th" className="mt-3 text-sm italic leading-6 text-gray-500 [overflow-wrap:anywhere]">{disease.cause}</p>
 
-      <ul className="mt-4 grid flex-1 content-start gap-2 border-t border-gray-100 pt-4">
+      <ul lang="th" className="mt-4 grid flex-1 content-start gap-2 border-t border-gray-100 pt-4">
         {disease.symptoms.slice(0, 2).map((s) => (
           <li key={s} className="flex gap-2 text-sm leading-6 text-gray-700">
             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: CAT[disease.category].dot }} />
@@ -77,7 +90,7 @@ function DiseaseCard({ disease, index, term, onOpen }) {
 
       <div className="mt-5 flex items-center">
         <button type="button" onClick={onOpen} className="group/btn -ml-3 inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-extrabold text-[var(--color-paddy)] transition hover:bg-emerald-50">
-          ดูอาการและการป้องกัน <ArrowRight size={15} className="transition-transform group-hover/btn:translate-x-1" />
+          {t({ th: 'ดูอาการและการป้องกัน', en: 'Symptoms and control' })} <ArrowRight size={15} className="transition-transform group-hover/btn:translate-x-1" />
         </button>
       </div>
       </div>
@@ -110,6 +123,7 @@ const thDate = (iso) => {
 
 /** Reference to the Rice Department page, in Thai APA style, with copy. */
 function Citation({ disease }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const pub = thDate(disease.published);
   const acc = thDate(RKB_ACCESSED);
@@ -127,30 +141,31 @@ function Citation({ disease }) {
     <section className="rounded-[1.25rem] border border-gray-200 bg-white/70 p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h3 className="flex items-center gap-2 text-sm font-extrabold text-gray-900">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-600"><BookOpen size={15} /></span>แหล่งอ้างอิง
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-gray-600"><BookOpen size={15} /></span>{t({ th: 'แหล่งอ้างอิง', en: 'Source' })}
         </h3>
         <button type="button" onClick={copy} className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-extrabold text-gray-500 ring-1 ring-gray-200 transition hover:bg-gray-50 hover:text-[var(--color-paddy)]">
-          {copied ? <><Check size={13} className="text-emerald-600" />คัดลอกแล้ว</> : <><Copy size={13} />คัดลอกการอ้างอิง</>}
+          {copied ? <><Check size={13} className="text-emerald-600" />{t({ th: 'คัดลอกแล้ว', en: 'Copied' })}</> : <><Copy size={13} />{t({ th: 'คัดลอกการอ้างอิง', en: 'Copy citation' })}</>}
         </button>
       </div>
       <p className="border-l-2 border-[var(--color-gold)] pl-3 text-[13px] leading-6 text-gray-600 [overflow-wrap:anywhere]">
         กรมการข้าว. ({pub.year}, {pub.day} {pub.month}). <i className="text-gray-800">{disease.name}</i>. ใน <i>องค์ความรู้เรื่องข้าว (Rice Knowledge Bank)</i>. กองวิจัยและพัฒนาข้าว กรมการข้าว. สืบค้นเมื่อ {acc.day} {acc.month} {acc.year}, จาก{' '}
         <a href={disease.source} target="_blank" rel="noreferrer" className="text-[var(--color-paddy)] underline decoration-emerald-200 underline-offset-2 hover:decoration-[var(--color-paddy)]">{disease.source.replace(/^https?:\/\//, '')}</a>
       </p>
-      <p className="mt-3 text-[11.5px] leading-5 text-gray-400">เนื้อหาโรคข้าวในหน้านี้เรียบเรียงจากองค์ความรู้เรื่องข้าว ลิขสิทธิ์เป็นของกรมการข้าว กระทรวงเกษตรและสหกรณ์</p>
+      <p className="mt-3 text-[11.5px] leading-5 text-gray-400">{t({ th: 'เนื้อหาโรคข้าวในหน้านี้เรียบเรียงจากองค์ความรู้เรื่องข้าว ลิขสิทธิ์เป็นของกรมการข้าว กระทรวงเกษตรและสหกรณ์', en: 'Disease content on this page is compiled from the Rice Knowledge Bank, © Rice Department, Ministry of Agriculture and Cooperatives. The citation is kept in Thai, as published.' })}</p>
     </section>
   );
 }
 
 /** Photos of the disease from the Rice Department page: main photo + thumbnails. */
 function Gallery({ disease, onOpen }) {
+  const { t } = useI18n();
   const [i, setI] = useState(0);
   const img = disease.images[i];
   return (
     <figure className="overflow-hidden rounded-[1.25rem] border border-gray-100 bg-white">
-      <button type="button" onClick={() => onOpen(i)} className="group relative block aspect-[4/3] w-full overflow-hidden bg-gray-900" aria-label="ดูภาพขนาดเต็ม">
+      <button type="button" onClick={() => onOpen(i)} className="group relative block aspect-[4/3] w-full overflow-hidden bg-gray-900" aria-label={t({ th: 'ดูภาพขนาดเต็ม', en: 'View full size' })}>
         <img src={img.src} alt={img.caption || `อาการ${disease.name}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-        <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition group-hover:bg-black/70"><Maximize2 size={13} />ขยายภาพ</span>
+        <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur transition group-hover:bg-black/70"><Maximize2 size={13} />{t({ th: 'ขยายภาพ', en: 'Enlarge' })}</span>
         {disease.images.length > 1 && <span className="absolute left-3 top-3 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">{i + 1} / {disease.images.length}</span>}
       </button>
       {disease.images.length > 1 && (
@@ -163,7 +178,7 @@ function Gallery({ disease, onOpen }) {
                 setI(k);
                 e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
               }}
-              aria-label={`ภาพที่ ${k + 1}`}
+              aria-label={t({ th: `ภาพที่ ${k + 1}`, en: `Photo ${k + 1}` })}
               aria-pressed={k === i}
               className={`h-14 w-20 shrink-0 overflow-hidden rounded-lg ring-2 ring-inset transition ${k === i ? 'ring-[var(--color-paddy)]' : 'opacity-70 ring-transparent hover:opacity-100'}`}
             >
@@ -174,7 +189,7 @@ function Gallery({ disease, onOpen }) {
       )}
       <figcaption className="flex items-center gap-1.5 border-t border-gray-100 px-3 py-2 text-[11.5px] text-gray-500">
         <Camera size={12} className="shrink-0" />
-        <span className="min-w-0 truncate">{img.caption ? `${img.caption} · ` : ''}ภาพ: กรมการข้าว</span>
+        <span className="min-w-0 truncate">{img.caption ? `${img.caption} · ` : ''}{t({ th: 'ภาพ: กรมการข้าว', en: 'Photo: Rice Department' })}</span>
       </figcaption>
     </figure>
   );
@@ -182,6 +197,7 @@ function Gallery({ disease, onOpen }) {
 
 /** Full-screen photo viewer: arrows, swipe, Esc. */
 function PhotoViewer({ disease, index, onIndex, onClose }) {
+  const { t } = useI18n();
   const n = disease.images.length;
   const img = disease.images[index];
   const touch = useRef(null);
@@ -211,21 +227,21 @@ function PhotoViewer({ disease, index, onIndex, onClose }) {
       }}
       role="dialog"
       aria-modal="true"
-      aria-label={`ภาพ${disease.name}`}
+      aria-label={t({ th: `ภาพ${disease.name}`, en: `${disease.tag} photos` })}
     >
       <div className="flex items-center justify-between px-4 py-3 text-white sm:px-6">
         <div className="min-w-0">
           <div className="truncate font-display text-lg font-extrabold">{disease.name}</div>
-          <div className="text-xs text-white/60">{n > 1 ? `${index + 1} / ${n} · ` : ''}ภาพ: กรมการข้าว</div>
+          <div className="text-xs text-white/60">{n > 1 ? `${index + 1} / ${n} · ` : ''}{t({ th: 'ภาพ: กรมการข้าว', en: 'Photo: Rice Department' })}</div>
         </div>
-        <button type="button" onClick={onClose} aria-label="ปิดภาพ" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><X size={20} /></button>
+        <button type="button" onClick={onClose} aria-label={t({ th: 'ปิดภาพ', en: 'Close photo' })} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"><X size={20} /></button>
       </div>
       <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-4 sm:px-16">
         <img key={img.src} src={img.src} alt={img.caption || `อาการ${disease.name}`} onClick={(e) => e.stopPropagation()} className="rb-tour-in max-h-full max-w-full rounded-lg object-contain shadow-2xl" />
         {n > 1 && (
           <>
-            <button type="button" aria-label="ภาพก่อนหน้า" onClick={go(-1)} className="absolute left-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"><ChevronLeft size={24} /></button>
-            <button type="button" aria-label="ภาพถัดไป" onClick={go(1)} className="absolute right-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"><ChevronRight size={24} /></button>
+            <button type="button" aria-label={t({ th: 'ภาพก่อนหน้า', en: 'Previous photo' })} onClick={go(-1)} className="absolute left-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"><ChevronLeft size={24} /></button>
+            <button type="button" aria-label={t({ th: 'ภาพถัดไป', en: 'Next photo' })} onClick={go(1)} className="absolute right-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"><ChevronRight size={24} /></button>
           </>
         )}
       </div>
@@ -236,35 +252,36 @@ function PhotoViewer({ disease, index, onIndex, onClose }) {
 
 /** Everything shown for one disease; also used by the admin editor's preview. */
 export function DiseaseBody({ disease, onOpenPhoto, className = 'grid gap-3 px-5 py-5 sm:px-6' }) {
+  const { t } = useI18n();
   return (
     <div className={className}>
       <Gallery key={disease.tag} disease={disease} onOpen={onOpenPhoto} />
       <div className="grid gap-3 sm:grid-cols-2">
-        <Section icon={Microscope} title="เชื้อสาเหตุ" tone="sky"><p className="text-sm italic leading-6 text-gray-700 [overflow-wrap:anywhere]">{disease.cause}</p></Section>
-        <Section icon={MapPin} title="พื้นที่ที่พบ" tone="green"><p className="text-sm leading-6 text-gray-700">{disease.found}</p></Section>
+        <Section icon={Microscope} title={t({ th: 'เชื้อสาเหตุ', en: 'Cause' })} tone="sky"><p lang="th" className="text-sm italic leading-6 text-gray-700 [overflow-wrap:anywhere]">{disease.cause}</p></Section>
+        <Section icon={MapPin} title={t({ th: 'พื้นที่ที่พบ', en: 'Where it occurs' })} tone="green"><p lang="th" className="text-sm leading-6 text-gray-700">{disease.found}</p></Section>
       </div>
-      <Section icon={AlertTriangle} title="สภาพที่เสี่ยงต่อการระบาด" tone="amber"><p className="text-sm leading-7 text-gray-700">{disease.risk}</p></Section>
-      <Section icon={Bug} title="อาการสำคัญ" tone="red">
-        <ul className="grid gap-2">
+      <Section icon={AlertTriangle} title={t({ th: 'สภาพที่เสี่ยงต่อการระบาด', en: 'Conditions that favour outbreaks' })} tone="amber"><p lang="th" className="text-sm leading-7 text-gray-700">{disease.risk}</p></Section>
+      <Section icon={Bug} title={t({ th: 'อาการสำคัญ', en: 'Key symptoms' })} tone="red">
+        <ul lang="th" className="grid gap-2">
           {disease.symptoms.map((s) => (
             <li key={s} className="flex gap-2.5 text-sm leading-6 text-gray-700"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />{s}</li>
           ))}
         </ul>
       </Section>
-      <Section icon={ShieldCheck} title="การป้องกันกำจัด" tone="green">
-        <p className="-mt-1 mb-3 text-xs font-semibold text-gray-400">ตามคำแนะนำของกรมการข้าว</p>
-        <ol className="grid gap-3">
+      <Section icon={ShieldCheck} title={t({ th: 'การป้องกันกำจัด', en: 'Prevention and control' })} tone="green">
+        <p className="-mt-1 mb-3 text-xs font-semibold text-gray-400">{t({ th: 'ตามคำแนะนำของกรมการข้าว', en: 'As recommended by the Rice Department' })}</p>
+        <ol lang="th" className="grid gap-3">
           {disease.control.filter((c) => c.text).map((c, i) => {
             const caution = isCaution(c.text);
             return (
             <li key={c.text} className={`flex gap-2.5 text-sm leading-6 ${caution ? '-mx-2 rounded-xl bg-amber-50 px-2 py-2 text-amber-950 ring-1 ring-amber-100' : 'text-gray-700'}`}>
               <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-black text-white ${caution ? 'bg-amber-500' : 'bg-[var(--color-paddy)]'}`}>{i + 1}</span>
               <div className="min-w-0">
-                {caution && <span className="mr-1.5 inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 align-[1px] text-[11px] font-extrabold text-amber-800"><AlertTriangle size={11} />ข้อควรระวัง</span>}
+                {caution && <span className="mr-1.5 inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 align-[1px] text-[11px] font-extrabold text-amber-800"><AlertTriangle size={11} />{t({ th: 'ข้อควรระวัง', en: 'Caution' })}</span>}
                 {c.text}
                 {c.sub && (
                   <ul className="mt-1.5 grid gap-1">
-                    {c.sub.map((t) => <li key={t} className="flex gap-2 text-[13px] text-gray-600"><span className="mt-2 h-1 w-2 shrink-0 rounded-full bg-emerald-400" />{t}</li>)}
+                    {c.sub.map((sub) => <li key={sub} className="flex gap-2 text-[13px] text-gray-600"><span className="mt-2 h-1 w-2 shrink-0 rounded-full bg-emerald-400" />{sub}</li>)}
                   </ul>
                 )}
               </div>
@@ -275,20 +292,20 @@ export function DiseaseBody({ disease, onOpenPhoto, className = 'grid gap-3 px-5
         {disease.control.filter((c) => c.note).map((c) => (
           <div key={c.note} className="mt-3 flex gap-2.5 rounded-xl bg-amber-50 p-3 text-[13px] leading-6 text-amber-950 ring-1 ring-amber-100">
             <AlertTriangle size={16} className="mt-1 shrink-0 text-amber-600" />
-            <p><span className="font-extrabold text-amber-800">ข้อควรระวัง: </span>{c.note}</p>
+            <p><span className="font-extrabold text-amber-800">{t({ th: 'ข้อควรระวัง: ', en: 'Caution: ' })}</span>{c.note}</p>
           </div>
         ))}
       </Section>
 
       {disease.chemicals?.length > 0 && (
-        <Section icon={FlaskConical} title="สารเคมีที่แนะนำ" tone="sky">
-          <p className="-mt-1 mb-3 text-xs font-semibold text-gray-400">ใช้เมื่อจำเป็นและตามอัตราที่กำหนดเท่านั้น</p>
+        <Section icon={FlaskConical} title={t({ th: 'สารเคมีที่แนะนำ', en: 'Recommended chemicals' })} tone="sky">
+          <p className="-mt-1 mb-3 text-xs font-semibold text-gray-400">{t({ th: 'ใช้เมื่อจำเป็นและตามอัตราที่กำหนดเท่านั้น', en: 'Use only when needed, at the stated rate' })}</p>
           <div className="overflow-x-auto rounded-xl ring-1 ring-sky-100">
             <table className="w-full min-w-[420px] text-left text-[13px]">
               <thead className="bg-sky-50/80 text-[11px] font-extrabold text-sky-900">
-                <tr><th className="px-3 py-2">สารเคมี</th><th className="px-3 py-2">อัตราการใช้</th><th className="px-3 py-2">ช่วงเวลา / วิธีใช้</th></tr>
+                <tr><th className="px-3 py-2">{t({ th: 'สารเคมี', en: 'Chemical' })}</th><th className="px-3 py-2">{t({ th: 'อัตราการใช้', en: 'Rate' })}</th><th className="px-3 py-2">{t({ th: 'ช่วงเวลา / วิธีใช้', en: 'Timing / method' })}</th></tr>
               </thead>
-              <tbody className="divide-y divide-sky-50 bg-white">
+              <tbody lang="th" className="divide-y divide-sky-50 bg-white">
                 {disease.chemicals.map((c) => (
                   <tr key={c.name} className="align-top">
                     <td className="px-3 py-2 font-bold text-gray-900">{c.name}{c.note && <span className="mt-1 flex items-start gap-1 text-[11px] font-semibold text-amber-700"><AlertTriangle size={11} className="mt-0.5 shrink-0" />{c.note}</span>}</td>
@@ -303,12 +320,13 @@ export function DiseaseBody({ disease, onOpenPhoto, className = 'grid gap-3 px-5
       )}
 
       <Citation disease={disease} />
-      <p className="flex items-start gap-2 text-xs leading-5 text-gray-500"><AlertTriangle size={14} className="mt-0.5 shrink-0" />หากพบอาการรุนแรงหรือระบาดเร็ว ควรยืนยันกับเจ้าหน้าที่ในพื้นที่ก่อนใช้สารเคมี</p>
+      <p className="flex items-start gap-2 text-xs leading-5 text-gray-500"><AlertTriangle size={14} className="mt-0.5 shrink-0" />{t({ th: 'หากพบอาการรุนแรงหรือระบาดเร็ว ควรยืนยันกับเจ้าหน้าที่ในพื้นที่ก่อนใช้สารเคมี', en: 'If symptoms are severe or spreading fast, confirm with a local officer before using chemicals.' })}</p>
     </div>
   );
 }
 
 function DiseaseDrawer({ disease, position, onClose, onPrev, onNext }) {
+  const { t, lang } = useI18n();
   const panel = useRef(null);
   const [viewer, setViewer] = useState(null); // index of the photo shown full screen
   useEffect(() => { setViewer(null); }, [disease]);
@@ -343,19 +361,20 @@ function DiseaseDrawer({ disease, position, onClose, onPrev, onNext }) {
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
               <CategoryBadge category={disease.category} />
-              <h2 className="mt-3 font-display text-3xl font-black leading-tight text-gray-950">{disease.name}</h2>
-              <p className="mt-1 text-sm font-bold text-[var(--color-paddy)]/70">{disease.tag}</p>
+              <h2 className="mt-3 font-display text-3xl font-black leading-tight text-gray-950">{lang === 'en' ? disease.tag : disease.name}</h2>
+              <p className="mt-1 text-sm font-bold text-[var(--color-paddy)]/70">{lang === 'en' ? disease.name : disease.tag}</p>
+              {lang === 'en' && <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-100">Details below are in Thai, as published by Thailand's Rice Department.</p>}
             </div>
-            <button type="button" onClick={onClose} aria-label="ปิด" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gray-500 shadow-sm ring-1 ring-gray-200 hover:text-gray-900"><X size={18} /></button>
+            <button type="button" onClick={onClose} aria-label={t({ th: 'ปิด', en: 'Close' })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gray-500 shadow-sm ring-1 ring-gray-200 hover:text-gray-900"><X size={18} /></button>
           </div>
         </div>
 
         <DiseaseBody disease={disease} onOpenPhoto={setViewer} />
 
         <div className="sticky bottom-0 mt-auto flex items-center justify-between gap-2 border-t border-gray-100 bg-[var(--color-paper)]/95 px-5 py-3 backdrop-blur sm:px-6">
-          <button type="button" onClick={onPrev} disabled={!onPrev} className="inline-flex h-10 items-center gap-1 rounded-xl px-3 text-sm font-extrabold text-gray-600 transition hover:bg-white disabled:opacity-30"><ChevronLeft size={17} />ก่อนหน้า</button>
+          <button type="button" onClick={onPrev} disabled={!onPrev} className="inline-flex h-10 items-center gap-1 rounded-xl px-3 text-sm font-extrabold text-gray-600 transition hover:bg-white disabled:opacity-30"><ChevronLeft size={17} />{t({ th: 'ก่อนหน้า', en: 'Previous' })}</button>
           <span className="text-xs font-bold text-gray-400">{position}</span>
-          <button type="button" onClick={onNext} disabled={!onNext} className="inline-flex h-10 items-center gap-1 rounded-xl px-3 text-sm font-extrabold text-gray-600 transition hover:bg-white disabled:opacity-30">ถัดไป<ChevronRight size={17} /></button>
+          <button type="button" onClick={onNext} disabled={!onNext} className="inline-flex h-10 items-center gap-1 rounded-xl px-3 text-sm font-extrabold text-gray-600 transition hover:bg-white disabled:opacity-30">{t({ th: 'ถัดไป', en: 'Next' })}<ChevronRight size={17} /></button>
         </div>
       </aside>
       {viewer !== null && <PhotoViewer disease={disease} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />}
@@ -364,6 +383,9 @@ function DiseaseDrawer({ disease, position, onClose, onPrev, onNext }) {
 }
 
 export default function RiceDiseases() {
+  const { t, lang } = useI18n();
+  useDocTitle({ th: 'ความรู้โรคข้าว · Rice AI', en: 'Rice diseases · Rice AI' });
+  const catLabel = (c) => (lang === 'en' ? CAT_EN[c] || c : c);
   const diseases = useWikiDiseases();
   const [params, setParams] = useSearchParams();
   const [category, setCategory] = useState(ALL);
@@ -403,29 +425,29 @@ export default function RiceDiseases() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 pb-10 pt-10 sm:px-6 lg:grid-cols-[1fr_380px] lg:pb-14 lg:pt-14">
           <div className="rb-reveal">
             <a href={RKB_HOME} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-extrabold text-[var(--color-paddy)] shadow-sm transition hover:border-emerald-300">
-              <ShieldCheck size={14} />อ้างอิงข้อมูลจาก Rice Knowledge Bank กรมการข้าว<ExternalLink size={12} className="opacity-60" />
+              <ShieldCheck size={14} />{t({ th: 'อ้างอิงข้อมูลจาก Rice Knowledge Bank กรมการข้าว', en: 'Source: Rice Department\'s Rice Knowledge Bank' })}<ExternalLink size={12} className="opacity-60" />
             </a>
             <h1 className="mt-4 font-display text-4xl font-black leading-[1.15] text-gray-950 sm:text-5xl lg:text-6xl">
-              คลังความรู้<span className="rb-shiny-text">โรคข้าว</span>
+              {lang === 'en' ? <>Rice <span className="rb-shiny-text">disease library</span></> : <>คลังความรู้<span className="rb-shiny-text">โรคข้าว</span></>}
             </h1>
             <p className="mt-4 max-w-2xl text-base font-medium leading-8 text-gray-600 sm:text-lg">
-              รู้จักอาการ สาเหตุ และวิธีป้องกันโรคข้าว {diseases.length} โรค จัดหมวดตามเชื้อสาเหตุ อ่านง่ายทั้งเกษตรกรและนักวิชาการ
+              {t({ th: `รู้จักอาการ สาเหตุ และวิธีป้องกันโรคข้าว ${diseases.length} โรค จัดหมวดตามเชื้อสาเหตุ อ่านง่ายทั้งเกษตรกรและนักวิชาการ`, en: `Symptoms, causes and control of ${diseases.length} rice diseases, grouped by cause, for farmers and researchers alike.` })}
             </p>
             <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-gray-600">
-              <span className="inline-flex items-center gap-2"><span className="font-display text-2xl font-black text-[var(--color-paddy)]">{diseases.length}</span>โรค</span>
-              <span className="inline-flex items-center gap-2"><span className="font-display text-2xl font-black text-[var(--color-paddy)]">{categories.length - 1}</span>หมวดเชื้อสาเหตุ</span>
-              <span className="inline-flex items-center gap-2"><Sprout size={18} className="text-emerald-600" />อาการ · สาเหตุ · การป้องกัน</span>
+              <span className="inline-flex items-center gap-2"><span className="font-display text-2xl font-black text-[var(--color-paddy)]">{diseases.length}</span>{t({ th: 'โรค', en: 'diseases' })}</span>
+              <span className="inline-flex items-center gap-2"><span className="font-display text-2xl font-black text-[var(--color-paddy)]">{categories.length - 1}</span>{t({ th: 'หมวดเชื้อสาเหตุ', en: 'cause groups' })}</span>
+              <span className="inline-flex items-center gap-2"><Sprout size={18} className="text-emerald-600" />{t({ th: 'อาการ · สาเหตุ · การป้องกัน', en: 'Symptoms · causes · control' })}</span>
             </div>
           </div>
 
           <div className="relative hidden lg:block rb-reveal rb-delay-2">
             <div className="relative rounded-[1.75rem] border border-emerald-100 bg-white/90 p-5 pr-28 shadow-2xl shadow-emerald-950/10 backdrop-blur">
-              <div className="text-xs font-extrabold uppercase tracking-wide text-[var(--color-paddy)]/70">ไม่แน่ใจว่าเป็นโรคอะไร?</div>
-              <p className="mt-2 font-display text-lg font-extrabold leading-snug text-gray-950">ถ่ายรูปใบข้าว<br />ให้ AI ช่วยดูในไม่กี่วินาที</p>
+              <div className="text-xs font-extrabold uppercase tracking-wide text-[var(--color-paddy)]/70">{t({ th: 'ไม่แน่ใจว่าเป็นโรคอะไร?', en: 'Not sure what it is?' })}</div>
+              <p className="mt-2 font-display text-lg font-extrabold leading-snug text-gray-950">{lang === 'en' ? <>Photograph the leaf<br />and let the AI check in seconds</> : <>ถ่ายรูปใบข้าว<br />ให้ AI ช่วยดูในไม่กี่วินาที</>}</p>
               <Link to="/#app" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[var(--color-paddy)] px-4 py-2.5 text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5">
-                <Smartphone size={16} />แอป Rice AI
+                <Smartphone size={16} />{t({ th: 'แอป Rice AI', en: 'Rice AI app' })}
               </Link>
-              <img src="/app/khao_hom_hello.webp" alt="น้องข้าวหอม" className="rb-peek pointer-events-none absolute -bottom-4 -right-3 w-36 drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
+              <img src="/app/khao_hom_hello.webp" alt={t({ th: 'น้องข้าวหอม', en: 'Khao Hom, the Rice AI mascot' })} className="rb-peek pointer-events-none absolute -bottom-4 -right-3 w-36 drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
             </div>
           </div>
         </div>
@@ -441,11 +463,11 @@ export default function RiceDiseases() {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="ค้นหาชื่อโรค อาการ หรือเชื้อสาเหตุ"
+                placeholder={t({ th: 'ค้นหาชื่อโรค อาการ หรือเชื้อสาเหตุ', en: 'Search by disease name (EN or TH), symptom or cause' })}
                 className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-gray-800 outline-none placeholder:text-gray-400 [&::-webkit-search-cancel-button]:hidden"
-                aria-label="ค้นหาโรคข้าว"
+                aria-label={t({ th: 'ค้นหาโรคข้าว', en: 'Search rice diseases' })}
               />
-              {search && <button type="button" onClick={() => setSearch('')} aria-label="ล้างคำค้นหา" className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X size={16} /></button>}
+              {search && <button type="button" onClick={() => setSearch('')} aria-label={t({ th: 'ล้างคำค้นหา', en: 'Clear search' })} className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X size={16} /></button>}
             </label>
             <div className="-mx-4 flex min-w-0 flex-1 gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 lg:flex-wrap [&::-webkit-scrollbar]:hidden">
               {categories.map((c) => {
@@ -459,7 +481,7 @@ export default function RiceDiseases() {
                     className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold transition ${on ? 'bg-[var(--color-paddy)] text-white shadow-md shadow-emerald-900/20' : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:text-[var(--color-paddy)] hover:ring-emerald-200'}`}
                   >
                     {c !== ALL && <span className="h-2 w-2 rounded-full" style={{ background: on ? '#fff' : CAT[c].dot }} />}
-                    {c}
+                    {catLabel(c)}
                     <span className={`text-xs font-extrabold ${on ? 'text-emerald-100' : 'text-gray-400'}`}>{counts[c]}</span>
                   </button>
                 );
@@ -473,17 +495,25 @@ export default function RiceDiseases() {
       <section className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-4 flex min-h-8 items-center justify-between gap-3 text-sm font-bold text-gray-500">
           <span aria-live="polite">
-            {hasFilter ? <>พบ <span className="text-gray-900">{filtered.length}</span> จาก {diseases.length} โรค</> : <>ทั้งหมด {diseases.length} โรค</>}
+            {lang === 'en'
+              ? (hasFilter ? <><span className="text-gray-900">{filtered.length}</span> of {diseases.length} diseases</> : <>All {diseases.length} diseases</>)
+              : (hasFilter ? <>พบ <span className="text-gray-900">{filtered.length}</span> จาก {diseases.length} โรค</> : <>ทั้งหมด {diseases.length} โรค</>)}
           </span>
-          {hasFilter && <button type="button" onClick={clear} className="rounded-lg px-2 py-1 font-extrabold text-[var(--color-paddy)] hover:bg-emerald-50">ล้างตัวกรอง</button>}
+          {hasFilter && <button type="button" onClick={clear} className="rounded-lg px-2 py-1 font-extrabold text-[var(--color-paddy)] hover:bg-emerald-50">{t({ th: 'ล้างตัวกรอง', en: 'Clear filters' })}</button>}
         </div>
 
+        {lang === 'en' && (
+          <p className="mb-4 flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900 ring-1 ring-amber-100">
+            <BookOpen size={17} className="mt-0.5 shrink-0" />
+            Disease names are shown in English. Descriptions, symptoms and control advice are in Thai, as published by Thailand's Rice Department; we have not machine-translated them to avoid errors in technical terms.
+          </p>
+        )}
         {filtered.length === 0 ? (
           <div className="rounded-[2rem] border border-dashed border-emerald-200 bg-emerald-50/60 p-10 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[var(--color-paddy)] shadow-sm"><Search size={26} /></div>
-            <h2 className="font-display text-2xl font-extrabold text-gray-950">ไม่พบโรคที่ตรงกับคำค้นหา</h2>
-            <p className="mt-2 text-sm font-medium leading-7 text-gray-600">ลองคำที่สั้นลง เช่น “ใบ” “เพลี้ย” “แบคทีเรีย” หรือเลือกหมวดอื่น</p>
-            <button type="button" onClick={clear} className="mt-5 inline-flex h-11 items-center rounded-xl bg-[var(--color-paddy)] px-5 text-sm font-extrabold text-white">ดูทั้งหมด</button>
+            <h2 className="font-display text-2xl font-extrabold text-gray-950">{t({ th: 'ไม่พบโรคที่ตรงกับคำค้นหา', en: 'No diseases match your search' })}</h2>
+            <p className="mt-2 text-sm font-medium leading-7 text-gray-600">{t({ th: 'ลองคำที่สั้นลง เช่น “ใบ” “เพลี้ย” “แบคทีเรีย” หรือเลือกหมวดอื่น', en: 'Try a shorter word, such as “blast”, “blight” or “virus”, or pick another group.' })}</p>
+            <button type="button" onClick={clear} className="mt-5 inline-flex h-11 items-center rounded-xl bg-[var(--color-paddy)] px-5 text-sm font-extrabold text-white">{t({ th: 'ดูทั้งหมด', en: 'Show all' })}</button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
@@ -498,33 +528,33 @@ export default function RiceDiseases() {
       <section className="relative overflow-hidden bg-[linear-gradient(180deg,var(--color-paper)_0%,#eef6ef_100%)] py-16 sm:py-20">
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-[var(--color-paddy)] shadow-sm ring-1 ring-emerald-100"><Sparkles size={14} />ก่อนขอคำแนะนำ</div>
-            <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-gray-950 sm:text-4xl">เตรียมข้อมูลให้ครบ วินิจฉัยได้แม่นขึ้น</h2>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-[var(--color-paddy)] shadow-sm ring-1 ring-emerald-100"><Sparkles size={14} />{t({ th: 'ก่อนขอคำแนะนำ', en: 'Before asking for advice' })}</div>
+            <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-gray-950 sm:text-4xl">{t({ th: 'เตรียมข้อมูลให้ครบ วินิจฉัยได้แม่นขึ้น', en: 'Better information, better diagnosis' })}</h2>
           </div>
           <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {practices.map((p, i) => (
               <li key={p} className="group rounded-[1.5rem] border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-950/5">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 font-display text-lg font-black text-[var(--color-paddy)] transition group-hover:bg-[var(--color-paddy)] group-hover:text-white">{i + 1}</span>
-                <p className="mt-4 text-sm font-bold leading-7 text-gray-800">{p}</p>
+                <p className="mt-4 text-sm font-bold leading-7 text-gray-800">{lang === 'en' ? PRACTICES_EN[i] : p}</p>
               </li>
             ))}
           </ol>
 
           <div className="mt-10 flex flex-col items-start justify-between gap-6 overflow-hidden rounded-[2rem] bg-[var(--color-paddy-dark)] p-6 text-white shadow-2xl shadow-emerald-950/20 sm:p-8 lg:flex-row lg:items-center">
             <div className="max-w-2xl">
-              <div className="flex items-center gap-2 text-xs font-extrabold text-emerald-200"><CheckCircle2 size={15} />สำหรับนักวิชาการและเจ้าหน้าที่</div>
-              <h2 className="mt-2 font-display text-2xl font-extrabold leading-tight sm:text-3xl">ต้องการข้อมูลภาคสนามเชิงลึก?</h2>
-              <p className="mt-2 text-sm leading-7 text-emerald-50/75">เข้าถึงสถิติการตรวจพบรายพื้นที่ แนวโน้มการระบาด และเครื่องมือวิเคราะห์ข้อมูลผ่าน Web Portal</p>
+              <div className="flex items-center gap-2 text-xs font-extrabold text-emerald-200"><CheckCircle2 size={15} />{t({ th: 'สำหรับนักวิชาการและเจ้าหน้าที่', en: 'For researchers and staff' })}</div>
+              <h2 className="mt-2 font-display text-2xl font-extrabold leading-tight sm:text-3xl">{t({ th: 'ต้องการข้อมูลภาคสนามเชิงลึก?', en: 'Need in-depth field data?' })}</h2>
+              <p className="mt-2 text-sm leading-7 text-emerald-50/75">{t({ th: 'เข้าถึงสถิติการตรวจพบรายพื้นที่ แนวโน้มการระบาด และเครื่องมือวิเคราะห์ข้อมูลผ่าน Web Portal', en: 'Detection statistics by area, outbreak trends and analysis tools in the web portal.' })}</p>
             </div>
             <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
-              <Link to="/apply-researcher" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[var(--color-paddy-dark)] transition hover:-translate-y-0.5"><UserPlus size={16} />ขอสิทธิ์นักวิชาการ</Link>
-              <Link to="/login" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-white/15"><LogIn size={16} />เข้าสู่ระบบ</Link>
+              <Link to="/apply-researcher" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[var(--color-paddy-dark)] transition hover:-translate-y-0.5"><UserPlus size={16} />{t({ th: 'ขอสิทธิ์นักวิชาการ', en: 'Request researcher access' })}</Link>
+              <Link to="/login" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-white/15"><LogIn size={16} />{t({ th: 'เข้าสู่ระบบ', en: 'Sign in' })}</Link>
             </div>
           </div>
         </div>
       </section>
 
-      <PublicFooter subtitle="คลังความรู้และระบบวิเคราะห์โรคข้าวด้วย AI" description="ข้อมูลความรู้โรคข้าวอ้างอิงจาก Rice Knowledge Bank กรมการข้าว ใช้ประกอบการเรียนรู้และการเฝ้าระวังโรคข้าว" />
+      <PublicFooter subtitle={{ th: 'คลังความรู้และระบบวิเคราะห์โรคข้าวด้วย AI', en: 'Rice disease library and AI analysis' }} description={{ th: 'ข้อมูลความรู้โรคข้าวอ้างอิงจาก Rice Knowledge Bank กรมการข้าว ใช้ประกอบการเรียนรู้และการเฝ้าระวังโรคข้าว', en: "Disease knowledge from the Rice Department's Rice Knowledge Bank, for learning and disease monitoring." }} />
 
       {openIndex >= 0 && (
         <DiseaseDrawer

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useI18n } from '../../lib/i18n';
 
 /**
  * Horizontal chip row that works with a mouse too: vertical wheel scrolls
  * sideways, click-drag scrolls, and arrow buttons appear when there is more.
  */
 export default function ChipScroller({ children, className = '' }) {
+  const { t } = useI18n();
   const ref = useRef(null);
   const [edge, setEdge] = useState({ left: false, right: false });
   const drag = useRef(null);
@@ -72,12 +74,12 @@ export default function ChipScroller({ children, className = '' }) {
         {children}
       </div>
       {edge.left && (
-        <button type="button" aria-label="เลื่อนไปทางซ้าย" onClick={() => by(-1)} className="absolute -left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md transition hover:text-[var(--color-paddy)]">
+        <button type="button" aria-label={t({ th: 'เลื่อนไปทางซ้าย', en: 'Scroll left' })} onClick={() => by(-1)} className="absolute -left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md transition hover:text-[var(--color-paddy)]">
           <ChevronLeft size={17} />
         </button>
       )}
       {edge.right && (
-        <button type="button" aria-label="เลื่อนไปทางขวา" onClick={() => by(1)} className="absolute -right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md transition hover:text-[var(--color-paddy)]">
+        <button type="button" aria-label={t({ th: 'เลื่อนไปทางขวา', en: 'Scroll right' })} onClick={() => by(1)} className="absolute -right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-md transition hover:text-[var(--color-paddy)]">
           <ChevronRight size={17} />
         </button>
       )}

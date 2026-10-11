@@ -3,6 +3,7 @@
 // cheer, then nod off. Decorative only; static when the viewer prefers reduced motion.
 import { useEffect, useRef, useState } from 'react';
 import { makeRow, Row, rng } from './PaddyField';
+import { useI18n } from '../../lib/i18n';
 
 const W = 1600;
 const H = 260;
@@ -22,12 +23,12 @@ const FIREFLIES = Array.from({ length: 16 }, (_, i) => {
 
 // x is % of the scene width; `say` appears in a bubble while Khao Hom stands there.
 const STOPS = [
-  { x: 7, mood: 'hello', say: 'สวัสดีครับ ผมน้องข้าวหอม' },
-  { x: 25, mood: 'scan', say: 'ขอส่องใบข้าวหน่อยนะ…' },
-  { x: 41, mood: 'think', say: 'จุดสีน้ำตาลนี่คืออะไรนะ' },
-  { x: 56, mood: 'phone', say: 'ถ่ายรูปให้ Rice AI ช่วยดู' },
-  { x: 72, mood: 'joy', say: 'ใบข้าวแข็งแรง เยี่ยมเลย!' },
-  { x: 88, mood: 'sleep', say: 'ราตรีสวัสดิ์ครับ… zZ' },
+  { x: 7, mood: 'hello', say: { th: 'สวัสดีครับ ผมน้องข้าวหอม', en: "Hi! I'm Khao Hom" } },
+  { x: 25, mood: 'scan', say: { th: 'ขอส่องใบข้าวหน่อยนะ…', en: 'Let me check this leaf…' } },
+  { x: 41, mood: 'think', say: { th: 'จุดสีน้ำตาลนี่คืออะไรนะ', en: 'Hmm, what are these brown spots?' } },
+  { x: 56, mood: 'phone', say: { th: 'ถ่ายรูปให้ Rice AI ช่วยดู', en: 'Snap a photo for Rice AI' } },
+  { x: 72, mood: 'joy', say: { th: 'ใบข้าวแข็งแรง เยี่ยมเลย!', en: 'Healthy leaf. Great!' } },
+  { x: 88, mood: 'sleep', say: { th: 'ราตรีสวัสดิ์ครับ… zZ', en: 'Good night… zZ' } },
 ];
 const MOODS = ['hello', 'happy', 'scan', 'think', 'phone', 'joy', 'sleep'];
 const SPEED = 5.5; // % of width per second
@@ -67,6 +68,7 @@ function useKhaoHomWalk(active) {
 }
 
 export default function FooterScene() {
+  const { t } = useI18n();
   const ref = useRef(null);
   const reduced = useReducedMotion();
   const [visible, setVisible] = useState(false);
@@ -139,7 +141,7 @@ export default function FooterScene() {
         className="fs-khao absolute z-10 w-[64px] -translate-x-1/2 sm:w-[82px] lg:w-[96px]"
         style={{ left: `${walk.x}%`, transition: `left ${walk.dur}s linear` }}
       >
-        <div className={`fs-bubble ${stop.x < 20 ? 'fs-bubble-l' : stop.x > 80 ? 'fs-bubble-r' : ''} ${talking && !reduced ? 'fs-bubble-on' : ''}`}>{stop.say}</div>
+        <div className={`fs-bubble ${stop.x < 20 ? 'fs-bubble-l' : stop.x > 80 ? 'fs-bubble-r' : ''} ${talking && !reduced ? 'fs-bubble-on' : ''}`}>{t(stop.say)}</div>
         <div className={walk.phase === 'walk' ? 'fs-walking' : ''}>
           <div className="relative aspect-[212/232]" style={{ transform: walk.left ? 'scaleX(-1)' : undefined }}>
             {MOODS.map((m) => (

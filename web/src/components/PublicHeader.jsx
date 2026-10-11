@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Globe2, LogIn, Menu, UserPlus, X } from 'lucide-react';
 import SiteAnnouncement from './AnnouncementBar';
+import { LANGS, useI18n } from '../lib/i18n';
 
 const mobileLinkBase = 'rice-public-nav-link flex items-center justify-between rounded-xl px-3 py-3 transition-colors';
 
 const NAV = [
-  { to: '/', label: 'หน้าหลัก', key: 'home' },
-  { to: '/#app', label: 'แอปมือถือ', key: 'app' },
-  { to: '/rice-diseases', label: 'ความรู้โรคข้าว', key: 'diseases' },
-  { to: '/risk-map', label: 'แผนที่การระบาด', key: 'map' },
+  { to: '/', label: { th: 'หน้าหลัก', en: 'Home' }, key: 'home' },
+  { to: '/#app', label: { th: 'แอปมือถือ', en: 'Mobile app' }, key: 'app' },
+  { to: '/rice-diseases', label: { th: 'ความรู้โรคข้าว', en: 'Rice diseases' }, key: 'diseases' },
+  { to: '/risk-map', label: { th: 'แผนที่การระบาด', en: 'Outbreak map' }, key: 'map' },
 ];
 
 /** True once the page has scrolled, plus 0–1 reading progress. */
@@ -69,7 +70,8 @@ export default function PublicHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const [languageOpen, setLanguageOpen] = useState(false);
-  const [language, setLanguage] = useState('ไทย');
+  const { lang, setLang, t } = useI18n();
+  const current = LANGS.find((l) => l.code === lang);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isHome = location.pathname === '/';
@@ -94,8 +96,8 @@ export default function PublicHeader() {
     return () => window.removeEventListener('keydown', esc);
   }, [mobileOpen]);
 
-  const chooseLanguage = (value) => {
-    setLanguage(value);
+  const chooseLanguage = (code) => {
+    setLang(code);
     setLanguageOpen(false);
   };
 
@@ -155,7 +157,7 @@ export default function PublicHeader() {
                   onClick={item.key === 'app' ? handleAppClick : (e) => handlePageClick(e, item.to)}
                   className={`rice-public-nav-link group relative rounded-xl px-3.5 py-2 transition-all duration-200 ${active ? 'rice-public-nav-strong bg-white text-[var(--color-paddy)] shadow-sm ring-1 ring-emerald-900/10' : 'text-gray-600 hover:bg-white/70 hover:text-[var(--color-paddy)]'}`}
                 >
-                  {item.label}
+                  {t(item.label)}
                   <span className={`pointer-events-none absolute inset-x-3.5 -bottom-px h-[2.5px] rounded-full bg-gradient-to-r from-[var(--color-paddy)] via-emerald-500 to-[var(--color-gold)] transition-transform duration-300 ${active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-50'}`} />
                 </Link>
               );
@@ -166,12 +168,12 @@ export default function PublicHeader() {
 
           <Link to="/apply-researcher" className="rice-public-nav-link inline-flex h-11 items-center gap-2 rounded-xl px-3 text-[var(--color-paddy)] transition-all hover:bg-emerald-50">
             <UserPlus size={16} />
-            สมัครนักวิชาการ
+            {t({ th: 'สมัครนักวิชาการ', en: 'Researcher access' })}
           </Link>
 
           <Link to="/login" className="rice-public-nav-link rice-public-nav-strong inline-flex h-11 items-center gap-2 rounded-xl bg-[var(--color-paddy)] px-5 text-white shadow-md shadow-[#166534]/25 transition-all hover:-translate-y-0.5 hover:bg-[var(--color-paddy-dark)]">
             <LogIn size={16} />
-            เข้าสู่ระบบ
+            {t({ th: 'เข้าสู่ระบบ', en: 'Sign in' })}
           </Link>
 
           <div className="relative">
@@ -179,30 +181,33 @@ export default function PublicHeader() {
               type="button"
               aria-haspopup="menu"
               aria-expanded={languageOpen}
+              aria-label={t({ th: 'เลือกภาษา', en: 'Choose language' })}
               onClick={() => setLanguageOpen((open) => !open)}
               onBlur={() => window.setTimeout(() => setLanguageOpen(false), 120)}
               className="rice-public-nav-link inline-flex h-11 min-w-[96px] items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 text-gray-800 shadow-sm transition-all hover:border-emerald-200 hover:shadow-md"
             >
               <span className="inline-flex items-center gap-2">
                 <Globe2 size={16} className="text-[var(--color-paddy)]" />
-                {language}
+                {current.label}
               </span>
               <ChevronDown size={15} className={`text-gray-400 transition-transform ${languageOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {languageOpen && (
               <div role="menu" className="absolute right-0 top-12 z-50 w-36 overflow-hidden rounded-2xl border border-gray-200 bg-white p-1.5 shadow-xl shadow-emerald-950/10 rb-menu-pop">
-                {['ไทย', 'English'].map((item) => (
+                {LANGS.map((item) => (
                   <button
-                    key={item}
+                    key={item.code}
                     type="button"
-                    role="menuitem"
+                    role="menuitemradio"
+                    aria-checked={lang === item.code}
+                    lang={item.code}
                     onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => chooseLanguage(item)}
-                    className={`rice-public-nav-link flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition-all ${language === item ? 'bg-emerald-50 text-[var(--color-paddy)]' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                    onClick={() => chooseLanguage(item.code)}
+                    className={`rice-public-nav-link flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition-all ${lang === item.code ? 'bg-emerald-50 text-[var(--color-paddy)]' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                   >
-                    {item}
-                    {language === item && <span className="h-2 w-2 rounded-full bg-[var(--color-paddy)]" />}
+                    {item.label}
+                    {lang === item.code && <span className="h-2 w-2 rounded-full bg-[var(--color-paddy)]" />}
                   </button>
                 ))}
               </div>
@@ -214,7 +219,7 @@ export default function PublicHeader() {
           type="button"
           onClick={() => setMobileOpen((open) => !open)}
           className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-[var(--color-paddy)] shadow-sm transition-all hover:border-emerald-200 hover:shadow-md lg:hidden"
-          aria-label={mobileOpen ? 'ปิดเมนู' : 'เปิดเมนู'}
+          aria-label={mobileOpen ? t({ th: 'ปิดเมนู', en: 'Close menu' }) : t({ th: 'เปิดเมนู', en: 'Open menu' })}
           aria-expanded={mobileOpen}
         >
           {mobileOpen ? <X size={21} /> : <Menu size={21} />}
@@ -234,19 +239,19 @@ export default function PublicHeader() {
                   onClick={item.key === 'app' ? handleAppClick : (e) => handlePageClick(e, item.to)}
                   className={mobileLinkClass(active)}
                 >
-                  {item.label}
+                  {t(item.label)}
                   {active && <span className="h-2 w-2 rounded-full bg-[var(--color-gold)] shadow-[0_0_0_4px_rgba(200,155,60,0.18)]" />}
                 </Link>
               );
             })}
             <div className="my-2 h-px bg-gray-200" />
-            <Link to="/apply-researcher" onClick={closeMobile} className="rice-public-nav-link rounded-xl px-3 py-3 text-[var(--color-paddy)] transition-colors hover:bg-emerald-50">สมัครนักวิชาการ</Link>
-            <Link to="/login" onClick={closeMobile} className="rice-public-nav-link rice-public-nav-strong rounded-xl bg-[var(--color-paddy)] px-3 py-3 text-center text-white">เข้าสู่ระบบ</Link>
+            <Link to="/apply-researcher" onClick={closeMobile} className="rice-public-nav-link rounded-xl px-3 py-3 text-[var(--color-paddy)] transition-colors hover:bg-emerald-50">{t({ th: 'สมัครนักวิชาการ', en: 'Researcher access' })}</Link>
+            <Link to="/login" onClick={closeMobile} className="rice-public-nav-link rice-public-nav-strong rounded-xl bg-[var(--color-paddy)] px-3 py-3 text-center text-white">{t({ th: 'เข้าสู่ระบบ', en: 'Sign in' })}</Link>
             <div className="mt-2 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-              <span className="rice-public-nav-link inline-flex items-center gap-2 text-gray-700"><Globe2 size={16} className="text-[var(--color-paddy)]" />{language}</span>
-              <div className="flex overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-                {['ไทย', 'English'].map((item) => (
-                  <button key={item} type="button" onClick={() => chooseLanguage(item)} className={`rice-public-nav-link rounded-md px-3 py-1.5 text-xs transition-all ${language === item ? 'bg-white text-[var(--color-paddy)] shadow-sm' : 'text-gray-500'}`}>{item}</button>
+              <span className="rice-public-nav-link inline-flex items-center gap-2 text-gray-700"><Globe2 size={16} className="text-[var(--color-paddy)]" />{t({ th: 'ภาษา', en: 'Language' })}</span>
+              <div role="radiogroup" className="flex overflow-hidden rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+                {LANGS.map((item) => (
+                  <button key={item.code} type="button" role="radio" aria-checked={lang === item.code} lang={item.code} onClick={() => chooseLanguage(item.code)} className={`rice-public-nav-link rounded-md px-3 py-1.5 text-xs transition-all ${lang === item.code ? 'bg-white text-[var(--color-paddy)] shadow-sm' : 'text-gray-500'}`}>{item.label}</button>
                 ))}
               </div>
             </div>

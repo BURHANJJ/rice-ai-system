@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ThaiOnly } from '../lib/i18n';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { adoptPreferences, useApplyPreferences } from '../lib/preferences';
@@ -305,6 +306,7 @@ export default function Layout({ children }) {
   const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || '');
 
   return (
+    <ThaiOnly>
     <div className="rb-shell flex h-screen overflow-hidden bg-[var(--color-paper)] font-sans text-gray-800">
       {currentNavGroup === 'admin' && <SignalsBridge role="admin" onChange={setSignals} />}
       <aside className={`rb-print-hide hidden h-full shrink-0 overflow-hidden border-r border-emerald-900/10 shadow-2xl transition-[width] duration-300 ease-out lg:block ${sidebarCollapsed ? 'w-[84px]' : 'w-72'}`}>
@@ -379,5 +381,6 @@ export default function Layout({ children }) {
         />
       )}
     </div>
+    </ThaiOnly>
   );
 }

@@ -3,13 +3,16 @@ import { ArrowLeft, BarChart3, Box, Bug, ChevronRight, Compass, Globe2, Loader2,
 import Map3D from './Map3D';
 import ChipScroller from './ChipScroller';
 import { loadDistricts, REGION_TH } from './geo';
-import { RISK, districtStats, thaiDate, topDisease } from './outbreakData';
+import { RISK, districtStats, topDisease } from './outbreakData';
+import { useI18n } from '../../lib/i18n';
+import { diseaseName, mapDate, placeName, regionName, riskText } from './mapText';
 
 export function RiskPill({ risk, className = '' }) {
+  const { lang } = useI18n();
   const m = RISK[risk];
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold ring-1 ${m.pill} ${className}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />{m.label}
+      <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />{riskText(risk, 'label', lang)}
     </span>
   );
 }
@@ -38,12 +41,13 @@ function MapButton({ label, onClick, active = false, children }) {
 }
 
 function Legend() {
+  const { t, lang } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] font-bold text-gray-500">
       {['high', 'medium', 'low'].map((k) => (
-        <span key={k} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: RISK[k].color }} />{RISK[k].label}</span>
+        <span key={k} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: RISK[k].color }} />{riskText(k, 'label', lang)}</span>
       ))}
-      <span className="ml-auto inline-flex items-center gap-1 text-gray-400"><BarChart3 size={13} />ความสูง = จุดที่พบโรค</span>
+      <span className="ml-auto inline-flex items-center gap-1 text-gray-400"><BarChart3 size={13} />{t({ th: 'ความสูง = จุดที่พบโรค', en: 'Height = disease reports' })}</span>
     </div>
   );
 }
@@ -61,6 +65,7 @@ function Panel({ children }) {
  * `onDetail(stat)` adds a "รายละเอียด" button to the province panel.
  */
 export default function OutbreakMap3D({ geo, stats, loading, error, region = '', selected, onSelect, onDetail, apiRef, className = '' }) {
+  const { t, lang } = useI18n();
   const [drill, setDrill] = useState(null); // { province: geo, districts: geo[] }
   const [drillLoading, setDrillLoading] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
@@ -136,12 +141,12 @@ export default function OutbreakMap3D({ geo, stats, loading, error, region = '',
       <Panel key="overview">
         <Legend />
         {top.length === 0 ? (
-          <div className="mt-3 flex items-center gap-3 text-sm text-gray-600"><ShieldCheck size={20} className="text-emerald-600" />ยังไม่พบพื้นที่ระบาด แตะจังหวัดเพื่อดูรายอำเภอ</div>
+          <div className="mt-3 flex items-center gap-3 text-sm text-gray-600"><ShieldCheck size={20} className="text-emerald-600" />{t({ th: 'ยังไม่พบพื้นที่ระบาด แตะจังหวัดเพื่อดูรายอำเภอ', en: 'No outbreaks yet. Tap a province to see its districts.' })}</div>
         ) : (
           <ChipScroller className="mt-3">
             {top.map((s) => (
               <button key={s.geo.code} type="button" onClick={() => focusProvince(s.geo)} className={`shrink-0 rounded-xl px-3 py-2 text-[12.5px] font-extrabold ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${RISK[s.risk].pill}`}>
-                {s.geo.name} · {s.cases}
+                {placeName(s.geo, lang)} · {s.cases}
               </button>
             ))}
           </ChipScroller>
@@ -153,20 +158,20 @@ export default function OutbreakMap3D({ geo, stats, loading, error, region = '',
       <Panel key={`p${selStat.geo.code}`}>
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            <div className="font-display text-xl font-black text-gray-950">{selStat.geo.name}</div>
-            <div className="text-xs font-semibold text-gray-500">ภาค{selStat.geo.regionTh} · {selStat.geo.nameEn}</div>
+            <div className="font-display text-xl font-black text-gray-950">{placeName(selStat.geo, lang)}</div>
+            <div className="text-xs font-semibold text-gray-500">{regionName(selStat.geo.region, selStat.geo.regionTh, lang)} · {lang === 'en' ? selStat.geo.name : selStat.geo.nameEn}</div>
           </div>
           <div className="text-right">
             <RiskPill risk={selStat.risk} />
-            <div className="mt-1 text-xs font-bold text-gray-600">พบโรค {selStat.cases} จุด</div>
+            <div className="mt-1 text-xs font-bold text-gray-600">{t({ th: `พบโรค ${selStat.cases} จุด`, en: `${selStat.cases} disease reports` })}</div>
           </div>
         </div>
         {topDisease(selStat.diseases) && (
-          <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-[12.5px] font-bold text-red-700"><Bug size={15} />โรคที่พบมากที่สุด: {topDisease(selStat.diseases)}</div>
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-[12.5px] font-bold text-red-700"><Bug size={15} />{t({ th: 'โรคที่พบมากที่สุด: ', en: 'Most common: ' })}{diseaseName(topDisease(selStat.diseases), lang)}</div>
         )}
         <div className={`mt-3 grid gap-2 ${onDetail ? 'grid-cols-2' : 'grid-cols-1'}`}>
-          <button type="button" onClick={() => openDrill(selStat.geo)} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--color-paddy)] text-sm font-extrabold text-white transition hover:bg-[var(--color-paddy-dark)]"><ZoomIn size={16} />ดูรายอำเภอ</button>
-          {onDetail && <button type="button" onClick={() => onDetail(selStat)} className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-extrabold text-[var(--color-paddy)] transition hover:bg-emerald-50">รายละเอียด<ChevronRight size={16} /></button>}
+          <button type="button" onClick={() => openDrill(selStat.geo)} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--color-paddy)] text-sm font-extrabold text-white transition hover:bg-[var(--color-paddy-dark)]"><ZoomIn size={16} />{t({ th: 'ดูรายอำเภอ', en: 'Districts' })}</button>
+          {onDetail && <button type="button" onClick={() => onDetail(selStat)} className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-extrabold text-[var(--color-paddy)] transition hover:bg-emerald-50">{t({ th: 'รายละเอียด', en: 'Details' })}<ChevronRight size={16} /></button>}
         </div>
       </Panel>
     );
@@ -176,18 +181,18 @@ export default function OutbreakMap3D({ geo, stats, loading, error, region = '',
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: `${RISK[selDistrict.risk].color}22`, color: RISK[selDistrict.risk].color }}><MapPin size={19} /></span>
           <div className="min-w-0 flex-1">
-            <div className="font-display text-lg font-black text-gray-950">อ.{selDistrict.geo.name}</div>
-            <div className="text-xs font-semibold text-gray-500">จ.{drill.province.name} · {selDistrict.geo.nameEn}</div>
+            <div className="font-display text-lg font-black text-gray-950">{lang === 'en' ? placeName(selDistrict.geo, lang) : `อ.${selDistrict.geo.name}`}</div>
+            <div className="text-xs font-semibold text-gray-500">{lang === 'en' ? `${placeName(drill.province, lang)} · ${selDistrict.geo.name}` : `จ.${drill.province.name} · ${selDistrict.geo.nameEn}`}</div>
           </div>
           <RiskPill risk={selDistrict.risk} />
         </div>
         <div className="mt-3 flex divide-x divide-gray-100">
-          <MiniStat value={selDistrict.cases} label="จุดที่พบโรค" color={RISK[selDistrict.risk].color} />
-          <MiniStat value={selDistrict.healthy} label="สแกนปกติ" color="#2D6A4F" />
-          <MiniStat value={thaiDate(selDistrict.latest)} label="พบล่าสุด" color="#1C211E" />
+          <MiniStat value={selDistrict.cases} label={t({ th: 'จุดที่พบโรค', en: 'Disease reports' })} color={RISK[selDistrict.risk].color} />
+          <MiniStat value={selDistrict.healthy} label={t({ th: 'สแกนปกติ', en: 'Healthy scans' })} color="#2D6A4F" />
+          <MiniStat value={mapDate(selDistrict.latest, lang)} label={t({ th: 'พบล่าสุด', en: 'Last seen' })} color="#1C211E" />
         </div>
         {topDisease(selDistrict.diseases) && (
-          <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-[12.5px] font-bold text-red-700"><Bug size={15} />โรคที่พบมากที่สุด: {topDisease(selDistrict.diseases)}</div>
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-[12.5px] font-bold text-red-700"><Bug size={15} />{t({ th: 'โรคที่พบมากที่สุด: ', en: 'Most common: ' })}{diseaseName(topDisease(selDistrict.diseases), lang)}</div>
         )}
       </Panel>
     );
@@ -199,16 +204,16 @@ export default function OutbreakMap3D({ geo, stats, loading, error, region = '',
       <Panel key={`list${drill.province.code}`}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <div className="font-display text-lg font-black text-gray-950">{vals.length} อำเภอ</div>
-            <div className="text-xs font-semibold text-gray-500">{affected === 0 ? 'ยังไม่พบโรคในจังหวัดนี้' : `พบโรค ${total} จุด ใน ${affected} อำเภอ`}</div>
+            <div className="font-display text-lg font-black text-gray-950">{t({ th: `${vals.length} อำเภอ`, en: `${vals.length} districts` })}</div>
+            <div className="text-xs font-semibold text-gray-500">{affected === 0 ? t({ th: 'ยังไม่พบโรคในจังหวัดนี้', en: 'No disease reported in this province' }) : t({ th: `พบโรค ${total} จุด ใน ${affected} อำเภอ`, en: `${total} reports in ${affected} districts` })}</div>
           </div>
-          {onDetail && <button type="button" onClick={() => onDetail(stats[drill.province.code])} className="text-sm font-extrabold text-[var(--color-paddy)] hover:underline">รายละเอียดจังหวัด</button>}
+          {onDetail && <button type="button" onClick={() => onDetail(stats[drill.province.code])} className="text-sm font-extrabold text-[var(--color-paddy)] hover:underline">{t({ th: 'รายละเอียดจังหวัด', en: 'Province details' })}</button>}
         </div>
         <ChipScroller className="mt-3">
           {vals.map((d) => (
             <button key={d.geo.code} type="button" onClick={() => setSelectedDistrict(d.geo.code)} className={`w-[118px] shrink-0 rounded-xl px-3 py-2 text-left ${d.cases > 0 ? RISK[d.risk].pill + ' ring-1' : 'bg-gray-50'}`}>
-              <div className="truncate text-[12.5px] font-extrabold text-gray-900">{d.geo.name}</div>
-              <div className={`text-[11.5px] font-bold ${d.cases > 0 ? '' : 'text-gray-400'}`}>{d.cases > 0 ? `พบโรค ${d.cases} จุด` : 'ไม่พบโรค'}</div>
+              <div className="truncate text-[12.5px] font-extrabold text-gray-900">{placeName(d.geo, lang)}</div>
+              <div className={`text-[11.5px] font-bold ${d.cases > 0 ? '' : 'text-gray-400'}`}>{d.cases > 0 ? t({ th: `พบโรค ${d.cases} จุด`, en: `${d.cases} reports` }) : t({ th: 'ไม่พบโรค', en: 'None' })}</div>
             </button>
           ))}
         </ChipScroller>
@@ -239,7 +244,7 @@ export default function OutbreakMap3D({ geo, stats, loading, error, region = '',
 
       {(loading || drillLoading) && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-paper)]/50 backdrop-blur-[2px]">
-          <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-[var(--color-paddy)] shadow-xl"><Loader2 size={18} className="animate-spin" />{drillLoading ? 'กำลังโหลดรายอำเภอ…' : 'กำลังโหลดข้อมูลการระบาด…'}</div>
+          <div className="flex items-center gap-3 rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-[var(--color-paddy)] shadow-xl"><Loader2 size={18} className="animate-spin" />{drillLoading ? t({ th: 'กำลังโหลดรายอำเภอ…', en: 'Loading districts…' }) : t({ th: 'กำลังโหลดข้อมูลการระบาด…', en: 'Loading outbreak data…' })}</div>
         </div>
       )}
       {error && (
@@ -248,42 +253,42 @@ export default function OutbreakMap3D({ geo, stats, loading, error, region = '',
 
       {/* breadcrumb */}
       <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-5rem)] items-center gap-2 rounded-full border border-gray-200 bg-white/95 p-1 pr-4 shadow-md backdrop-blur sm:left-4 sm:top-4">
-        <button type="button" onClick={drill ? backToCountry : undefined} aria-label={drill ? 'กลับมุมมองประเทศ' : 'ประเทศไทย'} className={`flex h-8 w-8 items-center justify-center rounded-full ${drill ? 'bg-[var(--color-paddy)] text-white' : 'bg-emerald-50 text-[var(--color-paddy)]'}`}>
+        <button type="button" onClick={drill ? backToCountry : undefined} aria-label={drill ? t({ th: 'กลับมุมมองประเทศ', en: 'Back to country view' }) : t({ th: 'ประเทศไทย', en: 'Thailand' })} className={`flex h-8 w-8 items-center justify-center rounded-full ${drill ? 'bg-[var(--color-paddy)] text-white' : 'bg-emerald-50 text-[var(--color-paddy)]'}`}>
           {drill ? <ArrowLeft size={16} /> : <Globe2 size={16} />}
         </button>
         <span className="truncate text-sm">
-          <span className={drill ? 'font-medium text-gray-500' : 'font-extrabold text-gray-900'}>ประเทศไทย</span>
-          {drill && <><span className="mx-2 text-gray-300">›</span><span className="font-extrabold text-gray-900">{drill.province.name}</span></>}
-          {!drill && region && <><span className="mx-2 text-gray-300">›</span><span className="font-extrabold text-gray-900">ภาค{REGION_TH[region]}</span></>}
+          <span className={drill ? 'font-medium text-gray-500' : 'font-extrabold text-gray-900'}>{t({ th: 'ประเทศไทย', en: 'Thailand' })}</span>
+          {drill && <><span className="mx-2 text-gray-300">›</span><span className="font-extrabold text-gray-900">{placeName(drill.province, lang)}</span></>}
+          {!drill && region && <><span className="mx-2 text-gray-300">›</span><span className="font-extrabold text-gray-900">{regionName(region, REGION_TH[region], lang)}</span></>}
         </span>
       </div>
 
       {/* controls */}
       <div className="absolute right-3 top-3 z-10 flex flex-col gap-2 sm:right-4 sm:top-4">
-        <MapButton label={cam.is3D ? 'มุมมอง 2 มิติ' : 'มุมมอง 3 มิติ'} onClick={() => map.current?.toggle3D()} active={cam.is3D}>{cam.is3D ? '3D' : <Box size={18} />}</MapButton>
-        <MapButton label="หันทิศเหนือขึ้น" onClick={() => map.current?.resetRotation()}>
+        <MapButton label={cam.is3D ? t({ th: 'มุมมอง 2 มิติ', en: '2D view' }) : t({ th: 'มุมมอง 3 มิติ', en: '3D view' })} onClick={() => map.current?.toggle3D()} active={cam.is3D}>{cam.is3D ? '3D' : <Box size={18} />}</MapButton>
+        <MapButton label={t({ th: 'หันทิศเหนือขึ้น', en: 'Point north up' })} onClick={() => map.current?.resetRotation()}>
           <Compass size={18} className="text-red-600 transition-transform" style={{ transform: `rotate(${cam.rotation}rad)` }} />
         </MapButton>
-        <MapButton label="ซูมเข้า" onClick={() => map.current?.zoomBy(1.4)}><Plus size={18} /></MapButton>
-        <MapButton label="ซูมออก" onClick={() => map.current?.zoomBy(1 / 1.4)}><Minus size={18} /></MapButton>
-        <MapButton label="จัดแผนที่ให้พอดี" onClick={() => map.current?.resetView()}><Maximize2 size={17} /></MapButton>
+        <MapButton label={t({ th: 'ซูมเข้า', en: 'Zoom in' })} onClick={() => map.current?.zoomBy(1.4)}><Plus size={18} /></MapButton>
+        <MapButton label={t({ th: 'ซูมออก', en: 'Zoom out' })} onClick={() => map.current?.zoomBy(1 / 1.4)}><Minus size={18} /></MapButton>
+        <MapButton label={t({ th: 'จัดแผนที่ให้พอดี', en: 'Fit map' })} onClick={() => map.current?.resetView()}><Maximize2 size={17} /></MapButton>
       </div>
 
       {/* hover tooltip (desktop) */}
       {hover && hoverStat && (
         <div className="pointer-events-none absolute z-10 rounded-xl bg-white/95 px-3 py-2 text-center shadow-xl ring-1 ring-gray-100" style={{ left: hover.x, top: hover.y, transform: 'translate(-50%, calc(-100% - 14px))' }}>
-          <div className="text-[13.5px] font-black text-gray-900">{drill ? `อ.${hover.geo.name}` : hover.geo.name}</div>
+          <div className="text-[13.5px] font-black text-gray-900">{lang === 'en' ? placeName(hover.geo, lang) : drill ? `อ.${hover.geo.name}` : hover.geo.name}</div>
           <div className="mt-0.5 flex items-center justify-center gap-1.5 text-xs font-extrabold" style={{ color: RISK[hoverStat.risk].color }}>
-            <span className="h-2 w-2 rounded-full" style={{ background: RISK[hoverStat.risk].color }} />{RISK[hoverStat.risk].label} · {hoverStat.cases} จุด
+            <span className="h-2 w-2 rounded-full" style={{ background: RISK[hoverStat.risk].color }} />{riskText(hoverStat.risk, 'label', lang)} · {t({ th: `${hoverStat.cases} จุด`, en: `${hoverStat.cases} reports` })}
           </div>
-          {!drill && <div className="mt-0.5 text-[11px] font-semibold text-gray-400">{hover.geo.code === selected ? 'คลิกอีกครั้งเพื่อดูรายอำเภอ' : 'คลิกเพื่อเลือก'}</div>}
+          {!drill && <div className="mt-0.5 text-[11px] font-semibold text-gray-400">{hover.geo.code === selected ? t({ th: 'คลิกอีกครั้งเพื่อดูรายอำเภอ', en: 'Click again for districts' }) : t({ th: 'คลิกเพื่อเลือก', en: 'Click to select' })}</div>}
         </div>
       )}
 
       {/* bottom panel */}
       <div className="absolute inset-x-3 bottom-3 z-10 sm:inset-x-4 sm:bottom-4 lg:right-auto lg:w-[480px]">{panel}</div>
 
-      <div className="pointer-events-none absolute bottom-4 right-5 z-0 hidden text-right text-[11px] font-semibold text-gray-400 lg:block">ลากเพื่อเลื่อน · ล้อเมาส์ซูม · คลิกขวาลากเพื่อหมุน/เอียง</div>
+      <div className="pointer-events-none absolute bottom-4 right-5 z-0 hidden text-right text-[11px] font-semibold text-gray-400 lg:block">{t({ th: 'ลากเพื่อเลื่อน · ล้อเมาส์ซูม · คลิกขวาลากเพื่อหมุน/เอียง', en: 'Drag to pan · scroll to zoom · right-drag to rotate/tilt' })}</div>
     </div>
   );
 }

@@ -4,10 +4,18 @@ import { FileText, ShieldCheck, Printer, Mail, ArrowRight, Info } from 'lucide-r
 import PublicHeader from '../components/PublicHeader';
 import PublicFooter from '../components/PublicFooter';
 import { privacy, terms, CONTACT_EMAIL } from '../lib/legalContent';
+import { privacyEn, termsEn } from '../lib/legalContentEn';
+import { useI18n } from '../lib/i18n';
 
 const PAGES = {
-  privacy: { ...privacy, icon: ShieldCheck, other: { to: '/terms', label: 'เงื่อนไขการให้บริการ' } },
-  terms: { ...terms, icon: FileText, other: { to: '/privacy', label: 'นโยบายความเป็นส่วนตัว' } },
+  th: {
+    privacy: { ...privacy, icon: ShieldCheck, other: { to: '/terms', label: 'เงื่อนไขการให้บริการ' } },
+    terms: { ...terms, icon: FileText, other: { to: '/privacy', label: 'นโยบายความเป็นส่วนตัว' } },
+  },
+  en: {
+    privacy: { ...privacyEn, icon: ShieldCheck, other: { to: '/terms', label: 'Terms of Service' } },
+    terms: { ...termsEn, icon: FileText, other: { to: '/privacy', label: 'Privacy Policy' } },
+  },
 };
 
 function Block({ b }) {
@@ -54,7 +62,9 @@ function Block({ b }) {
 }
 
 export default function LegalPage({ type }) {
-  const page = PAGES[type] || PAGES.terms;
+  const { t, lang } = useI18n();
+  const set = PAGES[lang] || PAGES.th;
+  const page = set[type] || set.terms;
   const Icon = page.icon;
   const [active, setActive] = useState(page.sections[0].id);
 
@@ -77,14 +87,14 @@ export default function LegalPage({ type }) {
         <section className="border-b border-emerald-900/10 bg-white/70 print:border-0">
           <div className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
             <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-paddy)]">
-              <Icon size={18} /> เอกสารทางกฎหมาย
+              <Icon size={18} /> {t({ th: 'เอกสารทางกฎหมาย', en: 'Legal' })}
             </div>
             <h1 className="mt-3 font-display text-4xl font-bold text-gray-950 sm:text-5xl">{page.title}</h1>
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-500">
-              <span>มีผลตั้งแต่ {page.updated}</span>
-              <span>ฉบับที่ {page.version}</span>
+              <span>{t({ th: 'มีผลตั้งแต่', en: 'Effective' })} {page.updated}</span>
+              <span>{t({ th: 'ฉบับที่', en: 'Version' })} {page.version}</span>
               <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 font-semibold text-[var(--color-paddy-dark)] hover:underline print:hidden">
-                <Printer size={15} /> พิมพ์ / บันทึกเป็น PDF
+                <Printer size={15} /> {t({ th: 'พิมพ์ / บันทึกเป็น PDF', en: 'Print / save as PDF' })}
               </button>
             </div>
           </div>
@@ -92,9 +102,9 @@ export default function LegalPage({ type }) {
 
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-10 lg:grid-cols-[240px_minmax(0,1fr)] lg:py-14">
           {/* Table of contents */}
-          <nav aria-label="สารบัญ" className="hidden lg:block print:hidden">
+          <nav aria-label={t({ th: 'สารบัญ', en: 'Contents' })} className="hidden lg:block print:hidden">
             <div className="sticky top-28">
-              <div className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">สารบัญ</div>
+              <div className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">{t({ th: 'สารบัญ', en: 'Contents' })}</div>
               <ol className="space-y-1 border-l border-gray-200">
                 {page.sections.map((s, i) => (
                   <li key={s.id}>
@@ -114,7 +124,7 @@ export default function LegalPage({ type }) {
           <article className="min-w-0">
             {/* Summary */}
             <div className="mb-12 rounded-3xl border border-emerald-100 bg-white p-6 shadow-xl shadow-emerald-950/5 sm:p-8 print:shadow-none">
-              <h2 className="font-display text-xl font-bold text-gray-950">สรุปสั้น ๆ</h2>
+              <h2 className="font-display text-xl font-bold text-gray-950">{t({ th: 'สรุปสั้น ๆ', en: 'In short' })}</h2>
               <ul className="mt-4 space-y-3">
                 {page.summary.map((t) => (
                   <li key={t} className="flex gap-3 leading-relaxed text-gray-700">
@@ -123,7 +133,8 @@ export default function LegalPage({ type }) {
                   </li>
                 ))}
               </ul>
-              <p className="mt-5 text-sm text-gray-500">สรุปนี้ช่วยให้อ่านง่ายขึ้น เนื้อหาที่มีผลบังคับคือรายละเอียดด้านล่าง</p>
+              <p className="mt-5 text-sm text-gray-500">{t({ th: 'สรุปนี้ช่วยให้อ่านง่ายขึ้น เนื้อหาที่มีผลบังคับคือรายละเอียดด้านล่าง', en: 'This summary is for convenience; the full text below is what applies.' })}</p>
+              {lang === 'en' && <p className="mt-2 text-sm font-semibold text-amber-800">This is an English translation. If it differs from the Thai version, the Thai version prevails.</p>}
             </div>
 
             <div className="space-y-12">
@@ -143,8 +154,8 @@ export default function LegalPage({ type }) {
             {/* Contact */}
             <div className="mt-14 grid gap-4 rounded-3xl bg-[var(--color-paddy-dark)] p-6 text-white sm:grid-cols-[1fr_auto] sm:items-center sm:p-8 print:bg-white print:text-gray-900">
               <div>
-                <h2 className="font-display text-xl font-bold">มีคำถามหรือต้องการใช้สิทธิ์เกี่ยวกับข้อมูล</h2>
-                <p className="mt-1.5 text-sm text-emerald-100/90 print:text-gray-600">ส่งอีเมลจากบัญชีที่ลงทะเบียนไว้ เราจะตอบภายใน 30 วัน</p>
+                <h2 className="font-display text-xl font-bold">{t({ th: 'มีคำถามหรือต้องการใช้สิทธิ์เกี่ยวกับข้อมูล', en: 'Questions, or want to exercise your data rights?' })}</h2>
+                <p className="mt-1.5 text-sm text-emerald-100/90 print:text-gray-600">{t({ th: 'ส่งอีเมลจากบัญชีที่ลงทะเบียนไว้ เราจะตอบภายใน 30 วัน', en: 'Email us from your registered address. We reply within 30 days.' })}</p>
               </div>
               <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Rice AI: ' + page.title)}`} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-[var(--color-paddy-dark)] transition hover:bg-emerald-50 print:border print:border-gray-300">
                 <Mail size={16} /> {CONTACT_EMAIL}
@@ -152,7 +163,7 @@ export default function LegalPage({ type }) {
             </div>
 
             <Link to={page.other.to} className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-paddy-dark)] hover:underline print:hidden">
-              อ่าน{page.other.label} <ArrowRight size={15} />
+              {t({ th: 'อ่าน', en: 'Read the ' })}{page.other.label} <ArrowRight size={15} />
             </Link>
           </article>
         </div>

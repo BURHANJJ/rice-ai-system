@@ -1,8 +1,10 @@
 ﻿import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { ThaiOnly } from '../../lib/i18n';
 
 export default function AuthShell({ title, subtitle, children }) {
   return (
+    <ThaiOnly>
     <div className="min-h-screen px-4 py-10" style={{ background: 'var(--color-paddy-dark)' }}>
       <div className="mx-auto w-full max-w-2xl">
         <div className="mb-7 text-center">
@@ -19,7 +21,7 @@ export default function AuthShell({ title, subtitle, children }) {
             className="group mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-[var(--color-paddy)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100"
           >
             <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
-            Back to home
+            กลับหน้าแรก
           </Link>
 
           <h1 className="mb-2 font-display text-2xl font-bold text-[var(--color-paddy-dark)]">{title}</h1>
@@ -28,5 +30,6 @@ export default function AuthShell({ title, subtitle, children }) {
         </div>
       </div>
     </div>
+    </ThaiOnly>
   );
 }
