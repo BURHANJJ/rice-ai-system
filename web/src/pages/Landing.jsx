@@ -164,20 +164,34 @@ export default function Landing() {
               {t({ th: 'แพลตฟอร์มวิเคราะห์โรคข้าวสำหรับเกษตรกรและนักวิชาการ เชื่อมข้อมูลภาคสนามสู่ส่วนกลางแบบ Real-time เพื่อช่วยติดตาม วินิจฉัย และรับมือโรคระบาดได้แม่นยำขึ้น', en: 'A rice disease platform for farmers and researchers. Field data flows to one place in real time, so outbreaks are tracked, diagnosed and handled more precisely.' })}
             </p>
 
-            <div className="mt-6 rounded-[1.25rem] border border-gray-100 bg-white p-2.5 shadow-xl shadow-emerald-950/5 sm:mt-8 sm:rounded-[1.75rem] sm:p-4">
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <a href="#app" aria-label={t({ th: 'ดูข้อมูลแอปมือถือสำหรับเกษตรกร', en: 'About the mobile app for farmers' })} className="group rb-glare flex min-h-[64px] items-center gap-2 rounded-2xl bg-[var(--color-paddy)] px-3 py-3 text-left text-white shadow-md shadow-[#166534]/20 transition-all hover:-translate-y-1 hover:bg-[var(--color-paddy-dark)] hover:shadow-xl sm:min-h-[74px] sm:gap-4 sm:px-5 sm:py-4">
-                  <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 min-[380px]:flex"><Smartphone size={22} /></span>
-                  <span className="min-w-0"><span className="block text-[10px] font-extrabold uppercase tracking-normal text-emerald-100 sm:text-xs">Mobile App</span><span className="block text-sm font-extrabold leading-snug sm:text-base">{t({ th: 'สำหรับเกษตรกร', en: 'For farmers' })}</span></span>
-                  <ArrowRight size={18} className="ml-auto hidden shrink-0 transition-transform group-hover:translate-x-1 min-[380px]:block" />
-                </a>
+            <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4">
+              <a
+                href="#app"
+                aria-label={t({ th: 'แอปมือถือสำหรับเกษตรกร ดาวน์โหลดรุ่นเบต้า', en: 'Mobile app for farmers: download the beta' })}
+                className="group rb-glare relative flex items-center gap-4 overflow-hidden rounded-2xl bg-[var(--color-paddy)] p-4 pr-5 text-white shadow-lg shadow-emerald-900/25 ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:bg-[var(--color-paddy-dark)] hover:shadow-xl hover:shadow-emerald-900/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-300"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105"><Smartphone size={22} /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] font-bold uppercase tracking-normal text-emerald-100/90">{t({ th: 'แอปมือถือ · Android', en: 'Mobile app · Android' })}</span>
+                  <span className="mt-0.5 block whitespace-nowrap text-base font-extrabold leading-snug">{t({ th: 'สำหรับเกษตรกร', en: 'For farmers' })}</span>
+                  <span className="mt-0.5 block truncate text-xs font-medium text-emerald-100/80">{t({ th: 'ดาวน์โหลดรุ่นเบต้า', en: 'Download the beta' })}</span>
+                </span>
+                <ArrowRight size={18} className="shrink-0 opacity-80 transition-transform duration-300 group-hover:translate-x-1 group-hover:opacity-100" />
+              </a>
 
-                <Link to="/login" aria-label={t({ th: 'เข้าสู่ระบบสำหรับเจ้าหน้าที่และนักวิชาการ', en: 'Sign in for staff and researchers' })} className="group rb-glare flex min-h-[64px] items-center gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-3 text-left text-[var(--color-paddy)] shadow-sm transition-all hover:-translate-y-1 hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-lg sm:min-h-[74px] sm:gap-4 sm:px-5 sm:py-4">
-                  <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-[var(--color-paddy)] min-[380px]:flex"><UserRoundCheck size={22} /></span>
-                  <span className="min-w-0"><span className="block text-[10px] font-extrabold uppercase tracking-normal text-emerald-700/70 sm:text-xs">Web Portal</span><span className="block text-sm font-extrabold leading-snug sm:text-base">{t({ th: 'เจ้าหน้าที่ / นักวิชาการ', en: 'Staff / researchers' })}</span></span>
-                  <ArrowRight size={18} className="ml-auto hidden shrink-0 transition-transform group-hover:translate-x-1 min-[380px]:block" />
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                aria-label={t({ th: 'เว็บพอร์ทัลสำหรับนักวิชาการและเจ้าหน้าที่ เข้าสู่ระบบ', en: 'Web portal for researchers and staff: sign in' })}
+                className="group rb-glare relative flex items-center gap-4 overflow-hidden rounded-2xl border border-emerald-900/10 bg-white p-4 pr-5 text-gray-900 shadow-lg shadow-emerald-950/5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-950/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-[var(--color-paddy)] ring-1 ring-emerald-100 transition-transform duration-300 group-hover:scale-105"><UserRoundCheck size={22} /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] font-bold uppercase tracking-normal text-[var(--color-paddy)]/70">{t({ th: 'เว็บพอร์ทัล', en: 'Web portal' })}</span>
+                  <span className="mt-0.5 block whitespace-nowrap text-base font-extrabold leading-snug">{t({ th: 'สำหรับนักวิชาการ', en: 'For researchers' })}</span>
+                  <span className="mt-0.5 block truncate text-xs font-medium text-gray-500">{t({ th: 'และเจ้าหน้าที่ · เข้าสู่ระบบ', en: 'and staff · Sign in' })}</span>
+                </span>
+                <ArrowRight size={18} className="shrink-0 text-[var(--color-paddy)] opacity-70 transition-transform duration-300 group-hover:translate-x-1 group-hover:opacity-100" />
+              </Link>
             </div>
 
             <a href="#tour" className="group mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-[var(--color-paddy)]">
