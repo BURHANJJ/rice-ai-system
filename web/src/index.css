@@ -628,3 +628,8 @@ body {
 .fs-bubble-r { left: auto; right: 0; transform: translate(14%, 6px) scale(.9); }
 .fs-bubble-r.fs-bubble-on { transform: translate(14%, 0) scale(1); }
 .fs-bubble-r::after { left: 70%; }
+
+/* ── Rice sprigs around the promo video (components/landing/RiceSprig.jsx) ── */
+.rs-sway { transform-box: fill-box; transform-origin: 45% 100%; animation: rs-sway 5.5s ease-in-out var(--rs-delay, 0s) infinite alternate; }
+@keyframes rs-sway { from { transform: rotate(-3deg); } to { transform: rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { .rs-sway { animation: none; } }

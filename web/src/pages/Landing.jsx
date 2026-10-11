@@ -5,6 +5,7 @@ import PublicFooter from '../components/PublicFooter';
 import AppTour from '../components/landing/AppTour';
 import BetaDownload from '../components/landing/BetaDownload';
 import PaddyField from '../components/landing/PaddyField';
+import PromoVideo from '../components/landing/PromoVideo';
 import { Phone, CountUp } from '../components/landing/LandingKit';
 import { spotlight, useCycle, useRevealAll, useTilt } from '../components/landing/landingHooks';
 import { useI18n, useDocTitle } from '../lib/i18n';
@@ -217,6 +218,20 @@ export default function Landing() {
               <div className="mt-1 text-xs font-medium leading-5 text-gray-500 sm:text-sm">{t(s.sub)}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── Promo video ─────────────────────────────────────── */}
+      <section id="video" className="relative scroll-mt-20 overflow-hidden py-16 sm:py-24">
+        <div className="absolute inset-x-0 top-1/3 h-2/3 bg-[linear-gradient(180deg,transparent,#eef6ef_45%,var(--color-paper))]" />
+        <div className="relative mx-auto max-w-7xl px-5 lg:px-6">
+          <SectionHead
+            badge={t({ th: 'คลิปแนะนำ', en: 'Video' })}
+            icon={PlayCircle}
+            title={t({ th: 'รู้จัก Rice AI ใน 43 วินาที', en: 'Meet Rice AI in 43 seconds' })}
+            copy={t({ th: 'ตั้งแต่ถ่ายรูปใบข้าว ดูผลวิเคราะห์ แผนที่ระบาด จนถึงสมุดแปลงนา ทั้งหมดในแอปเดียว', en: 'From photographing a leaf to results, the outbreak map and the field notebook, all in one app.' })}
+          />
+          <div className="rv mt-4 sm:mt-8"><PromoVideo /></div>
         </div>
       </section>
 
