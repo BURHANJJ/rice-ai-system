@@ -507,3 +507,52 @@ body {
   transition-duration: 1ms !important;
   scroll-behavior: auto !important;
 }
+
+/* ── Landing hero paddy field (components/landing/PaddyField.jsx) ── */
+.pf-grow {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pf-grow 1.4s cubic-bezier(.2,.8,.2,1) var(--grow, 0s) both;
+}
+.pf-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pf-sway var(--dur, 5s) ease-in-out var(--delay, 0s) infinite alternate;
+  will-change: transform;
+}
+.pf-back .pf-sway { animation-name: pf-sway-soft; }
+.pf-front .pf-sway { animation-name: pf-sway-strong; }
+@keyframes pf-grow { from { transform: scaleY(0.15); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes pf-sway { from { transform: rotate(-2.2deg) skewX(-1deg); } to { transform: rotate(3deg) skewX(1.5deg); } }
+@keyframes pf-sway-soft { from { transform: rotate(-1.2deg); } to { transform: rotate(1.8deg); } }
+@keyframes pf-sway-strong { 0% { transform: rotate(-2.5deg) skewX(-1.5deg); } 60% { transform: rotate(4.5deg) skewX(2.5deg); } 100% { transform: rotate(1deg) skewX(0.5deg); } }
+
+.pf-shimmer line { stroke-dasharray: 18 26; animation: pf-shimmer 3.6s linear var(--sh, 0s) infinite; }
+@keyframes pf-shimmer { from { stroke-dashoffset: 0; opacity: .25; } 50% { opacity: .9; } to { stroke-dashoffset: -88; opacity: .25; } }
+
+.pf-sun { transform-box: fill-box; transform-origin: center; animation: pf-sun 9s ease-in-out infinite alternate; }
+@keyframes pf-sun { from { transform: scale(.94); opacity: .75; } to { transform: scale(1.06); opacity: 1; } }
+
+.pf-pollen { animation: pf-pollen var(--pd, 10s) linear var(--pdl, 0s) infinite; }
+@keyframes pf-pollen {
+  0% { transform: translate(0, 0); opacity: 0; }
+  15% { opacity: .9; }
+  85% { opacity: .7; }
+  100% { transform: translate(60px, -150px); opacity: 0; }
+}
+
+.pf-bird { animation: pf-fly 28s linear var(--bd, 0s) infinite; }
+@keyframes pf-fly {
+  0% { transform: translate(-80px, var(--by, 40px)); opacity: 0; }
+  3% { opacity: .85; }
+  52% { opacity: .85; }
+  56% { transform: translate(1700px, calc(var(--by, 40px) - 34px)); opacity: 0; }
+  100% { transform: translate(1700px, calc(var(--by, 40px) - 34px)); opacity: 0; }
+}
+.pf-flap { transform-box: fill-box; transform-origin: center; animation: pf-flap .55s ease-in-out infinite alternate; }
+@keyframes pf-flap { from { transform: scaleY(1); } to { transform: scaleY(-.35); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-sway, .pf-shimmer line, .pf-sun, .pf-pollen, .pf-flap { animation: none !important; }
+  .pf-bird { display: none; }
+}

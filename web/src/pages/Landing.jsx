@@ -4,6 +4,7 @@ import PublicHeader from '../components/PublicHeader';
 import PublicFooter from '../components/PublicFooter';
 import AppTour from '../components/landing/AppTour';
 import BetaDownload from '../components/landing/BetaDownload';
+import PaddyField from '../components/landing/PaddyField';
 import { Phone, CountUp } from '../components/landing/LandingKit';
 import { spotlight, useCycle, useRevealAll, useTilt } from '../components/landing/landingHooks';
 import { Cpu, Cloud, ArrowRight, ShieldCheck, PlayCircle, Apple, Smartphone, UserRoundCheck, CheckCircle2, Sparkles, MousePointerClick } from 'lucide-react';
@@ -140,14 +141,16 @@ export default function Landing() {
       <PublicHeader />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative w-full max-w-full overflow-hidden px-3 pb-10 pt-8 sm:px-5 sm:pb-16 sm:pt-14 lg:pb-20 lg:pt-16">
+      <section className="relative w-full max-w-full overflow-hidden px-3 pb-[170px] pt-8 sm:px-5 sm:pb-[220px] sm:pt-14 lg:pb-[250px] lg:pt-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_30%,rgba(252,211,77,0.18),transparent_30%),radial-gradient(circle_at_86%_26%,rgba(52,211,153,0.24),transparent_34%)]" />
-        <div className="absolute inset-0 rb-soft-grid opacity-60" />
-        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10">
+        <div className="absolute inset-0 rb-soft-grid opacity-60 [mask-image:linear-gradient(to_bottom,black_55%,transparent_85%)]" />
+        <PaddyField className="absolute inset-x-0 bottom-0 h-[220px] sm:h-[290px] lg:h-[340px]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[var(--color-paper)]" />
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10">
           <div className="min-w-0 rb-reveal">
             <div className="rice-hero-kicker mb-4 sm:mb-5">
               <ShieldCheck size={16} />
-              Enterprise-Grade AI Diagnostic
+              AI ตรวจโรคใบข้าว · แม่นยำ 97.9%
             </div>
             <h1 className="rice-hero-title">
               Rice AI<br />
