@@ -2,10 +2,11 @@
   "version": "0.9.0",
   "released": "2026-10-11",
   "min_android": "6.0",
-  "file": "/downloads/rice-ai-beta-0.9.0-arm64.apk",
+  "file": "https://github.com/BURHANJJ/rice-ai-beta/releases/download/v0.9.0-beta/rice-ai-beta-0.9.0-arm64.apk",
   "size_mb": 41.9,
-  "sha256": "ba518b13e9fd46cfe96e4861dc0aa87a6a182282d9b9d4cae045060a813c2ced",
-  "file_32bit": "/downloads/rice-ai-beta-0.9.0-arm32.apk",
+  "sha256": "b3c4259211ce6a42c1e2c89a757ebf258519158a513fb1e308274f817950f990",
+  "file_32bit": "https://github.com/BURHANJJ/rice-ai-beta/releases/download/v0.9.0-beta/rice-ai-beta-0.9.0-arm32.apk",
   "size_mb_32bit": 37.4,
-  "sha256_32bit": "59e0196f4948ec68f15e2f5e83fbe1de27b7947568a9fcb7b4c0ed76b93c2a5e"
+  "sha256_32bit": "f19e2c20c7546532ac3ddff4d700d8b80e618209b9424913dd50cb1e384788a8",
+  "release_page": "https://github.com/BURHANJJ/rice-ai-beta/releases/latest"
 }

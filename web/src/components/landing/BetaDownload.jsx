@@ -13,6 +13,7 @@ const WORKS = [
 ];
 
 const NOT_YET = [
+  'ต้องเข้าสู่ระบบครั้งแรกตอนมีอินเทอร์เน็ต หลังจากนั้นสแกนแบบออฟไลน์ได้',
   'iPhone (iOS) ยังไม่มีรุ่นทดสอบ',
   'ยังไม่อยู่บน Google Play ต้องติดตั้งจากไฟล์ APK',
   'ประกาศเตือนการระบาดจะเข้ากล่องแจ้งเตือนในแอป อาจช้าได้ถึง 15 นาที (ยังไม่มี Push ทันที)',
@@ -137,6 +138,11 @@ export default function BetaDownload() {
               {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
             </button>
           </div>
+        )}
+        {info?.release_page && (
+          <a href={info.release_page} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs font-semibold text-[var(--color-paddy-dark)] underline underline-offset-2 hover:no-underline">
+            ดูรายละเอียดรุ่นและแจ้งปัญหาบน GitHub
+          </a>
         )}
         <p className="mt-3 text-[11px] leading-relaxed text-gray-400">
           รุ่นทดสอบสำหรับเก็บความคิดเห็นก่อนเปิดให้บริการจริง ผลจาก AI เป็นเครื่องมือช่วยตัดสินใจเบื้องต้น ควรปรึกษาเจ้าหน้าที่เกษตรก่อนใช้สารเคมี
