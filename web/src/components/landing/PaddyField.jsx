@@ -143,7 +143,7 @@ export default function PaddyField({ className = '' }) {
 
         {/* birds crossing the sky */}
         <g fill="none" stroke="#3f5f4c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          {[['0s', '46px', 1], ['-0.8s', '70px', 0.8], ['-1.5s', '30px', 0.65]].map(([bd, by, sc], i) => (
+          {[['0s', '96px', 1.6], ['-0.8s', '112px', 1.3], ['-1.5s', '84px', 1.1]].map(([bd, by, sc], i) => (
             <g key={i} className="pf-bird" style={{ '--bd': bd, '--by': by }}>
               <path className="pf-flap" d="M0 0 q6 -6 12 0 q6 -6 12 0" style={{ scale: sc }} />
             </g>
