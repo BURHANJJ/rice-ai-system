@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import khaoHomMascot from '../../assets/khao_hom_scan.svg';
+import KhaoHomDial, { scrollToTop } from '../components/KhaoHomDial';
 import PublicHeader from '../components/PublicHeader';
 import PublicFooter from '../components/PublicFooter';
 import AppTour from '../components/landing/AppTour';
@@ -9,7 +9,7 @@ import PromoVideo from '../components/landing/PromoVideo';
 import { Phone, CountUp } from '../components/landing/LandingKit';
 import { spotlight, useCycle, useRevealAll, useTilt } from '../components/landing/landingHooks';
 import { useI18n, useDocTitle } from '../lib/i18n';
-import { Cpu, Cloud, ArrowRight, ShieldCheck, PlayCircle, Apple, Smartphone, UserRoundCheck, CheckCircle2, Sparkles, MousePointerClick } from 'lucide-react';
+import { Cpu, Cloud, ArrowRight, ArrowUp, BookOpen, MessageSquareText, Play, ShieldCheck, PlayCircle, Apple, Smartphone, UserRoundCheck, CheckCircle2, Sparkles, MousePointerClick } from 'lucide-react';
 
 const HERO_SCREENS = ['Scan', 'Result', 'Home'];
 const HERO_CAPTION = [{ th: 'วางใบข้าวในกรอบ', en: 'Frame the leaf' }, { th: 'AI วิเคราะห์เสร็จ', en: 'AI result ready' }, { th: 'หน้าหลัก · อากาศจริง', en: 'Home · live weather' }];
@@ -344,16 +344,16 @@ export default function Landing() {
 
       <PublicFooter />
 
-      <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} aria-label={t({ th: 'น้องข้าวหอม · กลับขึ้นด้านบน', en: 'Khao Hom · back to top' })} className="group fixed bottom-4 right-3 z-40 hidden sm:block sm:bottom-5 sm:right-5 lg:bottom-7 lg:right-7">
-        <span className="pointer-events-none absolute bottom-full right-2 mb-1 whitespace-nowrap rounded-2xl rounded-br-sm bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-paddy)] opacity-0 shadow-xl ring-1 ring-emerald-100 transition-all duration-300 group-hover:-translate-y-1 group-hover:opacity-100">
-          {t({ th: 'สวัสดีครับ ผมน้องข้าวหอม 🌾', en: 'Hi, I\'m Khao Hom 🌾' })}
-        </span>
-        <img
-          src={khaoHomMascot}
-          alt=""
-          className="h-24 w-24 object-contain drop-shadow-2xl transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:rotate-[-3deg] group-hover:scale-110 group-hover:drop-shadow-[0_22px_28px_rgba(20,83,45,0.28)] motion-reduce:transition-none lg:h-28 lg:w-28"
-        />
-      </a>
+      <KhaoHomDial
+        bubble={[t({ th: 'สวัสดีครับ ผมน้องข้าวหอม', en: "Hi, I'm Khao Hom" }), t({ th: 'กดผมเพื่อดูทางลัดนะครับ', en: 'Tap me for shortcuts' })]}
+        actions={[
+          { key: 'top', icon: ArrowUp, label: t({ th: 'กลับขึ้นด้านบน', en: 'Back to top' }), onClick: scrollToTop },
+          { key: 'app', icon: Smartphone, label: t({ th: 'ดาวน์โหลดแอป', en: 'Get the app' }), href: '#app' },
+          { key: 'video', icon: Play, label: t({ th: 'ดูคลิปแนะนำ', en: 'Watch the intro' }), href: '#video' },
+          { key: 'diseases', icon: BookOpen, label: t({ th: 'คลังความรู้โรคข้าว', en: 'Rice disease guide' }), to: '/rice-diseases' },
+          { key: 'feedback', icon: MessageSquareText, label: t({ th: 'ส่งข้อเสนอแนะ', en: 'Send feedback' }), to: '/feedback' },
+        ]}
+      />
     </div>
   );
 }

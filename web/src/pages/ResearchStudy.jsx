@@ -1,7 +1,6 @@
-import { ArrowDown, ArrowRight, ArrowUp, BookOpen, Check, ChevronRight, Database, ExternalLink, FlaskConical, Info, Layers3, MessageSquareText, Microscope, Play, Target, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { ArrowDown, ArrowRight, ArrowUp, BookOpen, Check, ChevronRight, Database, ExternalLink, FlaskConical, Info, Layers3, MessageSquareText, Microscope, Play, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import khaoHomMascot from '../../assets/khao_hom_scan.svg';
+import KhaoHomDial, { scrollToTop } from '../components/KhaoHomDial';
 import PublicHeader from '../components/PublicHeader';
 import PublicFooter from '../components/PublicFooter';
 import PromoVideo from '../components/landing/PromoVideo';
@@ -101,10 +100,6 @@ const OTHER_DISEASES = [['brown_spot', 'ใบจุดสีน้ำตาล'
 
 export default function ResearchStudy() {
   const { t } = useI18n();
-  const [quickMenuOpen, setQuickMenuOpen] = useState(false);
-  const [typedBubble, setTypedBubble] = useState('');
-  const [isTypingBubble, setIsTypingBubble] = useState(true);
-  const quickMenuRef = useRef(null);
   useDocTitle({ th: 'การค้นคว้าและการศึกษา | Rice AI', en: 'Research & Study | Rice AI' });
   const tr = (th, en) => t({ th, en });
   const main = mainModel();
@@ -112,79 +107,6 @@ export default function ResearchStudy() {
   const nSeeds = cmp.seeds.length;
   const nRuns = cmp.models.length * nSeeds;
   const { summaryTitle, findings, reading } = useFindings(tr, main);
-  const bubbleMessages = [
-    tr('ส่งข้อเสนอแนะได้เลย', 'Send feedback'),
-    tr('มีไอเดีย? บอกเราได้', 'Have an idea? Tell us.'),
-  ];
-
-  useEffect(() => {
-    if (quickMenuOpen) return undefined;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      setTypedBubble(bubbleMessages[0]);
-      setIsTypingBubble(false);
-      return undefined;
-    }
-    const segmenter = typeof Intl.Segmenter === 'function'
-      ? new Intl.Segmenter('th', { granularity: 'grapheme' })
-      : null;
-    const splitCharacters = (text) => segmenter
-      ? [...segmenter.segment(text)].map(({ segment }) => segment)
-      : Array.from(text);
-
-    let phraseIndex = 0;
-    let characters = splitCharacters(bubbleMessages[phraseIndex]);
-    let length = 0;
-    let deleting = false;
-    let timer;
-    setTypedBubble('');
-    setIsTypingBubble(true);
-
-    const tick = () => {
-      if (!deleting) {
-        length += 1;
-        setTypedBubble(characters.slice(0, length).join(''));
-        if (length >= characters.length) {
-          deleting = true;
-          timer = window.setTimeout(tick, 1500);
-          return;
-        }
-        timer = window.setTimeout(tick, 105);
-        return;
-      }
-
-      length -= 1;
-      setTypedBubble(characters.slice(0, length).join(''));
-      setIsTypingBubble(true);
-      if (length <= 0) {
-        deleting = false;
-        phraseIndex = (phraseIndex + 1) % bubbleMessages.length;
-        characters = splitCharacters(bubbleMessages[phraseIndex]);
-        timer = window.setTimeout(tick, 320);
-        return;
-      }
-      timer = window.setTimeout(tick, 58);
-    };
-
-    timer = window.setTimeout(tick, 450);
-    return () => window.clearTimeout(timer);
-  }, [quickMenuOpen, bubbleMessages[0], bubbleMessages[1]]);
-
-  useEffect(() => {
-    if (!quickMenuOpen) return undefined;
-    const closeOnOutsideClick = (event) => {
-      if (!quickMenuRef.current?.contains(event.target)) setQuickMenuOpen(false);
-    };
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setQuickMenuOpen(false);
-    };
-    document.addEventListener('pointerdown', closeOnOutsideClick);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutsideClick);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [quickMenuOpen]);
-
   return <div className="min-h-screen bg-[#faf8f1] text-slate-900">
     <PublicHeader />
     <main>
@@ -664,35 +586,14 @@ export default function ResearchStudy() {
       </section>
     </main>
     <PublicFooter subtitle={{ th: 'การค้นคว้าและการศึกษา', en: 'Research & Education' }} />
-    <div ref={quickMenuRef} className="group fixed bottom-4 right-3 z-40 sm:bottom-5 sm:right-5 lg:bottom-7 lg:right-7">
-      {!quickMenuOpen && <Link to="/feedback" aria-label={bubbleMessages[0]} className="rs-typing-bubble absolute bottom-full right-8 mb-2 flex min-h-10 w-max max-w-[min(208px,calc(100vw-5rem))] items-center rounded-2xl rounded-br-sm border border-emerald-900/10 bg-white px-3 py-2 text-xs font-bold leading-5 text-emerald-950 shadow-[0_10px_28px_-12px_rgba(15,45,31,.4)] transition hover:-translate-y-0.5 hover:border-emerald-700/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/20">
-        <span className="min-w-0 whitespace-normal break-words">{typedBubble}{isTypingBubble && <span aria-hidden="true" className="rs-typing-caret ml-0.5 inline-block h-4 align-middle" />}</span>
-      </Link>}
-      {/* Speed dial: round actions fan out beside Khao Hom; each says what it does on hover, focus or (on touch screens) while open. */}
-      <div role="menu" aria-label={tr('เมนูทางลัด', 'Quick actions')} aria-hidden={!quickMenuOpen} className="pointer-events-none absolute left-1/2 top-1/2">
-        {[
-          { key: 'top', icon: ArrowUp, label: tr('กลับขึ้นด้านบน', 'Back to top'), onClick: () => window.scrollTo({ top: 0, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) },
-          { key: 'video', icon: Play, label: tr('ดูคลิปอธิบาย', 'Watch the video'), href: '#video' },
-          { key: 'feedback', icon: MessageSquareText, label: tr('ส่งข้อเสนอแนะ', 'Send feedback'), to: '/feedback' },
-        ].map((a, i, all) => {
-          const angle = (180 - (90 / (all.length - 1)) * i) * (Math.PI / 180);
-          const style = { '--dx': `${Math.cos(angle) * 104}px`, '--dy': `${-Math.sin(angle) * 104}px`, transitionDelay: `${quickMenuOpen ? i * 55 : (all.length - 1 - i) * 35}ms` };
-          const Icon = a.icon;
-          const inner = <>
-            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-900/10 bg-white text-emerald-900 shadow-[0_12px_28px_-10px_rgba(15,45,31,.5)] ring-4 ring-white/60 transition group-hover/dial:scale-110 group-hover/dial:bg-emerald-800 group-hover/dial:text-white group-focus-visible/dial:scale-110 group-focus-visible/dial:bg-emerald-800 group-focus-visible/dial:text-white"><Icon size={19} strokeWidth={2.2} /></span>
-            <span className="rs-dial-label pointer-events-none absolute right-full top-1/2 mr-3 whitespace-nowrap rounded-full bg-emerald-950 px-3 py-1.5 text-xs font-bold text-white shadow-lg">{a.label}</span>
-          </>;
-          const props = { role: 'menuitem', 'aria-label': a.label, title: a.label, tabIndex: quickMenuOpen ? 0 : -1, style, className: `rs-dial group/dial absolute -ml-6 -mt-6 block rounded-full focus-visible:outline-none ${quickMenuOpen ? 'rs-dial-open pointer-events-auto' : ''}` };
-          const close = () => setQuickMenuOpen(false);
-          if (a.to) return <Link key={a.key} to={a.to} onClick={close} {...props}>{inner}</Link>;
-          if (a.href) return <a key={a.key} href={a.href} onClick={close} {...props}>{inner}</a>;
-          return <button key={a.key} type="button" onClick={() => { close(); a.onClick(); }} {...props}>{inner}</button>;
-        })}
-      </div>
-      <button type="button" onClick={() => setQuickMenuOpen((open) => !open)} aria-label={quickMenuOpen ? tr('ปิดเมนูน้องข้าวหอม', 'Close Khao Hom menu') : tr('เปิดเมนูน้องข้าวหอม', 'Open Khao Hom menu')} aria-expanded={quickMenuOpen} aria-haspopup="menu" className="relative flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/25">
-        <img src={khaoHomMascot} alt="" aria-hidden="true" className="rs-quick-mascot h-20 w-20 object-contain drop-shadow-2xl transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:rotate-[-3deg] group-hover:scale-110 group-hover:drop-shadow-[0_22px_28px_rgba(20,83,45,0.28)] motion-reduce:transition-none sm:h-24 sm:w-24 lg:h-28 lg:w-28" />
-        <span aria-hidden="true" className={`absolute right-0 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-950 text-white shadow-lg ring-2 ring-white transition duration-300 ${quickMenuOpen ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}><X size={14} strokeWidth={2.6} /></span>
-      </button>
-    </div>
+    <KhaoHomDial
+      bubble={[tr('ส่งข้อเสนอแนะได้เลย', 'Send feedback'), tr('มีไอเดีย? บอกเราได้', 'Have an idea? Tell us.')]}
+      bubbleTo="/feedback"
+      actions={[
+        { key: 'top', icon: ArrowUp, label: tr('กลับขึ้นด้านบน', 'Back to top'), onClick: scrollToTop },
+        { key: 'video', icon: Play, label: tr('ดูคลิปอธิบาย', 'Watch the video'), href: '#video' },
+        { key: 'feedback', icon: MessageSquareText, label: tr('ส่งข้อเสนอแนะ', 'Send feedback'), to: '/feedback' },
+      ]}
+    />
   </div>;
 }
