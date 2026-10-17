@@ -298,6 +298,20 @@ export default function ResearchStudy() {
               </div>
               <p className="mt-2 text-[11px] leading-5 text-amber-950/85">{tr('ไม่มีชุดสอบจริงแยก ตัวเลข 70.26% ของ V1 จึงมาจากชุดสอบย่อยของมันเอง ภายหลังเราเอา V1 มาสอบกับชุดสอบจริง 761 รูปของ V2 ได้ 75.43% แต่บางรูปอาจเคยอยู่ในกองเรียนของ V1 ตัวเลขนี้จึงอาจดีกว่าความจริง', 'With no separate test set, V1’s 70.26% comes from its own validation pile. Rescored later on V2’s 761 test images it reached 75.43%, but some of those images may have been in V1’s training pile, so that figure may flatter it.')}</p>
             </div>
+            {/* V3 keeps the same three piles; each pile simply gains the other-disease photos. */}
+            <div className="mt-3 rounded-xl border border-emerald-900/15 bg-white p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-emerald-950"><span>{tr('V3: ยัง 3 กองเดิม แต่เพิ่มรูปโรคอื่นเข้าไปทุกกอง', 'V3: the same three piles, each with other-disease photos added')}</span><span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] text-emerald-900">{tr('4 โรคเป็นรูปชุดเดิมทุกรูป', 'The four-disease images are unchanged')}</span></div>
+              <div className="mt-2 flex h-11 overflow-hidden rounded-lg text-[10px] font-bold sm:text-[11px]" role="img" aria-label={tr('V3 แบ่ง เรียน 7,284 สอบย่อย 1,561 สอบจริง 1,562 แต่ละกองมีรูป 4 โรคเดิมและรูปโรคอื่น', 'V3 split: train 7,284, validation 1,561, test 1,562, each pile holding the original four-disease images plus other-disease images')}>
+                {[['70%', 3548, 3736, '#1f4d3a', '#4f7a63', '#fff'], ['15%', 760, 801, '#c89b3c', '#dcbd78', '#3a2a08'], ['15%', 761, 801, '#8fb5a0', '#b9d2c4', '#123326']].map(([w, a, b, c1, c2, fg], k) => <div key={k} className={`flex flex-col ${k ? 'border-l-2 border-white' : ''}`} style={{ width: w }}>
+                  <div className="flex flex-1 items-center justify-center" style={{ backgroundColor: c1, color: fg }}>{a.toLocaleString()}</div>
+                  <div className="flex flex-1 items-center justify-center" style={{ backgroundColor: c2, color: fg }}>+{b.toLocaleString()}</div>
+                </div>)}
+              </div>
+              <div className="mt-1.5 flex text-center text-[10px] font-semibold leading-4 text-slate-600 sm:text-[11px]">
+                <span style={{ width: '70%' }}>{tr('เรียน 7,284', 'Train 7,284')}</span><span style={{ width: '15%' }}>{tr('สอบย่อย', 'Val')}<br />1,561</span><span style={{ width: '15%' }}>{tr('สอบจริง', 'Test')}<br />1,562</span>
+              </div>
+              <p className="mt-2 text-[11px] leading-5 text-slate-600">{tr('แถวบน = รูป 4 โรคชุดเดิม · แถวล่าง = รูปโรคอื่น 6 ชนิด (5,338 รูป) แบ่ง 70/15/15 แยกตามชนิดโรค ตัวเลข Accuracy 4 โรคของ V3 จึงยังวัดจากกองสอบจริง 761 รูปเดิม ส่วนอีก 801 รูปใช้วัดว่าระบบปฏิเสธโรคอื่นได้แค่ไหน', 'Top row = the original four-disease images · bottom row = 5,338 other-disease images, split 70/15/15 within each disease. V3’s four-disease accuracy still comes from the same 761 test images; the extra 801 measure how well it declines other diseases.')}</p>
+            </div>
             <p className="mt-4 text-xs leading-5 text-slate-600">{tr('ภาพทั้งหมดถูกย่อเป็น 224 × 224 พิกเซลด้วยวิธีเดียวกับที่ระบบใช้จริง รายชื่อภาพทดสอบ 761 ภาพตรวจแล้วว่าตรงกันทุกภาพในทุกการทดลอง', 'All images are resized to 224 × 224 exactly as the live system does. The 761 test filenames were checked to match one for one in every experiment.')}</p>
           </article>
         </div>
