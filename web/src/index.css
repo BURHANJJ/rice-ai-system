@@ -342,6 +342,8 @@ body {
   user-select: none;
 }
 .rb-phone-shot.is-on { opacity: 1; transform: none; }
+/* Screens fill the whole display (the bezel padding makes it a touch taller than 390:844); tall scrolling shots keep their own height. */
+.rb-phone-shot:not(.rb-shot-scroll) { height: 100%; object-fit: cover; object-position: top; }
 .rb-phone-shot.rb-shot-scroll.is-on { animation: rb-shot-scroll 9s ease-in-out infinite alternate; }
 .rb-phone-island {
   position: absolute;
