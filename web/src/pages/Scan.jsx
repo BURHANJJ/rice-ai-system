@@ -4,7 +4,7 @@
 // live feed, the outbreak map and the data explorer.
 import { useEffect, useState } from 'react';
 import { doc, collection, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Cpu, Crosshair, History, MapPinOff, RadioTower, ShieldCheck } from 'lucide-react';
+import { Cpu, Crosshair, History, MapPinOff, ShieldCheck } from 'lucide-react';
 import GpsCard from '../components/scan/GpsCard';
 import { db } from '../lib/firebase';
 import { useAuth } from '../lib/AuthContext';
@@ -41,9 +41,7 @@ export default function Scan() {
   useDocTitle({ th: 'สแกนโรคใบข้าว | Rice AI', en: 'Scan a rice leaf | Rice AI' });
   const [loc, requestLoc] = useLocation();
   const role = String(user?.role || '').toLowerCase();
-  const links = role === 'admin'
-    ? [{ to: '/admin/live-feed', label: tr('ดูในคลังภาพ AI', 'Open in the AI image feed'), icon: RadioTower }]
-    : [{ to: '/research/explorer', label: tr('ดูในสำรวจข้อมูล', 'Open in the data explorer'), icon: History }];
+  const links = [{ to: role === 'admin' ? '/admin/history' : '/research/history', label: tr('ดูประวัติการสแกนของฉัน', 'Open my scan history'), icon: History }];
 
   /** Save like the app: one diagnoses document per result. */
   const save = async (r, file) => {

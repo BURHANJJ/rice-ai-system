@@ -7,7 +7,7 @@ export const MODEL_CLASSES = [
   { code: 'BLAST', name: 'โรคไหม้', en: 'Rice Blast', key: '1' },
   { code: 'BLB', name: 'โรคขอบใบแห้ง', en: 'Bacterial Leaf Blight', key: '2' },
   { code: 'TUNGRO', name: 'โรคใบสีส้ม', en: 'Tungro', key: '3' },
-  { code: 'HEALTHY', name: 'ข้าวปกติ', en: 'Healthy', key: '4' },
+  { code: 'HEALTHY', name: 'ใบปกติ', en: 'Healthy', key: '4' },
 ];
 /** Reviewer-only label: another disease, not a rice leaf, or an unusable photo. */
 export const OTHER = { code: 'OTHER', name: 'อื่น ๆ / ภาพใช้ไม่ได้', en: 'Other', key: '5' };
@@ -78,7 +78,10 @@ export const clearReview = (id) => deleteDoc(doc(db, 'reviews', id));
  */
 export function modelMetrics(scans, reviews, lowConfidence = 70) {
   const byId = Object.fromEntries((scans || []).map((s) => [s.id, s]));
-  const rows = Object.values(reviews || {}).map((r) => ({ ...r, scan: byId[r.diagnosis_id] }));
+  // Only reviews of scans that still exist: a deleted scan must not keep counting toward accuracy.
+  const rows = Object.values(reviews || {})
+    .map((r) => ({ ...r, scan: byId[r.diagnosis_id] }))
+    .filter((r) => !scans || r.scan);
   const codes = LABELS.map((l) => l.code);
   const matrix = Object.fromEntries(MODEL_CLASSES.map((c) => [c.code, Object.fromEntries(codes.map((k) => [k, 0]))]));
   let correct = 0;

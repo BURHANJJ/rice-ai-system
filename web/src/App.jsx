@@ -13,6 +13,7 @@ import ResearchStudy from './pages/ResearchStudy';
 import Feedback from './pages/Feedback';
 import TryScan from './pages/TryScan';
 import Scan from './pages/Scan';
+import ScanHistory from './pages/ScanHistory';
 
 import ResearchDashboard from './pages/researcher/ResearchDashboard';
 import RiskMap from './pages/researcher/RiskMap';
@@ -79,12 +80,14 @@ export default function App() {
           <Route path="/research/risk-map" element={<ProtectedRoute roles={['researcher']}><RiskMap /></ProtectedRoute>} />
           <Route path="/research/explorer" element={<ProtectedRoute roles={['researcher']}><DataExplorer /></ProtectedRoute>} />
           <Route path="/research/scan" element={<ProtectedRoute roles={['researcher', 'admin']}><Scan /></ProtectedRoute>} />
-          <Route path="/research/wiki" element={<Navigate to="/rice-diseases" replace />} />
+          <Route path="/research/history" element={<ProtectedRoute roles={['researcher']}><ScanHistory /></ProtectedRoute>} />
+          <Route path="/research/wiki" element={<ProtectedRoute roles={['researcher']}><RiceDiseases embedded /></ProtectedRoute>} />
           <Route path="/research/account" element={<ProtectedRoute roles={['researcher']}><Account /></ProtectedRoute>} />
 
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/reports" element={<ProtectedRoute roles={['admin']}><AllReports /></ProtectedRoute>} />
           <Route path="/admin/scan" element={<ProtectedRoute roles={['admin']}><Scan /></ProtectedRoute>} />
+          <Route path="/admin/history" element={<ProtectedRoute roles={['admin']}><ScanHistory /></ProtectedRoute>} />
           <Route path="/admin/live-feed" element={<ProtectedRoute roles={['admin']}><LiveFeed /></ProtectedRoute>} />
           <Route path="/admin/explorer" element={<ProtectedRoute roles={['admin']}><DataExplorer /></ProtectedRoute>} />
           <Route path="/admin/approvals" element={<ProtectedRoute roles={['admin']}><PendingResearchers /></ProtectedRoute>} />

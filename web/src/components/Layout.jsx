@@ -30,7 +30,8 @@ const NAV = {
       group: 'เครื่องมือ',
       items: [
         { to: '/research/scan', label: 'สแกนใบข้าว', icon: ScanLine },
-        { to: '/rice-diseases', label: 'สารานุกรมโรค', icon: BookOpen },
+        { to: '/research/history', label: 'ประวัติการสแกน', icon: History, keywords: 'ผลสแกนของฉัน ย้อนหลัง' },
+        { to: '/research/wiki', label: 'สารานุกรมโรค', icon: BookOpen },
       ],
     },
     {
@@ -53,6 +54,7 @@ const NAV = {
       group: 'ข้อมูลและ AI',
       items: [
         { to: '/admin/scan', label: 'สแกนใบข้าว', icon: ScanLine, keywords: 'ตรวจโรค วิเคราะห์ภาพ' },
+        { to: '/admin/history', label: 'ประวัติการสแกนของฉัน', icon: History, keywords: 'ผลสแกนของฉัน ย้อนหลัง' },
         { to: '/admin/reports', label: 'รายงานทั้งหมด', icon: Files },
         { to: '/admin/live-feed', label: 'คลังภาพ AI', icon: Activity },
         { to: '/admin/review', label: 'ตรวจทานผล AI', icon: ClipboardCheck, keywords: 'label ยืนยัน' },

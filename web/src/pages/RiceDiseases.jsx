@@ -382,7 +382,7 @@ function DiseaseDrawer({ disease, position, onClose, onPrev, onNext }) {
   );
 }
 
-export default function RiceDiseases() {
+export default function RiceDiseases({ embedded = false }) {
   const { t, lang } = useI18n();
   useDocTitle({ th: 'ความรู้โรคข้าว · Rice AI', en: 'Rice diseases · Rice AI' });
   const catLabel = (c) => (lang === 'en' ? CAT_EN[c] || c : c);
@@ -415,8 +415,8 @@ export default function RiceDiseases() {
   const close = () => setParams((p) => { p.delete('d'); return p; }, { replace: true, preventScrollReset: true });
 
   return (
-    <main className="min-h-screen w-full max-w-full overflow-x-clip bg-[var(--color-paper)] text-gray-800">
-      <PublicHeader />
+    <main className={`w-full max-w-full overflow-x-clip bg-[var(--color-paper)] text-gray-800 ${embedded ? 'rounded-3xl' : 'min-h-screen'}`}>
+      {!embedded && <PublicHeader />}
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -454,7 +454,7 @@ export default function RiceDiseases() {
       </section>
 
       {/* Sticky search + categories (the only filter on the page) */}
-      <div className="sticky top-16 z-30 border-y border-emerald-900/5 bg-[var(--color-paper)]/90 backdrop-blur-xl">
+      <div className={`sticky ${embedded ? 'top-0' : 'top-16'} z-30 border-y border-emerald-900/5 bg-[var(--color-paper)]/90 backdrop-blur-xl`}>
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <label className="flex h-12 min-w-0 items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 shadow-sm transition focus-within:border-emerald-300 focus-within:ring-4 focus-within:ring-emerald-100 lg:w-[360px] lg:shrink-0">
@@ -554,7 +554,7 @@ export default function RiceDiseases() {
         </div>
       </section>
 
-      <PublicFooter subtitle={{ th: 'คลังความรู้และระบบวิเคราะห์โรคข้าวด้วย AI', en: 'Rice disease library and AI analysis' }} description={{ th: 'ข้อมูลความรู้โรคข้าวอ้างอิงจาก Rice Knowledge Bank กรมการข้าว ใช้ประกอบการเรียนรู้และการเฝ้าระวังโรคข้าว', en: "Disease knowledge from the Rice Department's Rice Knowledge Bank, for learning and disease monitoring." }} />
+      {!embedded && <PublicFooter subtitle={{ th: 'คลังความรู้และระบบวิเคราะห์โรคข้าวด้วย AI', en: 'Rice disease library and AI analysis' }} description={{ th: 'ข้อมูลความรู้โรคข้าวอ้างอิงจาก Rice Knowledge Bank กรมการข้าว ใช้ประกอบการเรียนรู้และการเฝ้าระวังโรคข้าว', en: "Disease knowledge from the Rice Department's Rice Knowledge Bank, for learning and disease monitoring." }} />}
 
       {openIndex >= 0 && (
         <DiseaseDrawer

@@ -93,16 +93,18 @@ export default function AdminDashboard() {
         const startTime = performance.now();
 
         // 1. Quota-Saving Aggregations (Only 3 reads total!)
-        const [scansCountSnap, usersCountSnap, researchersCountSnap] = await Promise.all([
+        const [scansCountSnap, usersCountSnap, researchersCountSnap, adminsCountSnap] = await Promise.all([
           getCountFromServer(collection(db, 'diagnoses')),
           getCountFromServer(collection(db, 'users')),
-          getCountFromServer(query(collection(db, 'users'), where('role', '==', 'researcher')))
+          getCountFromServer(query(collection(db, 'users'), where('role', '==', 'researcher'))),
+          getCountFromServer(query(collection(db, 'users'), where('role', '==', 'admin'))),
         ]);
 
         const totalScans = scansCountSnap.data().count;
         const totalUsers = usersCountSnap.data().count;
         const totalResearchers = researchersCountSnap.data().count;
-        const totalFarmers = totalUsers - totalResearchers; // Approximation
+        // The app treats an account without a role as a farmer, so count everyone who isn't staff.
+        const totalFarmers = totalUsers - totalResearchers - adminsCountSnap.data().count;
 
         // 2. Fetch only the last 100 scans for graphs and recent list (Max 100 reads)
         const recentQuery = query(collection(db, 'diagnoses'), orderBy('diag_date', 'desc'), limit(100));
@@ -316,13 +318,14 @@ export default function AdminDashboard() {
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-purple-50 rounded-full group-hover:scale-150 transition-transform duration-500 z-0"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-500 text-sm font-medium">ความแม่นยำเฉลี่ย</h3>
+              <h3 className="text-gray-500 text-sm font-medium">ความมั่นใจเฉลี่ยของ AI</h3>
               <div className="p-2 bg-purple-100 text-purple-600 rounded-lg"><Target size={18} /></div>
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-display font-bold text-gray-900">{stats.avgConfidence}%</span>
-              <span className="text-xs text-gray-500 font-medium">จาก 100 ล่าสุด</span>
+              <span className="text-xs text-gray-500 font-medium">100 ผลล่าสุด</span>
             </div>
+            <p className="mt-1 text-[11px] leading-4 text-gray-400">ค่าที่โมเดลรายงานเอง ไม่ใช่ความแม่นยำ ความแม่นยำจริงดูที่การ์ดด้านบนซึ่งคิดจากผลตรวจทาน</p>
           </div>
         </div>
       </div>
