@@ -1823,8 +1823,9 @@ class AppToast {
     overlay.insert(entry);
   }
 
+  // Errors carry something to read and act on, so they stay longer than confirmations.
   static void error(BuildContext context, String message, {String title = 'เกิดข้อผิดพลาด'}) =>
-      show(context, title: title, message: message);
+      show(context, title: title, message: message, duration: const Duration(seconds: 6));
 
   static void success(BuildContext context, String message, {String title = 'สำเร็จ'}) =>
       show(context, title: title, message: message, type: ToastType.success);

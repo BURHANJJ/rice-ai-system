@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/app_version.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brand.dart';
 
@@ -130,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       ),
                       const SizedBox(height: 14),
                       Text(
-                        'v1.0',
+                        AppVersion.label,
                         style: TextStyle(color: p.heroMuted.withOpacity(0.6), fontSize: 11, letterSpacing: 1.2),
                       ),
                     ],

@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/auth_provider.dart';
 import '../../services/navigation_provider.dart';
+import '../../services/app_version.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_ui.dart';
 import '../auth/login_screen.dart';
@@ -428,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: _confirmLogout,
             )),
             const SizedBox(height: 16),
-            Center(child: Text('Rice AI · v0.9.1 (เบต้า)', style: TextStyle(fontSize: 11.5, color: p.faint))),
+            Center(child: Text('Rice AI · ${AppVersion.label}', style: TextStyle(fontSize: 11.5, color: p.faint))),
           ],
         ),
       ),

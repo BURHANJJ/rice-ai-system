@@ -18,6 +18,7 @@ import '../../models/rice_field.dart';
 import '../../services/field_service.dart';
 import '../fields/field_detail_screen.dart';
 import '../fields/widgets/field_widgets.dart';
+import '../history/history_detail_screen.dart';
 import '../../services/api_service.dart';
 import '../../services/offline_classifier_stub.dart' if (dart.library.ffi) '../../services/offline_classifier.dart';
 import 'package:http/http.dart' as http;
@@ -287,12 +288,15 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
   String? _provinceFromNote() => RegExp(r'จ\.(\S+)').firstMatch(_locationNote ?? '')?.group(1);
 
   Future<void> _saveWithGps() async {
+    final result = _result;
+    if (result == null) return;
     setState(() => _busy = true);
+    var synced = false;
     try {
       await _requestLocation();
 
-      if (_position != null && _result != null) {
-        unawaited(FirebaseFirestore.instance.collection('diagnoses').doc(_result!.diagnosisId).update({
+      if (_position != null) {
+        unawaited(FirebaseFirestore.instance.collection('diagnoses').doc(result.diagnosisId).update({
           'location': {
             'latitude': _position!.latitude,
             'longitude': _position!.longitude,
@@ -302,21 +306,40 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
         }).then((_) {}, onError: (Object e) => debugPrint('location sync failed: $e')));
       }
 
-      if (!mounted) return;
-      // Holds 2 seconds, then closes itself.
-      await showAppSuccess(
-        context,
-        title: 'บันทึกสำเร็จ!',
-        message: 'ข้อมูลและพิกัด GPS ถูกจัดเก็บลงฐานข้อมูลอย่างสมบูรณ์แบบ',
-        mascot: RiceyMood.joy,
-      );
-      if (!mounted) return;
-      _reset();
-      context.read<NavigationProvider>().setIndex(0); // Switch to Home Tab
+      // Firestore keeps writes on the phone until there's signal. Wait briefly so the
+      // summary can say honestly whether the scan already reached the system.
+      try {
+        await FirebaseFirestore.instance.waitForPendingWrites().timeout(const Duration(seconds: 4));
+        synced = true;
+      } catch (_) {}
     } catch (e) {
       _showError('เกิดข้อผิดพลาด: $e');
+      return;
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+    if (!mounted) return;
+
+    // Stays until the farmer picks what to do next (no auto-close, no surprise jump).
+    HapticFeedback.mediumImpact();
+    final next = await showAppSheet<_AfterSave>(
+      context,
+      builder: (_) => _SavedSheet(
+        result: result,
+        place: _position != null ? _locationNote : null,
+        field: _matchedField?.$1.name,
+        synced: synced,
+      ),
+    );
+    if (!mounted) return;
+    _reset();
+    switch (next) {
+      case _AfterSave.history:
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryDetailScreen(diagId: result.diagnosisId)));
+      case _AfterSave.home:
+        context.read<NavigationProvider>().setIndex(0);
+      case _AfterSave.scan || null:
+        break; // ready for the next leaf
     }
   }
 
@@ -1184,6 +1207,117 @@ class ChemicalAdvice extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+enum _AfterSave { scan, history, home }
+
+/// Summary shown after "บันทึกข้อมูล + GPS": what was saved, where, whether it has reached the
+/// system yet, and what to do next. Stays open until the farmer chooses.
+class _SavedSheet extends StatelessWidget {
+  const _SavedSheet({required this.result, required this.place, required this.field, required this.synced});
+
+  final DiagnosisResult result;
+  final String? place;
+  final String? field;
+  final bool synced;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.pal;
+    final healthy = result.diseaseCode == 'HEALTHY';
+    final tone = healthy ? Tone.safe : Tone.danger;
+    final (fg, _) = context.tone(tone);
+    final now = DateFormat('HH:mm').format(DateTime.now());
+
+    Widget row(IconData icon, String text, {Color? color, Widget? trailing}) => Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Row(children: [
+            Icon(icon, size: 17, color: color ?? p.muted),
+            const SizedBox(width: 10),
+            Expanded(child: Text(text, style: TextStyle(fontSize: 13.5, height: 1.45, color: color ?? p.body))),
+            if (trailing != null) trailing,
+          ]),
+        );
+
+    return SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Ricey(mood: RiceyMood.joy, size: 92, interactive: false),
+            Text('บันทึกผลสแกนแล้ว', textAlign: TextAlign.center, style: AppText.display(21, color: p.ink)),
+            const SizedBox(height: 4),
+            Text(
+              synced
+                  ? 'ส่งเข้าระบบเรียบร้อย ผลนี้ช่วยอัปเดตแผนที่การระบาดในพื้นที่ของคุณ'
+                  : 'เก็บไว้ในเครื่องแล้ว จะส่งเข้าระบบเองเมื่อมีสัญญาณอินเทอร์เน็ต',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13.5, height: 1.5, color: p.muted),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+              decoration: BoxDecoration(
+                color: p.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: p.line),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    IconTile(icon: healthy ? Remix.leaf_line : Remix.stethoscope_line, tone: tone, size: 40),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(result.diseaseName,
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: p.ink)),
+                    ),
+                    Text('${result.confidence.toStringAsFixed(1)}%',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: fg)),
+                  ]),
+                  Divider(height: 22, color: p.line),
+                  row(Remix.map_pin_2_line, place ?? 'ไม่ได้บันทึกพิกัด (ไม่ได้อนุญาตตำแหน่ง)'),
+                  if (field != null) row(Remix.seedling_line, 'แปลง $field'),
+                  row(Remix.time_line, 'วันนี้ $now น.'),
+                  row(
+                    synced ? Remix.cloud_line : Remix.cloud_off_line,
+                    synced ? 'ซิงก์กับระบบแล้ว' : 'รอสัญญาณเพื่อซิงก์',
+                    trailing: StatusPill(label: synced ? 'ออนไลน์' : 'ออฟไลน์', tone: synced ? Tone.safe : Tone.warn),
+                  ),
+                ],
+              ),
+            ),
+            if (!healthy) ...[
+              const SizedBox(height: 10),
+              Text('แนะนำสแกนใบอื่นในแปลงเดียวกันอีก 2–3 ใบ เพื่อดูว่าโรคกระจายแค่ไหน',
+                  textAlign: TextAlign.center, style: TextStyle(fontSize: 12.5, height: 1.5, color: p.muted)),
+            ],
+            const SizedBox(height: 18),
+            AppButton(
+              label: 'สแกนใบต่อไป',
+              icon: Remix.camera_3_line,
+              onPressed: () => Navigator.pop(context, _AfterSave.scan),
+            ),
+            const SizedBox(height: 10),
+            AppButton(
+              label: 'ดูรายละเอียดในประวัติ',
+              icon: Remix.history_line,
+              kind: ButtonKind.secondary,
+              onPressed: () => Navigator.pop(context, _AfterSave.history),
+            ),
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: () => Navigator.pop(context, _AfterSave.home),
+              child: Text('กลับหน้าหลัก', style: TextStyle(color: p.muted, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

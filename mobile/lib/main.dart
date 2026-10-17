@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
+import 'services/app_version.dart';
 import 'services/auth_provider.dart';
 import 'services/navigation_provider.dart';
 import 'services/notification_service.dart';
@@ -18,6 +19,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initializeDateFormatting('th_TH', null);
+  await AppVersion.load();
   await NotificationService.instance.init();
   runApp(const RiceAiApp());
 }
