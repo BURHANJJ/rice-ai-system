@@ -103,12 +103,12 @@ function HeroStage() {
       </div>
 
       <div className="rb-stage-layer absolute inset-0" style={{ '--d': '30px' }}>
-        <Phone screens={['Outbreak3D']} className="absolute left-[4%] top-[24%] w-[29%] -rotate-[8deg] [filter:saturate(.88)_brightness(.98)]" />
+        <Phone screens={['Outbreak3D']} className="absolute left-[9%] top-[17%] w-[34%] -rotate-[9deg] opacity-95 shadow-xl" />
       </div>
 
       <div className="rb-stage-layer absolute inset-0" style={{ '--d': '60px' }}>
-        <div aria-hidden="true" className="absolute left-[54%] top-[85%] h-[5%] w-[32%] -translate-x-[40%] rounded-[50%] bg-emerald-950/25 blur-xl" />
-        <button type="button" onClick={() => setI((v) => (v + 1) % HERO_SCREENS.length)} aria-label={t({ th: 'เปลี่ยนหน้าจอตัวอย่าง', en: 'Show next screen' })} className="absolute left-[54%] top-[7%] w-[36%] -translate-x-[40%] cursor-pointer">
+        <div aria-hidden="true" className="absolute left-1/2 top-[86%] h-[5%] w-[34%] -translate-x-[36%] rounded-[50%] bg-emerald-950/25 blur-xl" />
+        <button type="button" onClick={() => setI((v) => (v + 1) % HERO_SCREENS.length)} aria-label={t({ th: 'เปลี่ยนหน้าจอตัวอย่าง', en: 'Show next screen' })} className="absolute left-1/2 top-[7%] w-[38%] -translate-x-[36%] cursor-pointer">
           <Phone screens={HERO_SCREENS} active={i} glow>
             {i === 0 && <span className="rb-scanline" />}
           </Phone>
@@ -125,16 +125,7 @@ function HeroStage() {
           <span><span className="block text-[11px] font-bold text-gray-500">{t(chip.eyebrow)}</span><span className="block text-sm font-extrabold text-gray-900">{t(chip.title)}</span></span>
         </div>
 
-        {/* model accuracy badge */}
-        <div className="rb-float-slow absolute -left-[3%] top-[4%] hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2.5 pr-4 shadow-[0_18px_40px_-16px_rgba(15,45,31,.4)] ring-1 ring-emerald-900/5 backdrop-blur-xl sm:flex">
-          <span className="relative h-11 w-11">
-            <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90"><circle cx="22" cy="22" r="18" fill="none" stroke="#e7f3ec" strokeWidth="5" /><circle cx="22" cy="22" r="18" fill="none" stroke="url(#rbAcc)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${0.969 * 113.1} 113.1`} /><defs><linearGradient id="rbAcc" x1="0" x2="1"><stop offset="0" stopColor="#34d399" /><stop offset="1" stopColor="#15803d" /></linearGradient></defs></svg>
-            <ShieldCheck size={15} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-emerald-700" />
-          </span>
-          <span><span className="block text-[11px] font-bold text-gray-500">{t({ th: 'ความแม่นยำโมเดล', en: 'Model accuracy' })}</span><span className="block text-sm font-extrabold text-gray-900">96.9% <span className="font-semibold text-gray-500">{t({ th: 'บนชุดทดสอบ', en: 'on the test set' })}</span></span></span>
-        </div>
-
-        <img src="/app/khao_hom_hello.webp" alt={t({ th: 'น้องข้าวหอม', en: 'Khao Hom, the Rice AI mascot' })} className="rb-peek absolute bottom-[7%] right-0 w-[19%] drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
+        <img src="/app/khao_hom_hello.webp" alt={t({ th: 'น้องข้าวหอม', en: 'Khao Hom, the Rice AI mascot' })} className="rb-peek absolute bottom-[9%] right-[2%] w-[25%] drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
       </div>
 
       {/* step control: tap to jump; the active step's bar fills until the next screen */}
@@ -184,7 +175,7 @@ export default function Landing() {
         <div className="absolute inset-0 rb-soft-grid opacity-60 [mask-image:linear-gradient(to_bottom,black_55%,transparent_85%)]" />
         <PaddyField className="rice-hero-field absolute inset-x-0 bottom-0" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-[var(--color-paper)]" />
-        <div className="rice-hero-inner relative z-10 mx-auto grid w-full max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10">
+        <div className="rice-hero-inner relative z-10 mx-auto grid w-full max-w-7xl items-center gap-8 lg:grid-cols-[1fr_0.92fr] lg:gap-16 xl:gap-24">
           <div className="min-w-0 rb-reveal">
             <div className="rice-hero-kicker mb-4 sm:mb-5">
               <ShieldCheck size={16} />
