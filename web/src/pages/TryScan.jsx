@@ -82,7 +82,7 @@ function ConfidenceRing({ value, tone, label }) {
  *   idleTop      extra content above "how it works" (the portal's GPS card)
  *   resultLinks  [{to, label, icon}] extra buttons under a result
  */
-export function ScanWorkspace({ quota = null, onSuccess, onDiagnosis, idleTop = null, resultLinks = [], privacyNote, portal = false }) {
+export function ScanWorkspace({ quota = null, onSuccess, onDiagnosis, idleTop = null, resultTop = null, resultLinks = [], privacyNote, portal = false }) {
   const { lang } = useI18n();
   const isEn = lang === 'en';
   const tr = (th, en) => (isEn ? en : th);
@@ -333,6 +333,7 @@ export function ScanWorkspace({ quota = null, onSuccess, onDiagnosis, idleTop = 
                   </details>
 
                   <p className="mt-4 text-[11.5px] leading-5 text-slate-500">{tr('ผลจาก AI เป็นการช่วยตัดสินใจเบื้องต้น ก่อนใช้สารเคมีควรปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตรในพื้นที่', 'AI results support, not replace, expert advice. Check with your local extension officer before using chemicals.')}</p>
+                  {resultTop}
                   {portal && save && (
                     <div className={`mt-4 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold ${save.state === 'error' ? 'bg-red-50 text-red-800' : save.state === 'saving' ? 'bg-slate-50 text-slate-600' : 'bg-emerald-50 text-emerald-900'}`} aria-live="polite">
                       {save.state === 'saving' && <><RefreshCw size={15} className="animate-spin" />{tr('กำลังบันทึกผลเข้าระบบ…', 'Saving to the system…')}</>}

@@ -4,7 +4,8 @@
 // live feed, the outbreak map and the data explorer.
 import { useEffect, useState } from 'react';
 import { doc, collection, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Cpu, Crosshair, History, Loader2, MapPin, MapPinOff, RadioTower, ShieldCheck } from 'lucide-react';
+import { Cpu, Crosshair, History, MapPinOff, RadioTower, ShieldCheck } from 'lucide-react';
+import GpsCard from '../components/scan/GpsCard';
 import { db } from '../lib/firebase';
 import { useAuth } from '../lib/AuthContext';
 import { useDocTitle, useI18n } from '../lib/i18n';
@@ -15,22 +16,22 @@ import DISEASES from '../data/trialDiseases.json';
 
 function useLocation() {
   const [loc, setLoc] = useState({ status: 'idle' }); // idle | loading | ok | denied | unsupported
-  const request = () => {
+  const request = (fresh = false) => {
     if (!navigator.geolocation) { setLoc({ status: 'unsupported' }); return; }
     setLoc({ status: 'loading' });
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setLoc({ status: 'ok', latitude, longitude });
+        const { latitude, longitude, accuracy } = pos.coords;
+        setLoc({ status: 'ok', latitude, longitude, accuracy, at: pos.timestamp || Date.now() });
         const place = await thaiAddress(latitude, longitude);
-        if (place) setLoc((cur) => (cur.status === 'ok' ? { ...cur, ...place } : cur));
+        if (place) setLoc((cur) => (cur.status === 'ok' && cur.latitude === latitude ? { ...cur, ...place } : cur));
       },
       () => setLoc({ status: 'denied' }),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: fresh ? 0 : 60000 },
     );
   };
-  useEffect(request, []);
-  return [loc, request];
+  useEffect(() => request(false), []);
+  return [loc, () => request(true)];
 }
 
 export default function Scan() {
@@ -59,7 +60,7 @@ export default function Scan() {
       advice: (info.advice || []).map((a) => ({ treatment: a.treatment, chemical_name: a.chemical, dosage: a.dosage })),
       ai_source: 'web-onnx',
       location: loc.status === 'ok'
-        ? { latitude: loc.latitude, longitude: loc.longitude, province: loc.province || null, address: loc.address || null }
+        ? { latitude: loc.latitude, longitude: loc.longitude, accuracy_m: loc.accuracy ? Math.round(loc.accuracy) : null, province: loc.province || null, address: loc.address || null }
         : null,
     };
     // The write is applied locally at once; the server ack may never come without a connection.
@@ -68,25 +69,17 @@ export default function Scan() {
     return { state, id: ref.id };
   };
 
-  const gps = {
-    idle: [MapPin, 'text-slate-500', tr('ยังไม่ได้ระบุตำแหน่ง', 'Location not set')],
-    loading: [Loader2, 'text-sky-700', tr('กำลังหาตำแหน่ง…', 'Finding your location…')],
-    ok: [Crosshair, 'text-emerald-700', loc.address || (loc.latitude ? `${loc.latitude.toFixed(4)}, ${loc.longitude.toFixed(4)}` : '')],
-    denied: [MapPinOff, 'text-amber-700', tr('ไม่ได้อนุญาตตำแหน่ง ยังสแกนได้ แต่ผลจะไม่ขึ้นแผนที่', 'Location blocked: you can scan, but results won’t appear on the map')],
-    unsupported: [MapPinOff, 'text-amber-700', tr('อุปกรณ์นี้ไม่รองรับตำแหน่ง', 'This device has no location')],
-  }[loc.status];
-  const [GpsIcon, gpsColor, gpsText] = gps;
-
-  const gpsCard = (
-    <div className="mb-6 flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5">
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-100 ${gpsColor}`}><GpsIcon size={18} className={loc.status === 'loading' ? 'animate-spin' : ''} /></span>
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{tr('ตำแหน่งที่จะบันทึก', 'Location to save')}</div>
-        <div className={`truncate text-[13.5px] font-semibold ${gpsColor}`}>{gpsText}</div>
-      </div>
-      {loc.status !== 'loading' && loc.status !== 'ok' && (
-        <button type="button" onClick={requestLoc} className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100">{tr('ลองอีกครั้ง', 'Retry')}</button>
-      )}
+  const gpsCard = <GpsCard loc={loc} onRefresh={requestLoc} tr={tr} />;
+  // Under a result: where it was recorded (or that it has no location).
+  const resultTop = loc.status === 'ok' ? (
+    <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-slate-50 px-3.5 py-2.5 text-[12.5px] text-slate-600 ring-1 ring-slate-100">
+      <Crosshair size={15} className="shrink-0 text-emerald-700" />
+      <span className="min-w-0 flex-1 truncate"><span className="font-semibold text-slate-800">{loc.address || tr('พิกัดปัจจุบัน', 'Current position')}</span><span className="ml-1.5 font-mono text-[11.5px] text-slate-500">{loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)}</span></span>
+      {loc.accuracy ? <span className="shrink-0 text-[11px] text-slate-400">±{Math.round(loc.accuracy)} {tr('ม.', 'm')}</span> : null}
+    </div>
+  ) : (
+    <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-amber-50 px-3.5 py-2.5 text-[12.5px] text-amber-800 ring-1 ring-amber-100">
+      <MapPinOff size={15} className="shrink-0" />{tr('บันทึกโดยไม่มีพิกัด ผลนี้จะไม่ขึ้นแผนที่การระบาด', 'Saved without a location; it won’t appear on the outbreak map')}
     </div>
   );
 
@@ -106,6 +99,7 @@ export default function Scan() {
         portal
         onDiagnosis={save}
         idleTop={gpsCard}
+        resultTop={resultTop}
         resultLinks={links}
         privacyNote={tr('AI วิเคราะห์ในเบราว์เซอร์ เมื่อได้ผลวินิจฉัย ระบบจะบันทึกภาพย่อ ผล และพิกัดเข้าระบบเหมือนในแอป', 'The AI runs in your browser. When there is a result, a reduced photo, the result and the location are saved, as in the app.')}
       />
