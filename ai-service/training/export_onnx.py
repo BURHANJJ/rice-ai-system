@@ -5,10 +5,10 @@
 - เก็บน้ำหนักแบบ fp16 ให้ไฟล์เล็กลงครึ่งหนึ่ง แล้ว Cast กลับเป็น fp32 ตอนโหลด คำนวณแบบ fp32 เท่าเดิม
 - เทียบคำตอบกับโมเดลต้นฉบับบนภาพชุดทดสอบทั้งหมด + ภาพโรคอื่น และนับภาพที่ข้ามเกณฑ์ 60%
 
-รัน:  KERAS_BACKEND=torch python export_onnx.py
+รัน:  KERAS_BACKEND=torch python export_onnx.py [ไฟล์ปลายทาง.onnx]  (ไม่ใส่ = web/public/models/rice-v3.onnx)
 ต้องมี: keras, torch, onnx, onnxscript, onnxruntime, pillow และภาพใน RICE_EVAL_DIR (ดู README.md)
 """
-import json, os
+import json, os, sys
 os.environ.setdefault('KERAS_BACKEND', 'torch')
 import numpy as np
 import keras
@@ -20,7 +20,7 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..'))
 SRC = os.path.join(REPO, 'ai-service', 'model', 'rice_disease_model.keras')
-DST = os.path.join(REPO, 'web', 'public', 'models', 'rice-v3.onnx')
+DST = sys.argv[1] if len(sys.argv) > 1 else os.path.join(REPO, 'web', 'public', 'models', 'rice-v3.onnx')
 ROOT = os.environ.get('RICE_EVAL_DIR', 'D:/rice-eval')
 TMP = os.path.join(ROOT, 'webmodel', 'rice-v3.fp32.onnx')
 THRESHOLD = 0.60
