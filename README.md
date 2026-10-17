@@ -92,7 +92,7 @@ firebase deploy --only functions        # ต้องใช้แผน Blaze
 
 ```bash
 cd mobile
-flutter build apk --release --split-per-abi --dart-define=API_BASE= --build-name=0.9.3 --build-number=5
+flutter build apk --release --split-per-abi --dart-define=API_BASE= --build-name=0.9.4 --build-number=6
 ```
 
 ทุกรุ่นใหม่ให้เพิ่มทั้ง `--build-name` (เลขที่แอปแสดงในหน้าเปิดแอปและโปรไฟล์) และ `--build-number` (ต้องมากกว่ารุ่นก่อน ไม่งั้นติดตั้งทับไม่ได้) แล้วอัปเดต `web/public/downloads/rice-ai-beta.json`
