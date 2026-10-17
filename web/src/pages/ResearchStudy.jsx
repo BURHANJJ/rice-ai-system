@@ -224,6 +224,23 @@ export default function ResearchStudy() {
               ['#deployed', 'V3', tr('รู้ว่าโรคไหนที่ตัวเองไม่รู้จัก', 'Knows what it does not know'), tr(`เพิ่มคลาส "โรคอื่น" ภาพโรคอื่น ${dep.otherSplit.test} ภาพที่ได้ชื่อโรคผิดลดจาก ${dep.previous.other.given_wrong_diagnosis} เหลือ ${dep.other.given_wrong_diagnosis} ภาพ แลกกับ Accuracy 4 โรคที่ลดเป็น ${pct(dep.accuracy)}`, `An "other" class: wrong names on ${dep.otherSplit.test} other-disease photos fall from ${dep.previous.other.given_wrong_diagnosis} to ${dep.other.given_wrong_diagnosis}, for four-disease accuracy of ${pct(dep.accuracy)}.`)],
             ].map(([href, tag, title, body], i) => <li key={href}><a href={href} className="group flex h-full flex-col rounded-2xl bg-[#f6f7f1] p-5 transition hover:bg-[#eef2e7]"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-extrabold text-white" style={{ backgroundColor: GREEN }}>{i + 1}</span><span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">{tag}</span></div><h3 className="mt-3 text-sm font-bold text-slate-900">{title}</h3><p className="mt-1.5 flex-1 text-sm leading-6 text-slate-600">{body}</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-800">{tr('อ่านส่วนนี้', 'Read this part')} <ArrowRight size={13} className="transition group-hover:translate-x-0.5" /></span></a></li>)}
           </ol>
+
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="border-b border-slate-100 px-4 py-4 sm:px-5"><h3 className="font-bold text-slate-900">{tr('เทียบทั้ง 3 รุ่นบนภาพทดสอบชุดเดียวกัน', 'All three releases on the same test images')}</h3><p className="mt-1 text-xs leading-5 text-slate-500">{tr(`ภาพ 4 โรค 761 ภาพ และภาพโรคอื่น ${cmp.versions.v3.other_size} ภาพ · "ตอบผล" และ "ผิด" ใช้เกณฑ์ความมั่นใจของแต่ละรุ่น (V1, V2 = 75% · V3 = ${Math.round(cmp.versions.v3.threshold * 100)}%) · V1 ไม่มีชุดทดสอบแยกตอนฝึก ภาพบางส่วนอาจเคยอยู่ในชุดฝึกของ V1`, `761 four-disease images and ${cmp.versions.v3.other_size} other-disease images · "answered" and "wrong" use each release's own cut-off (V1, V2 = 75% · V3 = ${Math.round(cmp.versions.v3.threshold * 100)}%) · V1 had no separate test set, so some images may have been in its training data`)}</p></div>
+            <div className="overflow-x-auto"><table className="w-full border-collapse text-left text-sm">
+              <thead><tr className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500"><th className="px-4 py-3 font-bold">{tr('ตัวชี้วัด', 'Measure')}</th>{['V1', 'V2', 'V3'].map((v) => <th key={v} className={`px-2 py-3 sm:px-4 text-right font-bold ${v === 'V3' ? 'text-emerald-900' : ''}`}>{v}</th>)}</tr></thead>
+              <tbody>{[
+                [tr('จำนวนคลาส', 'Classes'), (v) => String(v.classes)],
+                [tr('Accuracy 4 โรค', 'Four-disease accuracy'), (v) => pct(v.accuracy)],
+                ['Macro F₁', (v) => pct(v.macro_f1)],
+                ['AUC', (v) => v.auc.toFixed(4)],
+                [tr('ภาพ 4 โรคที่ระบบตอบผล', 'Four-disease photos answered'), (v) => pct(v.answered, 1)],
+                [tr('ภาพ 4 โรคที่ตอบผิดโรค', 'Four-disease photos named wrongly'), (v) => String(v.wrong_answers)],
+                [tr(`ภาพโรคอื่น ${cmp.versions.v3.other_size} ภาพที่ได้ชื่อโรคผิด`, `Other-disease photos (${cmp.versions.v3.other_size}) named wrongly`), (v) => String(v.other_wrong)],
+              ].map(([label, f]) => <tr key={label} className="border-t border-slate-100"><td className="px-4 py-3 text-slate-700">{label}</td>{['v1', 'v2', 'v3'].map((k) => <td key={k} className={`px-2 py-3 text-right tabular-nums sm:px-4 ${k === 'v3' ? 'font-bold text-emerald-900' : 'text-slate-600'}`}>{f(cmp.versions[k])}</td>)}</tr>)}</tbody>
+            </table></div>
+            <p className="border-t border-slate-100 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:px-5">{tr('V1 → V2 ทำให้แม่นขึ้นมาก · V2 → V3 แลก Accuracy เล็กน้อย เพื่อไม่ให้ชื่อโรคผิดกับภาพโรคที่ระบบยังไม่รองรับ', 'V1 → V2 made the model far more accurate · V2 → V3 trades a little accuracy so photos of unsupported diseases are not given a wrong name')}</p>
+          </div>
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/70 p-5">
             <div className="flex items-start gap-3"><Info size={18} className="mt-0.5 shrink-0 text-amber-800" /><div className="min-w-0 flex-1">
               <h3 className="text-sm font-bold text-amber-950">{tr('อ่านตัวเลขให้ถูก: แต่ละค่ามาจากคนละการทดลอง', 'Reading the numbers: each comes from a different experiment')}</h3>

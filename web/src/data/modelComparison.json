@@ -238,6 +238,45 @@
    }
   }
  },
+ "versions": {
+  "v1": {
+   "threshold": 0.75,
+   "accuracy": 0.7542706964520368,
+   "correct": 574,
+   "macro_f1": 0.7137454664773404,
+   "auc": 0.9314497436163238,
+   "answered": 0.5308804204993429,
+   "wrong_answers": 33,
+   "other_wrong": 244,
+   "other_size": 801,
+   "classes": 4
+  },
+  "v2": {
+   "threshold": 0.75,
+   "accuracy": 0.9789750328515112,
+   "correct": 745,
+   "macro_f1": 0.9778053107257975,
+   "auc": 0.9992211531565516,
+   "answered": 0.9277266754270697,
+   "wrong_answers": 2,
+   "other_wrong": 299,
+   "other_size": 801,
+   "classes": 4
+  },
+  "v3": {
+   "threshold": 0.6,
+   "accuracy": 0.9684625492772667,
+   "correct": 737,
+   "macro_f1": 0.9713695044341174,
+   "auc": 0.9991807942242505,
+   "answered": 0.9566360052562418,
+   "wrong_answers": 3,
+   "other_wrong": 16,
+   "other_size": 801,
+   "classes": 5
+  },
+  "note": "Same held-out test images for all three: 761 four-class images (V1 rescored; some may have been in its training data) and 801 other-disease images. answered/wrong_answers apply each release's own confidence cut-off; OTHER predictions count as not answered."
+ },
  "models": [
   {
    "key": "efficientnet_b0",

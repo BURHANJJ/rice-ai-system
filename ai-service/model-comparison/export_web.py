@@ -19,10 +19,12 @@ deployed = {
                  'userView': D['previous']['test'].get('user_view'), 'other': D['previous'].get('test_other'),
                  'mcnemar': D['previous'].get('mcnemar_vs_v3_in_scope')},
 }
+versions = json.load(open(os.path.join(HERE, '..', 'model', 'version_comparison.json'), encoding='utf-8'))
 out = {
     'evaluated': S['evaluated'], 'testSize': S['test_size'], 'seeds': S['seeds'], 'classes': S['classes'],
     'recipe': RECIPE,
     'deployed': deployed,
+    'versions': versions,
     'models': [],
 }
 for m in S['models']:
