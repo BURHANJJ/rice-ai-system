@@ -56,3 +56,8 @@ Thumbs.db
 
 # Old 800-byte placeholder from before the real model existed
 ai-service/model/*.h5
+
+# Comparison-model weights are large (~1 GB in total); keep metrics, logs and histories only.
+# Rebuild them with ai-service/model-comparison/train.py
+ai-service/model-comparison/models/**/*.keras
+ai-service/model-comparison/models/**/*.tflite

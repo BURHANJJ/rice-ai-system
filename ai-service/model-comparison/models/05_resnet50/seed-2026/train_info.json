@@ -1,0 +1,44 @@
+{
+  "model": "resnet50",
+  "name": "ResNet-50",
+  "seed": 2026,
+  "recipe": {
+    "head": {
+      "epochs": 6,
+      "lr": 0.001,
+      "patience": 3
+    },
+    "finetune": {
+      "epochs": 18,
+      "lr": 0.0001,
+      "patience": 5
+    },
+    "label_smoothing": 0.1,
+    "dropout": 0.3,
+    "augment": 0.15,
+    "batch": 32
+  },
+  "timing": {
+    "head": {
+      "lr": 0.001,
+      "seconds": 197.1,
+      "epochs_run": 6
+    },
+    "finetune": {
+      "lr": 0.0001,
+      "seconds": 808.6,
+      "epochs_run": 18
+    }
+  },
+  "micro_batch": 16,
+  "gradient_accumulation_steps": 2,
+  "train_seconds": 1005.7,
+  "best_val_accuracy": 0.9828947186470032,
+  "test_accuracy_quick": 0.9816031537450722,
+  "device": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "keras": "3.15.0",
+  "backend": "torch",
+  "torch": "2.11.0+cu128",
+  "python": "3.13.14",
+  "finished": "2026-10-17 05:57:36"
+}

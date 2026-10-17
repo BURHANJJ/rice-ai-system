@@ -1,0 +1,44 @@
+{
+  "model": "vgg16",
+  "name": "VGG-16",
+  "seed": 42,
+  "recipe": {
+    "head": {
+      "epochs": 6,
+      "lr": 0.001,
+      "patience": 3
+    },
+    "finetune": {
+      "epochs": 18,
+      "lr": 0.0001,
+      "patience": 5
+    },
+    "label_smoothing": 0.1,
+    "dropout": 0.3,
+    "augment": 0.15,
+    "batch": 32
+  },
+  "timing": {
+    "head": {
+      "lr": 0.001,
+      "seconds": 233.4,
+      "epochs_run": 6
+    },
+    "finetune": {
+      "lr": 1e-05,
+      "seconds": 1035.6,
+      "epochs_run": 18
+    }
+  },
+  "micro_batch": 16,
+  "gradient_accumulation_steps": 2,
+  "train_seconds": 1269.0,
+  "best_val_accuracy": 0.9473684430122375,
+  "test_accuracy_quick": 0.9566360052562418,
+  "device": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "keras": "3.15.0",
+  "backend": "torch",
+  "torch": "2.11.0+cu128",
+  "python": "3.13.14",
+  "finished": "2026-10-17 01:57:18"
+}

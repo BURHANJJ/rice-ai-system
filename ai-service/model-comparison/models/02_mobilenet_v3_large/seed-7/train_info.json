@@ -1,0 +1,44 @@
+{
+  "model": "mobilenet_v3_large",
+  "name": "MobileNetV3-Large",
+  "seed": 7,
+  "recipe": {
+    "head": {
+      "epochs": 6,
+      "lr": 0.001,
+      "patience": 3
+    },
+    "finetune": {
+      "epochs": 18,
+      "lr": 0.0001,
+      "patience": 5
+    },
+    "label_smoothing": 0.1,
+    "dropout": 0.3,
+    "augment": 0.15,
+    "batch": 32
+  },
+  "timing": {
+    "head": {
+      "lr": 0.001,
+      "seconds": 109.9,
+      "epochs_run": 4
+    },
+    "finetune": {
+      "lr": 0.0001,
+      "seconds": 536.9,
+      "epochs_run": 18
+    }
+  },
+  "micro_batch": 32,
+  "gradient_accumulation_steps": 1,
+  "train_seconds": 646.8,
+  "best_val_accuracy": 0.9815789461135864,
+  "test_accuracy_quick": 0.973718791064389,
+  "device": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "keras": "3.15.0",
+  "backend": "torch",
+  "torch": "2.11.0+cu128",
+  "python": "3.13.14",
+  "finished": "2026-10-17 02:58:50"
+}
