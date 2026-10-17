@@ -100,9 +100,11 @@ export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0
   const bubbleText = <span className="min-w-0 whitespace-normal break-words">{typed}{typing && <span aria-hidden="true" className="rs-typing-caret ml-0.5 inline-block h-4 align-middle" />}</span>;
 
   return (
+    <>
+      {/* Soft scrim so the open dial reads clearly over busy content; tapping it closes the dial.
+          Kept outside the sliding container: a transformed parent would clip a fixed child to its own box. */}
+      <div aria-hidden="true" onClick={() => setOpen(false)} className={`fixed inset-0 z-40 bg-[radial-gradient(circle_at_100%_100%,rgba(6,40,28,.28),rgba(6,40,28,.10)_45%,transparent_75%)] transition-opacity duration-300 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
     <div ref={ref} aria-hidden={!shown} className={`group fixed bottom-4 right-3 z-40 transition duration-500 ease-out sm:bottom-5 sm:right-5 lg:bottom-7 lg:right-7 ${shown ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-8 opacity-0'}`}>
-      {/* soft scrim so the open dial reads clearly over busy content; tapping it closes the dial */}
-      <div aria-hidden="true" onClick={() => setOpen(false)} className={`fixed inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(6,40,28,.28),rgba(6,40,28,.10)_45%,transparent_75%)] transition-opacity duration-300 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
       {!open && (bubbleTo
         ? <Link to={bubbleTo} aria-label={bubble[0]} className={bubbleClass}>{bubbleText}</Link>
         : <button type="button" onClick={() => setOpen(true)} aria-label={t({ th: 'เปิดเมนูน้องข้าวหอม', en: 'Open Khao Hom menu' })} className={bubbleClass}>{bubbleText}</button>)}
@@ -147,11 +149,12 @@ export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0
         aria-haspopup="menu"
         className="relative flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/25"
       >
-        <img src={khaoHomMascot} alt="" aria-hidden="true" className="rs-quick-mascot h-20 w-20 object-contain drop-shadow-2xl transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:rotate-[-3deg] group-hover:scale-110 group-hover:drop-shadow-[0_22px_28px_rgba(20,83,45,0.28)] motion-reduce:transition-none sm:h-24 sm:w-24 lg:h-28 lg:w-28" />
+        <img src={khaoHomMascot} alt="" aria-hidden="true" className="rs-quick-mascot h-20 w-20 object-contain transition-transform duration-500 ease-out group-hover:-translate-y-2 group-hover:rotate-[-3deg] group-hover:scale-110 motion-reduce:transition-none sm:h-24 sm:w-24 lg:h-28 lg:w-28" />
         <span aria-hidden="true" className={`absolute right-0 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-950 text-white shadow-lg ring-2 ring-white transition duration-300 ${open ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
           <X size={14} strokeWidth={2.6} />
         </span>
       </button>
     </div>
+    </>
   );
 }
