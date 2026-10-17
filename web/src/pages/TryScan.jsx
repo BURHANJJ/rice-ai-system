@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  AlertTriangle, ArrowRight, BookOpenText, Camera, CheckCircle2, Clock3, Cpu, Download, HelpCircle,
-  ImagePlus, Leaf, Lock, RefreshCw, ScanLine, ShieldCheck, Smartphone, Sparkles, Upload, X,
+  AlertTriangle, ArrowRight, BookOpenText, Camera, CheckCircle2, Clock3, Cpu, Download, Focus, Globe, HelpCircle,
+  ImagePlus, Leaf, Lock, Maximize2, RefreshCw, ScanLine, ShieldCheck, Smartphone, Sparkles, Sun, Upload, UserRoundCheck, Wifi, X,
 } from 'lucide-react';
 import PublicHeader from '../components/PublicHeader';
 import PublicFooter from '../components/PublicFooter';
@@ -308,20 +308,20 @@ export default function TryScan() {
             })()}
 
             {phase === 'issue' && (
-              <div className="ts-rise">
+              <div className="ts-rise my-auto">
                 {(() => {
                   const kinds = {
                     unclear: {
                       icon: HelpCircle, ring: 'bg-amber-50 text-amber-700', tag: tr('ภาพยังไม่ชัดพอ', 'Photo not clear enough'),
                       title: tr('ขอภาพใหม่อีกครั้งนะครับ', 'Let’s try another photo'),
                       body: tr(`AI มั่นใจเพียง ${result?.confidence ?? 0}% ต่ำกว่าเกณฑ์ 60% จึงไม่เดาผล เพื่อไม่ให้ได้คำแนะนำที่ผิด`, `The AI is only ${result?.confidence ?? 0}% sure, below the 60% bar, so it won’t guess.`),
-                      tips: [tr('ใบข้าวเต็มกรอบ เห็นรอยแผลชัด', 'Fill the frame with the leaf, lesions visible'), tr('ถ่ายในที่สว่าง ไม่ย้อนแสง', 'Shoot in good light, not against the sun'), tr('ถือให้นิ่ง โฟกัสที่รอยแผล', 'Hold steady and focus on the lesion'), tr('ถ่ายทีละใบ ไม่มีสิ่งอื่นในภาพมาก', 'One leaf, little else in the frame')],
+                      tips: [[Maximize2, tr('ใบเต็มกรอบ', 'Fill the frame'), tr('เห็นรอยแผลชัด ห่างราวหนึ่งคืบ', 'Lesions visible, about a hand-span away')], [Sun, tr('แสงสว่างพอ', 'Good light'), tr('ไม่ย้อนแสง ไม่มีเงาบังแผล', 'No backlight or shadow on the lesion')], [Focus, tr('ภาพคมชัด', 'Sharp photo'), tr('ถือนิ่ง แตะจอตรงแผลให้โฟกัส', 'Hold still, tap the lesion to focus')], [Leaf, tr('ทีละใบ', 'One leaf'), tr('ไม่มีมือหรือสิ่งอื่นในภาพมาก', 'Little else in the frame')]],
                     },
                     other: {
                       icon: AlertTriangle, ring: 'bg-sky-50 text-sky-700', tag: tr('นอกขอบเขตของ AI', 'Outside what the AI covers'),
                       title: tr('อาจเป็นโรคที่ยังไม่รองรับ', 'Possibly a condition we don’t cover yet'),
                       body: tr('ลักษณะในภาพไม่ตรงกับ 4 แบบที่ AI ตรวจได้ อาจเป็นใบจุดสีน้ำตาล ราน้ำค้าง หรือแมลงทำลาย ระบบจึงไม่ให้ชื่อโรคที่อาจผิด', 'The photo doesn’t match the 4 cases the AI knows; it may be brown spot, downy mildew or insect damage, so no name is given.'),
-                      tips: [tr('เทียบอาการกับคลังความรู้ 22 โรคจากกรมการข้าว', 'Compare symptoms with the 22-disease library'), tr('ลองใบอื่นที่เห็นอาการชัดกว่า', 'Try another leaf with clearer symptoms'), tr('ถ้าอาการลุกลาม ปรึกษาเจ้าหน้าที่เกษตรในพื้นที่', 'If it spreads, contact your local extension officer')],
+                      tips: [[BookOpenText, tr('เทียบในคลังความรู้', 'Check the library'), tr('22 โรคจากกรมการข้าว พร้อมรูป', '22 diseases with photos')], [RefreshCw, tr('ลองใบอื่น', 'Try another leaf'), tr('เลือกใบที่เห็นอาการชัดกว่า', 'One with clearer symptoms')], [UserRoundCheck, tr('ถามผู้เชี่ยวชาญ', 'Ask an expert'), tr('ถ้าลุกลาม ติดต่อเกษตรอำเภอ', 'If it spreads, call your extension office')]],
                     },
                     bad_image: {
                       icon: ImagePlus, ring: 'bg-amber-50 text-amber-700', tag: tr('อ่านไฟล์ไม่ได้', 'Can’t read this file'),
@@ -333,36 +333,65 @@ export default function TryScan() {
                       icon: Cpu, ring: 'bg-red-50 text-red-700', tag: tr('โหลด AI ไม่สำเร็จ', 'AI failed to load'),
                       title: tr('เตรียม AI ไม่สำเร็จ', 'Couldn’t start the AI'),
                       body: tr('อาจเป็นเพราะอินเทอร์เน็ตขาดระหว่างดาวน์โหลด หรือเบราว์เซอร์รุ่นเก่า ภาพของคุณยังอยู่ ลองอีกครั้งได้', 'The download may have been interrupted or the browser is too old. Your photo is still here; try again.'),
-                      tips: [tr('ตรวจสัญญาณอินเทอร์เน็ต', 'Check your connection'), tr('ใช้ Chrome, Edge หรือ Safari รุ่นล่าสุด', 'Use an up-to-date Chrome, Edge or Safari')],
+                      tips: [[Wifi, tr('ตรวจอินเทอร์เน็ต', 'Check your connection'), tr('ครั้งแรกต้องโหลด AI ราว 8 MB', 'First run downloads about 8 MB')], [Globe, tr('อัปเดตเบราว์เซอร์', 'Update your browser'), tr('Chrome, Edge หรือ Safari รุ่นล่าสุด', 'Latest Chrome, Edge or Safari')]],
                     },
                   };
                   const k = kinds[issue] || kinds.model;
                   const Icon = k.icon;
+                  const conf = result?.confidence ?? 0;
                   return (
-                    <>
-                      <div className="flex items-start gap-3.5">
+                    <div className="my-auto">
+                      <div className="flex items-center gap-3.5">
                         <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${k.ring}`}><Icon size={24} /></span>
-                        <div>
+                        <div className="min-w-0">
                           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{k.tag}</span>
-                          <h2 className="mt-0.5 text-xl font-bold leading-snug text-slate-950">{k.title}</h2>
+                          <h2 className="mt-0.5 text-xl font-bold leading-snug text-slate-950 sm:text-[22px]">{k.title}</h2>
                         </div>
                       </div>
                       <p className="mt-3 text-sm leading-6 text-slate-600">{k.body}</p>
+
+                      {issue === 'unclear' && (
+                        <div className="mt-4 rounded-2xl border border-amber-200/70 bg-amber-50/60 p-4">
+                          <div className="flex items-baseline justify-between text-xs font-semibold text-slate-600">
+                            <span>{tr('ความมั่นใจของ AI', 'AI confidence')}</span>
+                            <span className="text-base font-extrabold tabular-nums text-amber-700">{conf.toFixed(1)}%</span>
+                          </div>
+                          <div className="relative mt-2.5 h-2.5 rounded-full bg-white ring-1 ring-amber-200/70">
+                            <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-amber-500 transition-[width] duration-700" style={{ width: `${Math.min(100, conf)}%` }} />
+                            <div className="absolute -top-1 bottom-[-4px] left-[60%] w-0.5 rounded bg-emerald-800" aria-hidden="true" />
+                          </div>
+                          <div className="relative mt-1.5 h-4 text-[10.5px] font-semibold text-emerald-800"><span className="absolute left-[60%] -translate-x-1/2 whitespace-nowrap">{tr('เกณฑ์ 60%', '60% bar')}</span></div>
+                        </div>
+                      )}
+
                       {issue === 'other' && (
-                        <div className="mt-3 flex flex-wrap gap-1.5">{['BLAST', 'BLB', 'TUNGRO', 'HEALTHY'].map((c) => <span key={c} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11.5px] font-semibold text-slate-600">{name(c)}</span>)}</div>
+                        <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/60 p-3.5">
+                          <div className="text-[11.5px] font-bold text-slate-500">{tr('AI ตรวจได้ตอนนี้', 'What the AI covers today')}</div>
+                          <div className="mt-2 flex flex-wrap gap-1.5">{['BLAST', 'BLB', 'TUNGRO', 'HEALTHY'].map((c) => <span key={c} className="rounded-full bg-white px-2.5 py-1 text-[11.5px] font-semibold text-slate-700 ring-1 ring-sky-100">{name(c)}</span>)}</div>
+                        </div>
                       )}
+
                       {k.tips.length > 0 && (
-                        <ol className="mt-4 space-y-2">
-                          {k.tips.map((t, i) => <li key={t} className="flex gap-2.5 text-[13.5px] leading-5 text-slate-700"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-[11px] font-bold text-emerald-800">{i + 1}</span>{t}</li>)}
-                        </ol>
+                        <>
+                          <div className="mt-5 text-xs font-bold text-slate-900">{issue === 'unclear' ? tr('ถ่ายใหม่ให้ได้ผลแม่น', 'For a sharper result') : tr('ขั้นต่อไป', 'What to do next')}</div>
+                          <ul className={`mt-2.5 grid gap-2 ${k.tips.length === 3 ? 'sm:grid-cols-3' : 'grid-cols-2'}`}>
+                            {k.tips.map(([TipIcon, t, d]) => (
+                              <li key={t} className="flex gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:flex-col sm:gap-2">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-900/5"><TipIcon size={16} /></span>
+                                <span className="min-w-0"><span className="block text-[13px] font-bold leading-5 text-slate-900">{t}</span><span className="block text-[11.5px] leading-[1.15rem] text-slate-500">{d}</span></span>
+                              </li>
+                            ))}
+                          </ul>
+                        </>
                       )}
-                      <p className="mt-4 flex items-center gap-1.5 text-[12px] font-semibold text-emerald-800"><CheckCircle2 size={14} />{tr('ครั้งนี้ไม่นับสิทธิ์ทดลอง', 'This attempt didn’t use a free scan')}</p>
+
                       <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-                        <button type="button" onClick={pickCamera} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-4 text-sm font-bold text-white transition hover:bg-[#173d2e] sm:hidden"><Camera size={16} />{tr('ถ่ายภาพใหม่', 'Retake photo')}</button>
-                        <button type="button" onClick={pickGallery} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50 sm:border-transparent sm:bg-[#1f4d3a] sm:text-white sm:hover:bg-[#173d2e]"><ImagePlus size={16} />{tr('เลือกภาพใหม่', 'Choose another photo')}</button>
-                        {issue === 'other' && <Link to="/rice-diseases" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50"><BookOpenText size={16} />{tr('เปิดคลังความรู้โรคข้าว', 'Open the disease library')}</Link>}
+                        <button type="button" onClick={pickCamera} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-4 text-sm font-bold text-white shadow-[0_10px_24px_-12px_rgba(31,77,58,.8)] transition hover:bg-[#173d2e] sm:hidden"><Camera size={17} />{tr('ถ่ายภาพใหม่', 'Retake photo')}</button>
+                        <button type="button" onClick={pickGallery} className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50 sm:border-transparent sm:bg-[#1f4d3a] sm:text-white sm:shadow-[0_10px_24px_-12px_rgba(31,77,58,.8)] sm:hover:bg-[#173d2e] ${issue === 'other' ? '' : 'sm:col-span-2'}`}><ImagePlus size={17} />{tr('เลือกภาพใหม่', 'Choose another photo')}</button>
+                        {issue === 'other' && <Link to="/rice-diseases" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50"><BookOpenText size={17} />{tr('เปิดคลังความรู้โรคข้าว', 'Open the disease library')}</Link>}
                       </div>
-                    </>
+                      <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-slate-500"><CheckCircle2 size={14} className="text-emerald-700" />{tr(`ครั้งนี้ไม่นับสิทธิ์ · เหลือ ${q.left} จาก ${q.limit} ครั้งวันนี้`, `Not counted · ${q.left} of ${q.limit} left today`)}</p>
+                    </div>
                   );
                 })()}
               </div>
