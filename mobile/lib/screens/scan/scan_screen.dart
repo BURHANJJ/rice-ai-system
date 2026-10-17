@@ -41,7 +41,10 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
   DiagnosisResult? _result;
   (RiceField, double)? _matchedField;
   bool _busy = false;
-  String? _error;
+  // What went wrong with the last analyse/save. Stays on screen until the farmer acts on it.
+  _ScanIssue? _issue;
+  int _issueSeq = 0;
+  final _issueKey = GlobalKey();
 
   // AI Status
   bool _isAiOnline = true;
@@ -121,7 +124,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
     setState(() {
       _image = picked;
       _result = null;
-      _error = null;
+      _issue = null;
     });
   }
 
@@ -166,14 +169,10 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _analyze() async {
-    if (_image == null) {
-      setState(() => _error = 'กรุณาเลือกภาพใบข้าวก่อน');
-      _showError(_error!);
-      return;
-    }
+    if (_image == null) return; // the analyse button only exists once a photo is chosen
     setState(() {
       _busy = true;
-      _error = null;
+      _issue = null;
     });
     _startPhases();
     try {
@@ -272,15 +271,11 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
       HapticFeedback.heavyImpact();
       setState(() => _result = DiagnosisResult.fromJson(data));
       _matchField();
-    } on ApiException catch (e) {
-      setState(() => _error = e.message ?? 'วิเคราะห์ไม่สำเร็จ กรุณาลองใหม่');
-      _showError(_error!);
     } catch (e) {
-      setState(() => _error = 'เกิดข้อผิดพลาด: $e');
-      _showError(_error!);
+      _fail(_ScanIssue.from(e));
     } finally {
       _phaseTimer?.cancel();
-      setState(() => _busy = false);
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -313,7 +308,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
         synced = true;
       } catch (_) {}
     } catch (e) {
-      _showError('เกิดข้อผิดพลาด: $e');
+      _fail(_ScanIssue.from(e, saving: true));
       return;
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -358,12 +353,27 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
       _matchedField = null;
       _image = null;
       _result = null;
-      _error = null;
+      _issue = null;
     });
   }
 
-  void _showError(String message) {
-    if (mounted) AppToast.error(context, message, title: 'วิเคราะห์ไม่สำเร็จ');
+  /// Shows [issue] as a card in the page (not a toast), shakes it once and scrolls it into view.
+  void _fail(_ScanIssue issue) {
+    if (!mounted) return;
+    HapticFeedback.heavyImpact();
+    setState(() {
+      _issue = issue;
+      _issueSeq++;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _issueKey.currentContext;
+      if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 420), curve: Curves.easeOutCubic, alignment: 0.15);
+    });
+  }
+
+  Future<void> _retake() async {
+    setState(() => _issue = null);
+    await _pickImage(ImageSource.camera);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -817,7 +827,163 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
     );
   }
 
+  /// The problem card: what happened, why, what to try, and the buttons to do it.
+  /// [onResult]: shown above the save button on the result page (the save button is the retry).
+  Widget _buildIssueCard(_ScanIssue i, {bool onResult = false}) {
+    final p = context.pal;
+    final (fg, soft) = context.tone(i.tone);
+    final actions = onResult ? const <Widget>[] : _issueActions(i);
+    return KeyedSubtree(
+      key: _issueKey,
+      child: ShakeOnChange(
+        trigger: _issueSeq,
+        child: FadeSlideIn(
+          key: ValueKey(_issueSeq),
+          child: Container(
+            decoration: BoxDecoration(
+              color: p.surface,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: fg.withOpacity(0.28)),
+              boxShadow: [BoxShadow(color: fg.withOpacity(0.10), blurRadius: 24, offset: const Offset(0, 10))],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // header
+                Container(
+                  color: soft,
+                  padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Ricey(mood: i.mood, size: 62, interactive: false),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            StatusPill(label: i.tag, tone: i.tone),
+                            const SizedBox(height: 6),
+                            Text(i.title, style: AppText.display(17.5, color: p.ink)),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'ปิด',
+                        onPressed: () => setState(() => _issue = null),
+                        icon: Icon(Remix.close_line, color: p.muted, size: 20),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(i.message, style: TextStyle(fontSize: 14, height: 1.6, color: p.body)),
+                      if (i.kind == _IssueKind.outOfScope) ...[
+                        const SizedBox(height: 12),
+                        Text('AI ตรวจได้ตอนนี้', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: p.muted)),
+                        const SizedBox(height: 6),
+                        Wrap(spacing: 6, runSpacing: 6, children: [
+                          for (final d in const ['โรคใบไหม้', 'โรคขอบใบแห้ง', 'โรคใบสีส้ม', 'ใบปกติ'])
+                            StatusPill(label: d, tone: Tone.neutral, dot: false),
+                        ]),
+                      ],
+                      if (i.tips.isNotEmpty) ...[
+                        const SizedBox(height: 14),
+                        Text(i.tipsTitle, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: p.ink)),
+                        const SizedBox(height: 4),
+                        for (final (n, t) in i.tips.indexed)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Container(
+                                width: 22,
+                                height: 22,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(7)),
+                                child: Text('${n + 1}', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: fg)),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(child: Text(t, style: TextStyle(fontSize: 13.5, height: 1.5, color: p.body))),
+                            ]),
+                          ),
+                      ],
+                      if (actions.isNotEmpty) ...[const SizedBox(height: 16), ...actions],
+                      if (i.detail != null) _issueDetail(i.detail!),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _issueActions(_ScanIssue i) {
+    final (primary, secondary) = switch (i.kind) {
+      _IssueKind.retake => (
+          AppButton(label: 'ถ่ายภาพใหม่', icon: Remix.camera_3_line, onPressed: _retake),
+          AppButton(label: 'เลือกจากคลังภาพ', icon: Remix.image_2_line, kind: ButtonKind.secondary,
+              onPressed: () => _pickImage(ImageSource.gallery)),
+        ),
+      _IssueKind.outOfScope => (
+          AppButton(label: 'ถ่ายใบอื่นอีกครั้ง', icon: Remix.camera_3_line, onPressed: _retake),
+          AppButton(label: 'ดูคลังความรู้โรคข้าว', icon: Remix.book_open_line, kind: ButtonKind.secondary,
+              onPressed: () => context.read<NavigationProvider>().setIndex(3)),
+        ),
+      _ => (
+          AppButton(label: 'ลองวิเคราะห์อีกครั้ง', icon: Remix.refresh_line, busy: _busy,
+              busyLabel: 'กำลังวิเคราะห์ผล...', onPressed: _analyze),
+          AppButton(label: 'เลือกภาพใหม่', icon: Remix.image_edit_line, kind: ButtonKind.secondary,
+              onPressed: _busy ? null : () => _pickImage(ImageSource.gallery)),
+        ),
+    };
+    return [primary, const SizedBox(height: 10), secondary];
+  }
+
+  /// Raw error for unexpected problems, so it can be pasted into a bug report.
+  Widget _issueDetail(String detail) {
+    final p = context.pal;
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: EdgeInsets.zero,
+        iconColor: p.muted,
+        collapsedIconColor: p.muted,
+        title: Text('รายละเอียดสำหรับแจ้งปัญหา', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: p.muted)),
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: p.subtle, borderRadius: BorderRadius.circular(12)),
+            child: SelectableText(detail, style: TextStyle(fontSize: 12, height: 1.5, color: p.body, fontFamily: 'monospace')),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: detail));
+                AppToast.success(context, 'วางในหน้าแจ้งปัญหาหรือส่งให้ทีมงานได้เลย', title: 'คัดลอกแล้ว');
+              },
+              icon: Icon(Remix.file_copy_line, size: 16, color: p.primaryText),
+              label: Text('คัดลอก', style: TextStyle(color: p.primaryText, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAnalyzeSection() {
+    // Something went wrong: the card carries its own next steps (retake, gallery, retry...).
+    if (_issue != null) return _buildIssueCard(_issue!);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -972,9 +1138,13 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
             const SizedBox(height: 14),
             step(_buildAdviceCard(deptData)),
           ],
+          if (_issue != null) ...[
+            const SizedBox(height: 18),
+            _buildIssueCard(_issue!, onResult: true),
+          ],
           const SizedBox(height: 22),
           step(AppButton(
-            label: 'บันทึกข้อมูล + GPS',
+            label: _issue?.kind == _IssueKind.save ? 'ลองบันทึกอีกครั้ง' : 'บันทึกข้อมูล + GPS',
             busyLabel: 'กำลังบันทึกพิกัด...',
             icon: Remix.map_pin_add_line,
             busy: _busy,
@@ -1212,6 +1382,135 @@ class ChemicalAdvice extends StatelessWidget {
 }
 
 enum _AfterSave { scan, history, home }
+
+enum _IssueKind { retake, outOfScope, network, model, login, save, unknown }
+
+/// A scan problem turned into plain Thai: what happened, why it matters and what to try.
+class _ScanIssue {
+  const _ScanIssue({
+    required this.kind,
+    required this.tag,
+    required this.title,
+    required this.message,
+    this.tips = const [],
+    this.tipsTitle = 'ลองแบบนี้',
+    this.detail,
+  });
+
+  final _IssueKind kind;
+  final String tag;
+  final String title;
+  final String message;
+  final List<String> tips;
+  final String tipsTitle;
+
+  /// Raw error text; shown (collapsed) only for problems the farmer can't fix by retaking.
+  final String? detail;
+
+  Tone get tone => switch (kind) {
+        _IssueKind.retake => Tone.warn,
+        _IssueKind.outOfScope => Tone.info,
+        _ => Tone.danger,
+      };
+
+  RiceyMood get mood => switch (kind) {
+        _IssueKind.retake => RiceyMood.think,
+        _IssueKind.outOfScope => RiceyMood.think,
+        _ => RiceyMood.worried,
+      };
+
+  factory _ScanIssue.from(Object e, {bool saving = false}) {
+    final raw = e is ApiException ? '${e.statusCode} ${e.error}: ${e.message ?? ''}' : e.toString();
+    if (saving) {
+      return _ScanIssue(
+        kind: _IssueKind.save,
+        tag: 'ยังไม่ได้บันทึก',
+        title: 'บันทึกผลไม่สำเร็จ',
+        message: 'ผลวิเคราะห์ยังอยู่ครบในหน้านี้ กด "ลองบันทึกอีกครั้ง" ด้านล่างได้เลย',
+        tips: const [
+          'ตรวจว่าอนุญาตให้แอปใช้ตำแหน่ง (GPS) แล้ว',
+          'ไม่มีสัญญาณก็บันทึกได้ ระบบจะเก็บไว้ในเครื่องแล้วส่งให้เองเมื่อมีเน็ต',
+        ],
+        detail: raw,
+      );
+    }
+    final code = e is ApiException ? e.error : '';
+    if (code == 'low_confidence') {
+      return const _ScanIssue(
+        kind: _IssueKind.retake,
+        tag: 'ภาพยังไม่ชัดพอ',
+        title: 'ขอภาพใหม่อีกครั้งนะ',
+        message: 'AI ยังไม่มั่นใจพอจะบอกผล จึงไม่เดา เพื่อไม่ให้ได้คำแนะนำที่ผิด มักเกิดจากภาพเบลอ แสงน้อย หรือในภาพไม่ใช่ใบข้าว',
+        tipsTitle: 'ถ่ายใหม่ให้ได้ผลแม่น',
+        tips: [
+          'ให้ใบข้าวเต็มกรอบ เห็นรอยแผลชัด ห่างประมาณหนึ่งคืบ',
+          'ถ่ายในที่สว่าง หลีกเลี่ยงย้อนแสงและเงาบังแผล',
+          'ถือให้นิ่ง แตะหน้าจอตรงรอยแผลให้กล้องโฟกัส',
+          'ถ่ายทีละใบ ไม่มีมือหรือสิ่งอื่นในภาพมากเกินไป',
+        ],
+      );
+    }
+    if (code == 'out_of_scope') {
+      return const _ScanIssue(
+        kind: _IssueKind.outOfScope,
+        tag: 'นอกขอบเขตของ AI',
+        title: 'อาจเป็นโรคที่แอปยังไม่รองรับ',
+        message: 'ลักษณะในภาพไม่ตรงกับ 4 แบบที่ AI ตรวจได้ อาจเป็นโรคหรืออาการอื่น เช่น ใบจุดสีน้ำตาล ราน้ำค้าง หรือแมลงทำลาย ระบบจึงไม่ให้ชื่อโรคที่อาจผิด',
+        tipsTitle: 'ขั้นต่อไป',
+        tips: [
+          'เทียบอาการกับรูปในคลังความรู้โรคข้าว (22 โรคจากกรมการข้าว)',
+          'ลองถ่ายใบอื่นในแปลงที่เห็นอาการชัดกว่า',
+          'ถ้าอาการลุกลาม ปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตรหรือศูนย์วิจัยข้าวใกล้บ้าน',
+        ],
+      );
+    }
+    if (e is SocketException || e is TimeoutException || e is http.ClientException || (e is ApiException && e.statusCode >= 500)) {
+      return _ScanIssue(
+        kind: _IssueKind.network,
+        tag: 'เชื่อมต่อไม่ได้',
+        title: 'ติดต่อระบบไม่สำเร็จ',
+        message: 'สัญญาณอินเทอร์เน็ตอาจไม่เสถียร ภาพของคุณยังอยู่ ลองวิเคราะห์อีกครั้งได้เลย',
+        tips: const ['ย้ายไปจุดที่สัญญาณดีขึ้น หรือเปิด-ปิดเน็ตมือถือ', 'ถ้ายังไม่ได้ ลองปิดแล้วเปิดแอปใหม่'],
+        detail: raw,
+      );
+    }
+    if (raw.contains('เข้าสู่ระบบ') || raw.contains('Firebase Auth')) {
+      return _ScanIssue(
+        kind: _IssueKind.login,
+        tag: 'ต้องเข้าสู่ระบบ',
+        title: 'กรุณาเข้าสู่ระบบอีกครั้ง',
+        message: 'ระบบต้องรู้ว่าเป็นบัญชีของใครก่อนบันทึกผลสแกน ออกจากระบบแล้วเข้าใหม่ที่หน้าโปรไฟล์ได้เลย',
+        detail: raw,
+      );
+    }
+    if (raw.contains('Interpreter') || raw.contains('tflite') || raw.contains('Unable to load asset')) {
+      return _ScanIssue(
+        kind: _IssueKind.model,
+        tag: 'AI ยังไม่พร้อม',
+        title: 'โหลด AI บนเครื่องไม่สำเร็จ',
+        message: 'อาจเกิดจากหน่วยความจำเครื่องเหลือน้อยชั่วคราว',
+        tips: const ['ปิดแอปอื่นที่เปิดค้างไว้ แล้วลองอีกครั้ง', 'ถ้ายังไม่ได้ ปิดแล้วเปิดแอปใหม่ หรือติดตั้งรุ่นล่าสุด'],
+        detail: raw,
+      );
+    }
+    if (raw.contains('decode') || raw.contains('FormatException') || raw.contains('Invalid image')) {
+      return _ScanIssue(
+        kind: _IssueKind.retake,
+        tag: 'อ่านภาพไม่ได้',
+        title: 'เปิดไฟล์ภาพนี้ไม่ได้',
+        message: 'ไฟล์อาจเสียหรือเป็นรูปแบบที่ไม่รองรับ ลองถ่ายใหม่หรือเลือกภาพ JPG/PNG อื่น',
+        detail: raw,
+      );
+    }
+    return _ScanIssue(
+      kind: _IssueKind.unknown,
+      tag: 'เกิดข้อผิดพลาด',
+      title: 'วิเคราะห์ไม่สำเร็จ',
+      message: 'เกิดปัญหาที่ไม่คาดคิด ภาพของคุณยังอยู่ ลองอีกครั้งได้ ถ้ายังเป็นอยู่ คัดลอกรายละเอียดด้านล่างส่งให้ทีมงาน',
+      detail: raw,
+    );
+  }
+}
 
 /// Summary shown after "บันทึกข้อมูล + GPS": what was saved, where, whether it has reached the
 /// system yet, and what to do next. Stays open until the farmer chooses.
