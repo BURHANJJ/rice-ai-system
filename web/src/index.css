@@ -742,3 +742,6 @@ body {
 .kh-item { opacity: 0; transform: translateY(6px); transition: opacity 200ms ease, transform 260ms cubic-bezier(.2, .8, .2, 1), background-color 150ms ease; }
 .kh-menu-open .kh-item { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .kh-menu, .kh-item { transition: none; } }
+.ts-halo { animation: ts-halo 2.6s ease-in-out infinite; }
+@keyframes ts-halo { 0%, 100% { transform: scale(.92); opacity: .55; } 50% { transform: scale(1.06); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ts-halo { animation: none; } }

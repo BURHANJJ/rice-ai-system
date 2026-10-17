@@ -194,16 +194,24 @@ export default function TryScan() {
                 onDragLeave={() => setDrag(false)}
                 onDrop={(e) => { e.preventDefault(); setDrag(false); if (!out) { warmUp(); onFiles(e.dataTransfer.files); } }}
                 onPointerEnter={warmUp}
-                className={`mx-auto flex aspect-square w-full max-w-[460px] flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 text-center transition ${drag ? 'border-emerald-600 bg-emerald-50' : 'border-emerald-900/20 bg-white/70'} ${out ? 'opacity-60' : ''}`}
+                className={`relative mx-auto flex min-h-[25rem] w-full max-w-[460px] flex-col items-center justify-center overflow-hidden rounded-[1.4rem] px-6 py-12 text-center sm:aspect-square sm:min-h-0 sm:py-0 shadow-[inset_0_0_0_1px_rgba(31,77,58,.08)] transition ${drag ? 'bg-emerald-50 ring-4 ring-emerald-500/30' : 'bg-white/80'} ${out ? 'opacity-60' : ''}`}
               >
-                <img src={khaoHom} alt="" className="h-24 w-24 object-contain sm:h-28 sm:w-28" />
-                <p className="mt-3 text-base font-bold text-slate-900">{out ? tr('ใช้สิทธิ์ทดลองวันนี้ครบแล้ว', 'Today’s free scans are used up') : tr('ถ่ายรูปหรือเลือกรูปใบข้าว', 'Take or choose a rice leaf photo')}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">{tr('ใบเดียว เต็มกรอบ เห็นรอยแผลชัด · JPG หรือ PNG', 'One leaf, filling the frame, lesions in focus · JPG or PNG')}</p>
-                <div className="mt-5 flex w-full max-w-xs flex-col gap-2.5">
+                {/* viewfinder corners, like the app's scan screen */}
+                {['left-4 top-4 border-l-[3px] border-t-[3px] rounded-tl-xl', 'right-4 top-4 border-r-[3px] border-t-[3px] rounded-tr-xl', 'bottom-4 left-4 border-b-[3px] border-l-[3px] rounded-bl-xl', 'bottom-4 right-4 border-b-[3px] border-r-[3px] rounded-br-xl'].map((c) => (
+                  <span key={c} aria-hidden="true" className={`absolute h-9 w-9 border-[#c9a24a] ${c}`} />
+                ))}
+                <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(52,168,108,.13),transparent_55%)]" />
+                <div className="relative">
+                  <span aria-hidden="true" className="ts-halo absolute inset-[-14px] rounded-full bg-emerald-400/15" />
+                  <img src={khaoHom} alt="" className="relative h-24 w-24 object-contain drop-shadow-sm sm:h-28 sm:w-28" />
+                </div>
+                <p className="relative mt-4 text-[17px] font-bold text-slate-900">{out ? tr('ใช้สิทธิ์ทดลองวันนี้ครบแล้ว', 'Today’s free scans are used up') : tr('ถ่ายรูปหรือเลือกรูปใบข้าว', 'Take or choose a rice leaf photo')}</p>
+                <p className="relative mt-1 text-xs leading-5 text-slate-500">{tr('ใบเดียว เต็มกรอบ เห็นรอยแผลชัด · JPG หรือ PNG', 'One leaf, filling the frame, lesions in focus · JPG or PNG')}</p>
+                <div className="relative mt-5 flex w-full max-w-xs flex-col gap-2.5">
                   <button type="button" disabled={out} onClick={pickCamera} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(31,77,58,.8)] transition hover:bg-[#173d2e] disabled:cursor-not-allowed disabled:opacity-50 sm:hidden"><Camera size={18} />{tr('ถ่ายรูปใบข้าว', 'Take a photo')}</button>
                   <button type="button" disabled={out} onClick={pickGallery} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-5 text-sm font-bold text-emerald-950 transition hover:border-emerald-700/40 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 sm:bg-[#1f4d3a] sm:text-white sm:hover:bg-[#173d2e]"><ImagePlus size={18} />{tr('เลือกรูปจากเครื่อง', 'Choose a photo')}</button>
                 </div>
-                <p className="mt-4 hidden text-[11px] text-slate-400 sm:block"><Upload size={12} className="mr-1 inline" />{tr('ลากรูปมาวาง หรือกด Ctrl+V เพื่อวางรูปก็ได้', 'or drag a photo here, or paste with Ctrl+V')}</p>
+                <p className="relative mt-4 hidden items-center gap-1.5 text-[11.5px] text-slate-400 sm:flex"><Upload size={13} />{tr('หรือลากรูปมาวางตรงนี้', 'or drop a photo here')}<kbd className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-sans text-[10.5px] font-semibold text-slate-500">Ctrl</kbd>+<kbd className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-sans text-[10.5px] font-semibold text-slate-500">V</kbd></p>
               </div>
             )}
             <p className="mx-auto mt-4 flex max-w-[460px] items-start gap-2 text-[11.5px] leading-5 text-slate-500"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-700" />{tr('ภาพไม่ถูกอัปโหลด AI วิเคราะห์ในเบราว์เซอร์ของคุณ และไม่บันทึกผลทดลองไว้ที่ใด', 'Your photo is not uploaded. The AI runs in your browser and trial results are not stored anywhere.')}</p>
@@ -213,20 +221,39 @@ export default function TryScan() {
           <div ref={answerRef} className="flex min-h-[340px] scroll-mt-20 flex-col p-5 sm:p-7" aria-live="polite">
             {phase === 'idle' && !out && (
               <div className="my-auto">
-                <h2 className="text-lg font-bold text-slate-900">{tr('ทำงานยังไง', 'How it works')}</h2>
-                <ol className="mt-4 space-y-4">
+                <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-700">{tr('3 ขั้นตอน · รู้ผลในไม่กี่วินาที', '3 steps · results in seconds')}</div>
+                <h2 className="mt-1 font-display text-2xl font-bold text-slate-950">{tr('ทำงานยังไง', 'How it works')}</h2>
+                <ol className="relative mt-5">
+                  <span aria-hidden="true" className="absolute bottom-6 left-5 top-6 w-px bg-gradient-to-b from-emerald-300 via-emerald-200 to-transparent" />
                   {[
                     [Camera, tr('ถ่ายใบข้าวที่มีอาการ', 'Photograph a leaf with symptoms'), tr('ใกล้พอให้ใบเต็มกรอบ ในที่แสงสว่าง', 'Close enough to fill the frame, in good light')],
-                    [Cpu, tr('AI วิเคราะห์ในเครื่องของคุณ', 'The AI runs on your device'), tr('โมเดล EfficientNet-B0 ตัวเดียวกับในแอป ความแม่นยำ 96.9% บนภาพทดสอบ', 'Same EfficientNet-B0 model as the app, 96.9% accurate on test images')],
+                    [Cpu, tr('AI วิเคราะห์ในเครื่องของคุณ', 'The AI runs on your device'), tr('EfficientNet-B0 ตัวเดียวกับในแอป · แม่นยำ 96.9% บนภาพทดสอบ', 'Same EfficientNet-B0 as the app · 96.9% on test images')],
                     [CheckCircle2, tr('ดูผลและคำแนะนำ', 'See the result and advice'), tr('ชื่อโรค ความมั่นใจ อาการ และวิธีจัดการตามกรมการข้าว', 'Disease, confidence, symptoms and Rice Department guidance')],
                   ].map(([Icon, t, d], i) => (
-                    <li key={t} className="flex gap-3.5">
-                      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800"><Icon size={19} /><span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#1f4d3a] text-[10px] font-bold text-white">{i + 1}</span></span>
-                      <div><div className="font-semibold text-slate-900">{t}</div><div className="mt-0.5 text-[13px] leading-5 text-slate-500">{d}</div></div>
+                    <li key={t} className="relative flex gap-4 pb-5 last:pb-0">
+                      <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-emerald-800 shadow-[0_6px_16px_-8px_rgba(15,45,31,.45)] ring-1 ring-emerald-900/10"><Icon size={18} /></span>
+                      <div className="pt-0.5">
+                        <div className="flex items-center gap-2"><span className="text-[11px] font-bold tabular-nums text-emerald-700">0{i + 1}</span><span className="font-semibold text-slate-900">{t}</span></div>
+                        <div className="mt-0.5 text-[13px] leading-5 text-slate-500">{d}</div>
+                      </div>
                     </li>
                   ))}
                 </ol>
-                <div className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-[12.5px] leading-5 text-amber-900">{tr('AI ตรวจได้ 4 แบบ: โรคไหม้ โรคขอบใบแห้ง โรคใบสีส้ม และใบปกติ ถ้าเป็นโรคอื่น ระบบจะบอกตรง ๆ แทนการเดา', 'The AI covers 4 cases: blast, bacterial leaf blight, tungro and healthy. Anything else is flagged instead of guessed.')}</div>
+
+                <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50/70 p-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700">{tr('AI ตรวจได้', 'What the AI checks')}</span>
+                    <span className="text-[11px] text-slate-400">{tr('แบบอื่นจะบอกตรง ๆ ไม่เดา', 'Anything else is flagged, not guessed')}</span>
+                  </div>
+                  <div className="mt-2.5 grid grid-cols-2 gap-2">
+                    {[['BLAST', '#c0392b'], ['BLB', '#d4892a'], ['TUNGRO', '#e07b39'], ['HEALTHY', '#2d8a5b']].map(([c, color]) => (
+                      <div key={c} className="flex items-center gap-2.5 rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-100">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color, boxShadow: `0 0 0 4px ${color}22` }} />
+                        <span className="min-w-0"><span className="block truncate text-[13px] font-semibold text-slate-900">{name(c)}</span><span className="block truncate text-[10.5px] text-slate-400">{isEn ? NAMES[c].th : NAMES[c].en}</span></span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
