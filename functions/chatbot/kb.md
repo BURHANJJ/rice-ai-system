@@ -1,6 +1,6 @@
 # Rice AI reference
 
-Key figures: accuracy=96.85%, macroF1=0.971, auc=0.9992, testImages=761, otherTest=801, otherWrongV2=299, otherWrongV3=16, threshold=60%, betaVersion=0.9.2, minAndroid=6.0, email=burhanjewjoubb@gmail.com, site=rice-ai-appp.web.app
+Key figures: accuracy=96.85%, macroF1=0.971, auc=0.9992, testImages=761, otherTest=801, otherWrongV2=299, otherWrongV3=16, threshold=60%, betaVersion=0.9.3, minAndroid=6.0, email=burhanjewjoubb@gmail.com, site=rice-ai-appp.web.app
 
 
 
@@ -122,7 +122,7 @@ Pages: คลังความรู้โรคข้าว (/rice-diseases)
 Pages: ดาวน์โหลดแอป (/#app)
 
 ### download
-ตอนนี้แอปเป็น **รุ่นทดสอบ (เบต้า) 0.9.2** สำหรับ Android 6.0 ขึ้นไปครับ ยังไม่อยู่บน Google Play ต้องติดตั้งจากไฟล์ APK
+ตอนนี้แอปเป็น **รุ่นทดสอบ (เบต้า) 0.9.3** สำหรับ Android 6.0 ขึ้นไปครับ ยังไม่อยู่บน Google Play ต้องติดตั้งจากไฟล์ APK
 1. เปิดหน้าแรกของเว็บ ไปที่ส่วน **ดาวน์โหลดแอป** บนโทรศัพท์ Android
 2. กดดาวน์โหลดไฟล์ APK (เครื่องรุ่นเก่าเลือกไฟล์ 32 บิต)
 3. เปิดไฟล์ ถ้าเครื่องถาม ให้อนุญาต "ติดตั้งแอปที่ไม่รู้จัก" สำหรับเบราว์เซอร์
@@ -301,7 +301,7 @@ Pages: ไปที่ส่วนดาวน์โหลด (/#app)
 Pages: ไปที่ส่วนดาวน์โหลด (/#app)
 
 ### update
-แอปตอนนี้เป็น **รุ่นทดสอบ (เบต้า) 0.9.2** ครับ
+แอปตอนนี้เป็น **รุ่นทดสอบ (เบต้า) 0.9.3** ครับ
 - เมื่อมีรุ่นใหม่ ดาวน์โหลดไฟล์ APK ล่าสุดจากหน้าเว็บแล้วติดตั้งทับได้เลย
 - ผลสแกนและข้อมูลที่บันทึกไว้ผูกกับบัญชี เข้าสู่ระบบบัญชีเดิมก็เห็นครบ
 - ยังไม่มีกำหนดลง Google Play เพราะยังอยู่ในช่วงทดสอบครับ
