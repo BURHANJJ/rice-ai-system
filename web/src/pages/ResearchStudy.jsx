@@ -361,7 +361,7 @@ export default function ResearchStudy() {
           <aside className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 sm:p-5">
             <div className="flex items-start gap-3"><Info size={18} className="mt-0.5 shrink-0 text-amber-800"/><div className="min-w-0 flex-1">
               <h3 className="text-sm font-bold text-amber-950">{tr('70.26% ของ V1 กับ 97.90% ของ V2 วัดคนละชุด', 'V1’s 70.26% and V2’s 97.90% come from different subsets')}</h3>
-              <p className="mt-1 text-xs leading-5 text-amber-950/85">{tr('70.26% คือ Accuracy บน validation set ของ V1 ใน Colab ส่วน 97.90% คือผลบน test set ของ V2 การ์ดด้านล่างจึงใช้ V1 ที่วัดซ้ำบนภาพทดสอบ 761 ภาพชุดเดียวกับ V2 (75.43%) อย่างไรก็ตาม ภาพบางส่วนอาจเคยอยู่ในชุดฝึกของ V1 จึงควรอ่านเป็นผลเปรียบเทียบเบื้องต้น', '70.26% is V1’s validation accuracy in Colab; 97.90% is V2’s test accuracy. The cards below therefore use V1 rescored on V2’s 761 test images (75.43%). Some of those images may have been in V1’s training data, so treat this as an initial comparison.')}</p>
+              <p className="mt-1 text-xs leading-5 text-amber-950/85">{tr('V1 ไม่มีชุดทดสอบแยก (ดูแถบแบ่งข้อมูลในส่วน 01) 70.26% จึงเป็นผลบนชุดสอบย่อยของ V1 เอง การ์ดด้านล่างใช้ V1 ที่วัดซ้ำบนภาพทดสอบ 761 ภาพเดียวกับ V2 (75.43%) เพื่อเทียบบนข้อสอบชุดเดียวกัน', 'V1 had no separate test set (see the split in section 01), so 70.26% is its own validation score. The cards below use V1 rescored on V2’s 761 test images (75.43%) so both sit the same exam.')}</p>
             </div></div>
           </aside>
 
@@ -402,8 +402,12 @@ export default function ResearchStudy() {
             ].map(([title, body], i) => <li key={i} className="rounded-2xl border border-slate-200 bg-white p-5"><div className="text-[11px] font-extrabold uppercase tracking-[.18em] text-emerald-800">{tr('ขั้นที่', 'Step')} {i + 1}</div><h3 className="mt-2 text-sm font-bold text-slate-900">{title}</h3><p className="mt-1.5 text-xs leading-5 text-slate-600">{body}</p></li>)}
           </ol>
 
+          <h3 className="mt-10 text-lg font-bold text-slate-900">{tr('โมเดลที่นำมาเปรียบเทียบ', 'The models in this study')}</h3>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{tr('เลือกให้ครอบคลุมทั้งโมเดลสำหรับมือถือ baseline มาตรฐาน และโมเดลสมัยใหม่ขนาดใหญ่', 'Chosen to cover mobile models, standard baselines and a large modern model.')}</p>
+          <div className="mt-5"><ModelCards tr={tr} t={t} /></div>
+
           {/* Every experiment on the page in one grid: what stayed the same and what changed. */}
-          <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="border-b border-slate-100 px-4 py-4 sm:px-5"><h3 className="font-bold text-slate-900">{tr('ทุกการทดลองในหน้านี้ ใช้อะไรเหมือนกัน อะไรต่างกัน', 'Every experiment on this page: what was the same, what changed')}</h3><p className="mt-1 text-xs leading-5 text-slate-500">{tr('ช่องสีเขียว = เหมือนการเปรียบเทียบ 6 โมเดล · ช่องสีเหลือง = ต่างออกไป', 'Green = same as the six-model comparison · amber = different')}<span className="sm:hidden">{tr(' · เลื่อนตารางไปทางขวาเพื่อดูครบ', ' · swipe the table sideways to see all')}</span></p></div>
             <div className="overflow-x-auto"><table className="w-full min-w-[760px] border-collapse text-left text-xs">
               <thead><tr className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500"><th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 font-bold">{tr('เรื่อง', 'Item')}</th><th className="px-3 py-3 font-bold">V1</th><th className="px-3 py-3 font-bold">V2</th><th className="px-3 py-3 font-bold text-emerald-900">{tr('เปรียบเทียบ 6 โมเดล', 'Six-model comparison')}</th><th className="px-3 py-3 font-bold">V3</th></tr></thead>
@@ -420,24 +424,6 @@ export default function ResearchStudy() {
               ].map(([label, ...cells]) => <tr key={label} className="border-t border-slate-100"><td className="sticky left-0 z-10 bg-white px-4 py-2.5 font-bold text-slate-800">{label}</td>{cells.map(([v, same], j) => <td key={j} className="px-3 py-2.5"><span className={`inline-block rounded-md px-2 py-1 leading-4 ${j === 2 ? 'bg-emerald-50 font-semibold text-emerald-950' : same ? 'bg-emerald-50/60 text-emerald-950' : 'bg-amber-50 text-amber-950'}`}>{v}</span></td>)}</tr>)}</tbody>
             </table></div>
             <p className="border-t border-slate-100 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:px-5">{tr('การเปรียบเทียบจึงเปลี่ยนแค่สถาปัตยกรรม ทุกอย่างที่เหลือเหมือนกัน ส่วน EfficientNet-B0 ในการเปรียบเทียบเป็นการเทรนใหม่บน GPU ไม่ใช่ไฟล์ V2 ที่ใช้งาน จึงได้ตัวเลขต่างจาก V2 เล็กน้อย (98.25% กับ 97.90%)', 'So the comparison changes only the architecture. Its EfficientNet-B0 is a fresh GPU run, not the deployed V2 file, which is why its figure differs slightly (98.25% vs 97.90%).')}</p>
-          </div>
-
-          <div id="seed" className="mt-5 grid scroll-mt-28 gap-5 lg:grid-cols-[.9fr_1.1fr]">
-            <article className="rounded-2xl border border-emerald-900/15 bg-white p-5 sm:p-6">
-              <Eyebrow>{tr('Seed คืออะไร', 'What is a seed?')}</Eyebrow>
-              <h3 className="mt-2 text-base font-bold text-slate-900">{tr('เลขตั้งต้นของการสุ่มระหว่างเทรน', 'The starting number for the randomness in training')}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{tr('การเทรนมีการสุ่ม 3 จุด: ค่าเริ่มต้นของชั้นสุดท้าย ลำดับรูปที่ป้อนในแต่ละรอบ และการพลิก หมุน ซูมรูป seed เดิมให้ผลสุ่มเหมือนเดิมทุกครั้ง จึงทำซ้ำได้ เปลี่ยน seed คือให้โมเดลได้ "จับฉลาก" ชุดใหม่', 'Training has three random parts: the last layer’s starting weights, the order images arrive in, and the flips, turns and zooms. The same seed repeats the same draws, so a run can be reproduced; a new seed is a fresh draw.')}</p>
-              <p className="mt-3 rounded-xl bg-[#f6f7f1] px-4 py-3 text-sm leading-6 text-slate-700">{tr('เปรียบเหมือนให้นักเรียนคนเดิม อ่านหนังสือเล่มเดิม แต่สลับลำดับหน้า 3 แบบ แล้วสอบข้อสอบชุดเดิม 3 ครั้ง คะแนนใกล้กันทุกครั้ง = เก่งจริง ไม่ใช่ฟลุก', 'Like one student reading the same book in three different page orders, then sitting the same exam three times: close scores every time mean real skill, not luck.')}</p>
-              <dl className="mt-4 space-y-2 text-xs leading-5 text-slate-600">
-                <div className="grid grid-cols-[96px_1fr] gap-2"><dt className="font-bold text-slate-800">{tr('42, 7, 2026', '42, 7, 2026')}</dt><dd>{tr('เป็นแค่ชื่อเรียกการสุ่มแต่ละชุด ไม่มีความหมายพิเศษ (42 คือรอบหลักที่ใช้มาตั้งแต่ V2, 2026 คือปีที่ทำ)', 'Just names for each draw, with no special meaning (42 is the main run used since V2; 2026 is the year)')}</dd></div>
-                <div className="grid grid-cols-[96px_1fr] gap-2"><dt className="font-bold text-slate-800">{tr('ไม่เปลี่ยน', 'Unchanged')}</dt><dd>{tr('การแบ่งรูป 70/15/15 ใช้ seed 42 ชุดเดียวตลอด ทุกโมเดลจึงสอบข้อสอบชุดเดียวกัน', 'The 70/15/15 split always uses seed 42, so every model sits the same exam')}</dd></div>
-                <div className="grid grid-cols-[96px_1fr] gap-2"><dt className="font-bold text-slate-800">± SD</dt><dd>{tr('ความแกว่งระหว่าง 3 รอบ ยิ่งน้อยยิ่งเชื่อถือได้', 'How much the three runs differ; smaller is more trustworthy')}</dd></div>
-              </dl>
-            </article>
-            <div className="space-y-3">
-              <SeedSpread tr={tr} />
-              <p className="px-1 text-xs leading-5 text-slate-500">{tr('ตัวอย่าง: ResNet-50 รอบหนึ่งได้ 98.16% แต่อีกรอบได้ 96.45% ถ้าเทรนรอบเดียวแล้วบังเอิญได้รอบดี อาจสรุปผิดว่าเท่ากับ EfficientNet-B0 ซึ่งได้ 98.16–98.29% ทุกรอบ', 'For example, ResNet-50 scored 98.16% in one run and 96.45% in another. One lucky run could suggest it matches EfficientNet-B0, which scored 98.16–98.29% every time.')}</p>
-            </div>
           </div>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
@@ -457,9 +443,23 @@ export default function ResearchStudy() {
             </aside>
           </div>
 
-          <h3 className="mt-12 text-lg font-bold text-slate-900">{tr('โมเดลที่นำมาเปรียบเทียบ', 'The models in this study')}</h3>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">{tr('เลือกให้ครอบคลุมทั้งโมเดลสำหรับมือถือ baseline มาตรฐาน และโมเดลสมัยใหม่ขนาดใหญ่', 'Chosen to cover mobile models, standard baselines and a large modern model.')}</p>
-          <div className="mt-5"><ModelCards tr={tr} t={t} /></div>
+          <div id="seed" className="mt-5 grid scroll-mt-28 gap-5 lg:grid-cols-[.9fr_1.1fr]">
+            <article className="rounded-2xl border border-emerald-900/15 bg-white p-5 sm:p-6">
+              <Eyebrow>{tr('Seed คืออะไร', 'What is a seed?')}</Eyebrow>
+              <h3 className="mt-2 text-base font-bold text-slate-900">{tr('เลขตั้งต้นของการสุ่มระหว่างเทรน', 'The starting number for the randomness in training')}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{tr('การเทรนมีการสุ่ม 3 จุด: ค่าเริ่มต้นของชั้นสุดท้าย ลำดับรูปที่ป้อนในแต่ละรอบ และการพลิก หมุน ซูมรูป seed เดิมให้ผลสุ่มเหมือนเดิมทุกครั้ง จึงทำซ้ำได้ เปลี่ยน seed คือให้โมเดลได้ "จับฉลาก" ชุดใหม่', 'Training has three random parts: the last layer’s starting weights, the order images arrive in, and the flips, turns and zooms. The same seed repeats the same draws, so a run can be reproduced; a new seed is a fresh draw.')}</p>
+              <p className="mt-3 rounded-xl bg-[#f6f7f1] px-4 py-3 text-sm leading-6 text-slate-700">{tr('เปรียบเหมือนให้นักเรียนคนเดิม อ่านหนังสือเล่มเดิม แต่สลับลำดับหน้า 3 แบบ แล้วสอบข้อสอบชุดเดิม 3 ครั้ง คะแนนใกล้กันทุกครั้ง = เก่งจริง ไม่ใช่ฟลุก', 'Like one student reading the same book in three different page orders, then sitting the same exam three times: close scores every time mean real skill, not luck.')}</p>
+              <dl className="mt-4 space-y-2 text-xs leading-5 text-slate-600">
+                <div className="grid grid-cols-[96px_1fr] gap-2"><dt className="font-bold text-slate-800">{tr('42, 7, 2026', '42, 7, 2026')}</dt><dd>{tr('เป็นแค่ชื่อเรียกการสุ่มแต่ละชุด ไม่มีความหมายพิเศษ (42 คือรอบหลักที่ใช้มาตั้งแต่ V2, 2026 คือปีที่ทำ)', 'Just names for each draw, with no special meaning (42 is the main run used since V2; 2026 is the year)')}</dd></div>
+                <div className="grid grid-cols-[96px_1fr] gap-2"><dt className="font-bold text-slate-800">{tr('ไม่เปลี่ยน', 'Unchanged')}</dt><dd>{tr('การแบ่งรูป 70/15/15 ใช้ seed 42 ชุดเดียวตลอด ทุกโมเดลจึงสอบข้อสอบชุดเดียวกัน', 'The 70/15/15 split always uses seed 42, so every model sits the same exam')}</dd></div>
+                <div className="grid grid-cols-[96px_1fr] gap-2"><dt className="font-bold text-slate-800">± SD</dt><dd>{tr('ความแกว่งระหว่าง 3 รอบ ยิ่งน้อยยิ่งเชื่อถือได้', 'How much the three runs differ; smaller is more trustworthy')}</dd></div>
+              </dl>
+            </article>
+            <div className="space-y-3">
+              <SeedSpread tr={tr} />
+              <p className="px-1 text-xs leading-5 text-slate-500">{tr('ตัวอย่าง: ResNet-50 รอบหนึ่งได้ 98.16% แต่อีกรอบได้ 96.45% ถ้าเทรนรอบเดียวแล้วบังเอิญได้รอบดี อาจสรุปผิดว่าเท่ากับ EfficientNet-B0 ซึ่งได้ 98.16–98.29% ทุกรอบ', 'For example, ResNet-50 scored 98.16% in one run and 96.45% in another. One lucky run could suggest it matches EfficientNet-B0, which scored 98.16–98.29% every time.')}</p>
+            </div>
+          </div>
         </div>
       </section>
 
