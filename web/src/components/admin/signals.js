@@ -16,6 +16,7 @@ export function useAdminSignals(role) {
   const { stats } = useOutbreakData();
   const { items: actions } = useAlertActions();
   const [pending, setPending] = useState(null);
+  const [newFeedback, setNewFeedback] = useState([]);
 
   useEffect(() => {
     if (!isAdmin) return undefined;
@@ -23,6 +24,15 @@ export function useAdminSignals(role) {
       query(collection(db, 'users'), where('status', '==', 'pending')),
       (snap) => setPending(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
       () => setPending([]),
+    );
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+    return onSnapshot(
+      query(collection(db, 'feedback'), where('status', '==', 'new')),
+      (snap) => setNewFeedback(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setNewFeedback([]),
     );
   }, [isAdmin]);
 
@@ -37,17 +47,21 @@ export function useAdminSignals(role) {
     if (isAdmin && pending?.length) {
       items.push({ key: 'pending', tone: 'blue', title: `คำขอนักวิชาการรออนุมัติ ${pending.length} รายการ`, body: pending.slice(0, 2).map((u) => u.full_name || u.email).join(', '), to: '/admin/approvals' });
     }
+    if (isAdmin && newFeedback?.length) {
+      items.push({ key: 'feedback', tone: 'amber', title: `ข้อเสนอแนะใหม่ ${newFeedback.length} รายการ`, body: newFeedback.slice(0, 2).map((f) => f.subject || 'ไม่มีหัวข้อ').join(' · '), to: '/admin/feedback' });
+    }
     if (lowQueue.length) {
       items.push({ key: 'review', tone: 'gray', title: `ผล AI ไม่มั่นใจรอตรวจทาน ${lowQueue.length} ภาพ`, body: `ความมั่นใจต่ำกว่า ${low}%`, to: '/admin/review?tab=low' });
     }
     return {
       items,
-      count: alerts.length + (isAdmin ? pending?.length || 0 : 0) + (lowQueue.length ? 1 : 0),
+      count: alerts.length + (isAdmin ? (pending?.length || 0) + (newFeedback?.length || 0) : 0) + (lowQueue.length ? 1 : 0),
       badges: {
         '/admin/alerts': alerts.length,
         '/admin/approvals': pending?.length || 0,
+        '/admin/feedback': newFeedback?.length || 0,
         '/admin/review': lowQueue.length,
       },
     };
-  }, [settings, reviews, scans, stats, actions, pending, isAdmin]);
+  }, [settings, reviews, scans, stats, actions, pending, newFeedback, isAdmin]);
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, BellRing, Building2, CalendarDays, Check, ClipboardCheck, ExternalLink, Info, Link2, Megaphone, Minus, Plus, RotateCcw, Save, Settings2, ShieldCheck, Siren, UserPlus,
+  AlertTriangle, BellRing, Building2, CalendarDays, Check, ClipboardCheck, ExternalLink, Info, Link2, Megaphone, Minus, Plus, RotateCcw, Save, Settings2, ShieldCheck, Siren, UserPlus, Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { DEFAULT_SETTINGS, liveAnnouncement, saveSettings, useSettings } from '../../lib/settings';
@@ -10,6 +10,7 @@ import { AnnouncementBar } from '../../components/AnnouncementBar';
 import { Btn, ConfirmDialog, ErrorNote, PageHeader, Pill, Segmented, Toggle, inputCls, useToast } from '../../components/admin/ui';
 
 const SECTIONS = [
+  { id: 'maintenance', label: 'ปิดปรับปรุงเว็บไซต์', hint: 'สถานะบริการสาธารณะ', icon: Wrench },
   { id: 'alerts', label: 'การแจ้งเตือนการระบาด', hint: 'เกณฑ์ศูนย์แจ้งเตือน', icon: BellRing },
   { id: 'review', label: 'การตรวจทาน AI', hint: 'เกณฑ์ AI ไม่มั่นใจ', icon: ClipboardCheck },
   { id: 'announcement', label: 'ประกาศบนเว็บไซต์', hint: 'แถบด้านบนหน้าสาธารณะ', icon: Megaphone },
@@ -46,6 +47,7 @@ const SECTION_ERRORS = {
   applications: [],
   organization: [],
   security: [],
+  maintenance: [],
 };
 
 /* ── building blocks ─────────────────────────────────────── */
@@ -127,10 +129,11 @@ function Overview({ draft, onJump }) {
     { id: 'review', icon: ClipboardCheck, label: 'AI ไม่มั่นใจ', value: `< ${draft.review.lowConfidence || '–'}%`, sub: 'ส่งเข้าคิวตรวจทาน', tone: 'green' },
     { id: 'announcement', icon: Megaphone, label: 'ประกาศบนเว็บไซต์', value: ann ? 'กำลังแสดง' : 'ปิดอยู่', sub: ann ? (draft.announcement.endsAt ? `ถึง ${new Date(draft.announcement.endsAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}` : 'ไม่มีกำหนดสิ้นสุด') : 'ไม่มีแถบประกาศ', tone: ann ? 'amber' : 'gray' },
     { id: 'applications', icon: UserPlus, label: 'รับสมัครนักวิชาการ', value: draft.applications.open ? 'เปิดรับ' : 'ปิดรับ', sub: draft.applications.open ? 'แบบฟอร์มเปิดอยู่' : 'แสดงข้อความแทนแบบฟอร์ม', tone: draft.applications.open ? 'green' : 'red' },
+    { id: 'maintenance', icon: Wrench, label: 'สถานะเว็บไซต์', value: draft.maintenance.active ? 'ปิดปรับปรุง' : 'เปิดให้บริการ', sub: draft.maintenance.active ? 'ผู้เข้าชมเห็นหน้าปรับปรุงระบบ' : 'เว็บไซต์พร้อมใช้งาน', tone: draft.maintenance.active ? 'amber' : 'green' },
   ];
   const dot = { green: 'bg-emerald-500', amber: 'bg-amber-500', gray: 'bg-gray-300', red: 'bg-red-500' };
   return (
-    <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-5">
       {items.map((it) => (
         <button key={it.id} type="button" onClick={() => onJump(it.id)} className="group rounded-[20px] border border-emerald-900/10 bg-white p-4 text-left shadow-sm shadow-emerald-950/[0.03] transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md">
           <div className="flex items-center justify-between">
@@ -272,6 +275,43 @@ export default function SystemSettings() {
         </nav>
 
         <div className="grid min-w-0 gap-5">
+          <Section {...sec('maintenance')}>
+            <div className={`rounded-2xl p-3 ${draft.maintenance.active ? 'bg-amber-50' : 'bg-gray-50'}`}>
+              <Toggle
+                checked={draft.maintenance.active}
+                onChange={(v) => set('maintenance', 'active', v)}
+                label={draft.maintenance.active ? 'กำลังปิดเว็บไซต์เพื่อปรับปรุง' : 'เว็บไซต์เปิดให้บริการตามปกติ'}
+                desc="เมื่อเปิดใช้งาน ผู้เข้าชมจะเห็นหน้าประกาศปรับปรุงระบบ ส่วนผู้ดูแลระบบยังเข้าสู่ระบบเพื่อจัดการเว็บไซต์ได้"
+              />
+            </div>
+            <label className="mt-5 block">
+              <Label hint={`${draft.maintenance.message.length}/280`}>ข้อความบนหน้าปรับปรุง</Label>
+              <textarea
+                rows={3}
+                maxLength={280}
+                value={draft.maintenance.message}
+                onChange={(e) => set('maintenance', 'message', e.target.value)}
+                placeholder="แจ้งผู้ใช้งานว่ากำลังปรับปรุงส่วนใด หรือขออภัยในความไม่สะดวก"
+                className={`${inputCls} resize-y leading-6`}
+              />
+            </label>
+            <div className="mt-5 max-w-sm">
+              <TextField
+                label="กำหนดเปิดให้บริการอีกครั้ง"
+                icon={CalendarDays}
+                type="datetime-local"
+                value={draft.maintenance.expectedAt}
+                onChange={(e) => set('maintenance', 'expectedAt', e.target.value)}
+                hint="ไม่ระบุได้ หากยังไม่ทราบเวลา"
+              />
+            </div>
+            <div className="mt-5 overflow-hidden rounded-2xl border border-gray-200 bg-[var(--color-paper)] p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-gray-400"><Wrench size={13} /> ตัวอย่างข้อความ</div>
+              <p className="mt-2 text-sm leading-6 text-gray-600">{draft.maintenance.message || 'ข้อความที่แจ้งผู้เข้าชมจะแสดงตรงนี้'}</p>
+              <p className="mt-2 text-[11px] font-semibold text-gray-400">{draft.maintenance.expectedAt ? `คาดว่าจะกลับมาให้บริการ ${new Date(draft.maintenance.expectedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' })}` : 'จะแจ้งให้ทราบเมื่อพร้อมใช้งาน'}</p>
+            </div>
+          </Section>
+
           <Section {...sec('alerts')}>
             <div className="grid gap-4 sm:grid-cols-3">
               <Stepper label="ช่วงเวลาที่นับ" suffix="วัน" min={1} max={90} value={draft.alerts.windowDays} onChange={(v) => set('alerts', 'windowDays', v)} error={errors.windowDays} />
@@ -423,6 +463,7 @@ export default function SystemSettings() {
 }
 
 const DESC = {
+  maintenance: 'ปิดการเข้าถึงเว็บไซต์ชั่วคราวและแจ้งกำหนดการให้ผู้ใช้งานทราบ',
   alerts: 'จังหวัดที่พบโรคถึงเกณฑ์ภายในช่วงเวลานี้จะขึ้นในศูนย์แจ้งเตือนการระบาดและกระดิ่ง',
   review: 'ผลสแกนที่ความมั่นใจต่ำกว่าเกณฑ์จะเข้าคิว “AI ไม่มั่นใจ” และนับในตัวชี้วัดคุณภาพโมเดล',
   announcement: 'แถบประกาศด้านบนของหน้าเว็บสาธารณะทุกหน้า',

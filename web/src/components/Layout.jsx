@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { adoptPreferences, useApplyPreferences } from '../lib/preferences';
 import {
-  Activity, Bell, BookOpen, BrainCircuit, ChevronRight, ClipboardCheck, Database, FileText, Files, History, LayoutDashboard, LogOut, Map,
+  Activity, Bell, BookOpen, BrainCircuit, ChevronRight, ClipboardCheck, Database, FileText, Files, History, LayoutDashboard, LogOut, Map, MessageSquareText,
   Megaphone, Menu, PanelLeftClose, PanelLeftOpen, RefreshCw, ScanLine, Search, Settings, Settings2, ShieldAlert, Siren, UserCheck, UserRound, Users,
 } from 'lucide-react';
 import CommandPalette from './admin/CommandPalette';
@@ -75,6 +75,7 @@ const NAV = {
       items: [
         { to: '/admin/report', label: 'รายงานประจำเดือน', icon: FileText, keywords: 'pdf พิมพ์' },
         { to: '/admin/wiki', label: 'จัดการสารานุกรม', icon: BookOpen },
+        { to: '/admin/feedback', label: 'ข้อเสนอแนะ', icon: MessageSquareText, badgeTone: 'amber', keywords: 'ความคิดเห็น แจ้งปัญหา feedback' },
       ],
     },
     {
@@ -94,6 +95,7 @@ const ACTIONS = {
   admin: [
     { label: 'ส่งประกาศถึงเกษตรกร', hint: 'ศูนย์แจ้งเตือนการระบาด', to: '/admin/alerts?compose=1', keywords: 'broadcast แจ้งเตือน' },
     { label: 'ตรวจทานผล AI ที่ไม่มั่นใจ', hint: 'คิวตรวจทาน', to: '/admin/review?tab=low' },
+    { label: 'จัดการข้อเสนอแนะ', hint: 'รับฟังผู้ใช้', to: '/admin/feedback', keywords: 'แจ้งปัญหา ความคิดเห็น feedback' },
     { label: 'ออกรายงานประจำเดือน (PDF)', hint: 'รายงานประจำเดือน', to: '/admin/report' },
     { label: 'แก้ไขประกาศบนเว็บไซต์', hint: 'ตั้งค่าระบบ', to: '/admin/settings#announcement' },
     { label: 'ปรับเกณฑ์การแจ้งเตือน', hint: 'ตั้งค่าระบบ', to: '/admin/settings#alerts' },
@@ -113,8 +115,9 @@ function SignalsBridge({ role, onChange }) {
 
 function Badge({ n, tone, collapsed }) {
   if (!n) return null;
-  if (collapsed) return <span className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-[#0f2a20] ${tone === 'red' ? 'bg-red-400' : 'bg-emerald-300'}`} />;
-  return <span className={`ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-extrabold tabular-nums ${tone === 'red' ? 'bg-red-500 text-white' : 'bg-white/10 text-emerald-100'}`}>{n > 99 ? '99+' : n}</span>;
+  if (collapsed) return <span className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-[#0f2a20] ${tone === 'red' ? 'bg-red-400' : tone === 'amber' ? 'bg-amber-300' : 'bg-emerald-300'}`} />;
+  const badgeTone = tone === 'red' ? 'bg-red-500 text-white' : tone === 'amber' ? 'bg-amber-400 text-amber-950' : 'bg-white/10 text-emerald-100';
+  return <span className={`ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] font-extrabold tabular-nums ${badgeTone}`}>{n > 99 ? '99+' : n}</span>;
 }
 
 function SidebarContent({ user, groups, badges, currentRoleLabel, currentNavGroup, collapsed = false, onToggle, onNavigate, onLogout }) {

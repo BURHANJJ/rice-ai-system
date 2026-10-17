@@ -11,13 +11,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rice AI | ระบบวินิจฉัยโรคข้าวอัจฉริยะ</title>
     <meta name="description" content="Rice AI แพลตฟอร์มวิเคราะห์โรคข้าวด้วย AI สำหรับเกษตรกร เจ้าหน้าที่ และนักวิชาการ" />
+    <meta name="author" content="Rice AI Project · Burhan Jewjoub" />
+    <meta name="copyright" content="© 2026 Rice AI Project. All rights reserved. Powered by Burhan Jewjoub." />
+    <meta name="rice-ai-source-credit" content="ต้นแบบจาก Rice AI Project · © 2026 Rice AI Project. All rights reserved. · Powered by Burhan Jewjoub · หากนำรูปแบบเว็บไซต์ไปใช้หรือดัดแปลง โปรดให้เครดิต" />
+    <meta name="application-name" content="Rice AI" />
     <meta name="theme-color" content="#143327" />
+    <meta property="og:site_name" content="Rice AI Project" />
     <meta property="og:title" content="Rice AI" />
     <meta property="og:description" content="ระบบวินิจฉัยโรคข้าวอัจฉริยะ เชื่อมข้อมูลภาคสนามกับนักวิชาการ" />
     <meta property="og:image" content="/brand/app_icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Rice AI",
+        "alternateName": "Rice AI Project",
+        "description": "ระบบวินิจฉัยโรคข้าวอัจฉริยะ เชื่อมข้อมูลภาคสนามกับนักวิชาการ",
+        "author": {
+          "@type": "Person",
+          "name": "Burhan Jewjoub"
+        },
+        "copyrightNotice": "© 2026 Rice AI Project. All rights reserved. Powered by Burhan Jewjoub."
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (() => {
+        const officialHosts = new Set([
+          'rice-ai-appp.web.app',
+          'rice-ai-appp.firebaseapp.com',
+          'localhost',
+          '127.0.0.1',
+        ]);
+
+        if (officialHosts.has(window.location.hostname)) return;
+
+        const showSourceCredit = () => {
+          if (document.getElementById('rice-ai-source-credit-banner')) return;
+
+          const banner = document.createElement('aside');
+          banner.id = 'rice-ai-source-credit-banner';
+          banner.setAttribute('aria-label', 'Website design credit');
+          Object.assign(banner.style, {
+            position: 'fixed',
+            left: '16px',
+            bottom: '16px',
+            zIndex: '2147483647',
+            maxWidth: 'min( calc(100vw - 32px), 520px )',
+            padding: '10px 14px',
+            border: '1px solid rgba(167, 243, 208, .28)',
+            borderRadius: '12px',
+            background: 'rgba(15, 23, 42, .96)',
+            boxShadow: '0 8px 28px rgba(0, 0, 0, .22)',
+            color: '#e2e8f0',
+            font: '500 12px/1.6 system-ui, sans-serif',
+          });
+
+          const label = document.createElement('span');
+          label.textContent = 'ต้นแบบจาก Rice AI Project · Powered by Burhan Jewjoub · หากนำรูปแบบไปใช้ โปรดให้เครดิต';
+          banner.append(label, document.createTextNode(' '));
+
+          const link = document.createElement('a');
+          link.href = 'https://rice-ai-appp.web.app/';
+          link.textContent = 'เว็บไซต์ต้นฉบับ';
+          link.rel = 'noopener noreferrer';
+          Object.assign(link.style, {
+            color: '#a7f3d0',
+            fontWeight: '700',
+            whiteSpace: 'nowrap',
+          });
+          banner.append(link);
+          document.body.append(banner);
+        };
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', showSourceCredit, { once: true });
+        } else {
+          showSourceCredit();
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

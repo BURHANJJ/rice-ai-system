@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS = {
   applications: { open: true, closedMessage: 'ขณะนี้ปิดรับสมัครนักวิชาการชั่วคราว กรุณากลับมาใหม่ภายหลัง' },
   announcement: { active: false, tone: 'info', text: '', linkLabel: '', linkUrl: '', endsAt: '' },
   organization: { name: 'ระบบ Rice AI', preparedBy: '' },
+  maintenance: { active: false, message: 'เรากำลังปรับปรุงระบบเพื่อให้บริการได้ดียิ่งขึ้น ขออภัยในความไม่สะดวก และขอบคุณที่รอเรา', expectedAt: '' },
   // 2FA policy for the web portal: off | researcher | all (researchers + admins)
   security: { require2fa: 'off' },
 };

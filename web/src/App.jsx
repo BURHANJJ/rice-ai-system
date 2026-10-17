@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './lib/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Account from './pages/Account';
@@ -10,6 +10,8 @@ import ApplyResearcher from './pages/auth/ApplyResearcher';
 import Landing from './pages/Landing';
 import LegalPage from './pages/LegalPage';
 import RiceDiseases from './pages/RiceDiseases';
+import ResearchStudy from './pages/ResearchStudy';
+import Feedback from './pages/Feedback';
 
 import Scan from './pages/farmer/Scan';
 import History from './pages/farmer/History';
@@ -33,14 +35,34 @@ import ModelQuality from './pages/admin/ModelQuality';
 import OutbreakAlerts from './pages/admin/OutbreakAlerts';
 import MonthlyReport from './pages/admin/MonthlyReport';
 import SystemSettings from './pages/admin/SystemSettings';
+import FeedbackInbox from './pages/admin/FeedbackInbox';
 
 import PublicRiskMap from './pages/PublicRiskMap';
+import MaintenancePage from './pages/MaintenancePage';
+import { useSettings } from './lib/settings';
+import { useAuth } from './lib/AuthContext';
+
+function MaintenanceGate({ children }) {
+  const { settings, loaded } = useSettings();
+  const { user } = useAuth();
+  const location = useLocation();
+
+  // Keep sign-in and the private portal reachable so an administrator can disable maintenance.
+  const isPrivateArea = ['/admin', '/research', '/app'].some((prefix) => location.pathname.startsWith(prefix));
+  if (location.pathname === '/login' || (user?.role === 'admin' && isPrivateArea)) return children;
+  if (!loaded) {
+    return <div className="flex min-h-screen items-center justify-center bg-[var(--color-paper)] text-sm font-semibold text-[var(--color-muted)]">กำลังตรวจสอบสถานะระบบ…</div>;
+  }
+  if (settings.maintenance?.active) return <MaintenancePage maintenance={settings.maintenance} />;
+  return children;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <ScrollManager />
       <AuthProvider>
+        <MaintenanceGate>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -48,6 +70,8 @@ export default function App() {
           <Route path="/terms" element={<LegalPage type="terms" />} />
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
           <Route path="/rice-diseases" element={<RiceDiseases />} />
+          <Route path="/research-study" element={<ResearchStudy />} />
+          <Route path="/feedback" element={<Feedback />} />
           <Route path="/risk-map" element={<PublicRiskMap />} />
 
           <Route path="/app/scan" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><Scan /></ProtectedRoute>} />
@@ -76,12 +100,14 @@ export default function App() {
           <Route path="/admin/model" element={<ProtectedRoute roles={['admin']}><ModelQuality /></ProtectedRoute>} />
           <Route path="/admin/report" element={<ProtectedRoute roles={['admin']}><MonthlyReport /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute roles={['admin']}><SystemSettings /></ProtectedRoute>} />
+          <Route path="/admin/feedback" element={<ProtectedRoute roles={['admin']}><FeedbackInbox /></ProtectedRoute>} />
           <Route path="/admin/logs" element={<ProtectedRoute roles={['admin']}><AuditLogs /></ProtectedRoute>} />
           <Route path="/admin/account" element={<ProtectedRoute roles={['admin']}><Account /></ProtectedRoute>} />
 
           <Route path="/" element={<Landing />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </MaintenanceGate>
       </AuthProvider>
     </BrowserRouter>
   );

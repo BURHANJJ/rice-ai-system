@@ -236,6 +236,29 @@ body {
   }
 }
 
+.rice-maintenance-lines {
+  background-image: linear-gradient(rgba(36, 76, 49, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(36, 76, 49, .035) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse at 52% 45%, #000 0%, transparent 78%);
+}
+
+.rice-maintenance-paddy {
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+}
+
+@media (min-width: 640px) {
+  .rice-maintenance-paddy { mask-image: linear-gradient(to bottom, transparent 0%, #000 30%); }
+}
+
+.rice-maintenance-field {
+  background-image: repeating-linear-gradient(104deg, transparent 0 11px, rgba(83, 126, 74, .48) 12px 13px, transparent 14px 20px);
+  clip-path: polygon(0 100%, 4% 56%, 7% 100%, 13% 40%, 17% 100%, 24% 58%, 27% 100%, 34% 23%, 38% 100%, 45% 46%, 49% 100%, 56% 33%, 60% 100%, 68% 50%, 72% 100%, 80% 29%, 84% 100%, 91% 48%, 95% 100%, 100% 38%, 100% 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rice-maintenance .animate-ping { animation: none !important; }
+}
+
 
 
 .rice-summary-title {
@@ -644,6 +667,31 @@ body {
 .fs-bubble-r::after { left: 70%; }
 
 /* ── Rice sprigs around the promo video (components/landing/RiceSprig.jsx) ── */
+.rs-quick-menu {
+  transform-origin: bottom right;
+  animation: rs-quick-menu-in 180ms cubic-bezier(.2,.8,.2,1) both;
+}
+.rs-typing-bubble {
+  animation: rs-quick-menu-in 220ms cubic-bezier(.2,.8,.2,1) both;
+}
+.rs-typing-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 18px;
+  border: 7px solid transparent;
+  border-top-color: #fff;
+  border-bottom: 0;
+}
+.rs-typing-caret {
+  border-right: 2px solid #1f4d3a;
+  animation: rs-caret-blink 800ms steps(1, end) infinite;
+}
+@keyframes rs-caret-blink { 50% { opacity: 0; } }
+@keyframes rs-quick-menu-in {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 .rs-sway { transform-box: fill-box; transform-origin: 45% 100%; animation: rs-sway 5.5s ease-in-out var(--rs-delay, 0s) infinite alternate; }
 @keyframes rs-sway { from { transform: rotate(-3deg); } to { transform: rotate(4deg); } }
-@media (prefers-reduced-motion: reduce) { .rs-sway { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .rs-sway, .rs-quick-menu, .rs-typing-bubble, .rs-typing-caret { animation: none; } }

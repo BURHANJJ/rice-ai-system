@@ -129,6 +129,56 @@ service cloud.firestore {
         && request.resource.data.last_download_at == request.time;
     }
 
+    // 10. Public feedback intake — anyone may submit a validated report;
+    // only administrators can read or triage submissions.
+    match /feedback/{feedbackId} {
+      allow create: if request.resource.data.keys().hasAll([
+          'category', 'subject', 'message', 'full_name', 'email', 'user_id',
+          'source_path', 'status', 'admin_note', 'consent', 'consented_at',
+          'created_at', 'updated_at'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'category', 'subject', 'message', 'full_name', 'email', 'user_id',
+          'source_path', 'status', 'admin_note', 'consent', 'consented_at',
+          'created_at', 'updated_at'
+        ])
+        && request.resource.data.category in ['suggestion', 'issue', 'data', 'other']
+        && request.resource.data.subject is string
+        && request.resource.data.subject.size() >= 4
+        && request.resource.data.subject.size() <= 120
+        && request.resource.data.message is string
+        && request.resource.data.message.size() >= 20
+        && request.resource.data.message.size() <= 3000
+        && request.resource.data.full_name is string
+        && request.resource.data.full_name.size() <= 80
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 254
+        && (request.resource.data.email == '' || request.resource.data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'))
+        && request.resource.data.source_path is string
+        && request.resource.data.source_path.size() <= 200
+        && ((request.auth == null && request.resource.data.user_id == '')
+          || (request.auth != null && request.resource.data.user_id == request.auth.uid))
+        && request.resource.data.status == 'new'
+        && request.resource.data.admin_note == ''
+        && request.resource.data.consent == true
+        && request.resource.data.consented_at == request.time
+        && request.resource.data.created_at == request.time
+        && request.resource.data.updated_at == request.time;
+
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'admin_note', 'updated_at', 'updated_by'
+        ])
+        && request.resource.data.status in ['new', 'reviewing', 'resolved', 'closed']
+        && request.resource.data.admin_note is string
+        && request.resource.data.admin_note.size() <= 3000
+        && request.resource.data.updated_at == request.time
+        && request.resource.data.updated_by is string
+        && request.resource.data.updated_by.size() <= 120;
+      allow delete: if isAdmin();
+    }
+
     // Default deny all for any other collections not explicitly defined
     match /{document=**} {
       allow read, write: if false;
