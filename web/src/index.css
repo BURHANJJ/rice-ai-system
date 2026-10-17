@@ -720,3 +720,25 @@ body {
 .rs-dial:focus-visible .rs-dial-label { opacity: 1; transform: translate(0, -50%); }
 @media (hover: none) { .rs-dial-open .rs-dial-label { opacity: 1; transform: translate(0, -50%); } }
 @media (prefers-reduced-motion: reduce) { .rs-sway, .rs-quick-menu, .rs-typing-bubble, .rs-typing-caret { animation: none; } .rs-dial, .rs-dial-label { transition: none; } }
+
+/* Trial scanner (/try-scan) */
+.ts-scan-line {
+  top: -6rem;
+  background: linear-gradient(180deg, transparent, rgba(52, 211, 153, .18) 70%, rgba(110, 231, 183, .9) 98%, transparent);
+  animation: ts-scan 1.6s cubic-bezier(.45, 0, .55, 1) infinite;
+}
+@keyframes ts-scan { to { transform: translateY(calc(460px + 6rem)); } }
+.ts-indeterminate { animation: ts-indet 1.2s ease-in-out infinite; }
+@keyframes ts-indet { from { transform: translateX(-110%); } to { transform: translateX(330%); } }
+.ts-rise { animation: ts-rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes ts-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .ts-scan-line, .ts-indeterminate, .ts-rise { animation: none; }
+}
+
+/* Khao Hom quick menu card */
+.kh-menu { opacity: 0; transform: translateY(10px) scale(.94); transition: opacity 180ms ease, transform 260ms cubic-bezier(.2, .9, .25, 1.15); }
+.kh-menu.kh-menu-open { opacity: 1; transform: none; }
+.kh-item { opacity: 0; transform: translateY(6px); transition: opacity 200ms ease, transform 260ms cubic-bezier(.2, .8, .2, 1), background-color 150ms ease; }
+.kh-menu-open .kh-item { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .kh-menu, .kh-item { transition: none; } }

@@ -7,6 +7,7 @@ export const cloudEnabled = Boolean(CHAT_URL);
 
 // Routes the assistant may mention; turned into tappable chips under its reply.
 const ROUTES = [
+  ['/try-scan', 'ทดลองสแกนฟรี'],
   ['/rice-diseases', 'คลังความรู้โรคข้าว'],
   ['/risk-map', 'แผนที่การระบาด'],
   ['/research-study', 'งานวิจัย'],

@@ -1,0 +1,391 @@
+// Free trial scanner: photo in, diagnosis out, all inside the browser (see lib/trialScan.js).
+// 5 successful results per day per browser; unclear photos, "other disease" and errors are free.
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  AlertTriangle, ArrowRight, BookOpenText, Camera, CheckCircle2, Clock3, Cpu, Download, HelpCircle,
+  ImagePlus, Leaf, Lock, RefreshCw, ScanLine, ShieldCheck, Smartphone, Sparkles, Upload, X,
+} from 'lucide-react';
+import PublicHeader from '../components/PublicHeader';
+import PublicFooter from '../components/PublicFooter';
+import { useDocTitle, useI18n } from '../lib/i18n';
+import { classify, DAILY_LIMIT, LABELS, loadModel, msUntilReset, quota as readQuota, spend } from '../lib/trialScan';
+import DISEASES from '../data/trialDiseases.json';
+import khaoHom from '../../assets/khao_hom_scan.svg';
+
+const NAMES = {
+  BLAST: { th: 'โรคไหม้', en: 'Rice blast', sci: 'Magnaporthe oryzae', tone: 'danger' },
+  BLB: { th: 'โรคขอบใบแห้ง', en: 'Bacterial leaf blight', sci: 'Xanthomonas oryzae pv. oryzae', tone: 'danger' },
+  TUNGRO: { th: 'โรคใบสีส้ม', en: 'Rice tungro', sci: 'Rice tungro virus', tone: 'danger' },
+  HEALTHY: { th: 'ใบปกติ', en: 'Healthy leaf', sci: '', tone: 'safe' },
+  OTHER: { th: 'โรคอื่น', en: 'Other condition', sci: '', tone: 'info' },
+};
+const EN_SUMMARY = {
+  BLAST: 'Eye-shaped lesions with dark brown edges and grey centres; spreads fast in humid weather. Reduce nitrogen, space plants, and follow your local extension officer on fungicides.',
+  BLB: 'Water-soaked streaks from the leaf tip and edges turning yellow then dry. Spread by water, wind and wounds; drain fields and use resistant varieties.',
+  TUNGRO: 'Yellow-orange leaves and stunted plants, carried by green leafhoppers. Remove infected plants and control the leafhopper early.',
+  HEALTHY: 'No signs of the diseases the model knows. Keep checking the field regularly, especially after rain or humid spells.',
+};
+
+function useCountdown(active) {
+  const [ms, setMs] = useState(() => msUntilReset());
+  useEffect(() => {
+    if (!active) return undefined;
+    const t = setInterval(() => setMs(msUntilReset()), 1000);
+    return () => clearInterval(t);
+  }, [active]);
+  const s = Math.floor(ms / 1000);
+  return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':');
+}
+
+function QuotaMeter({ q, tr }) {
+  return (
+    <div className="rounded-2xl border border-emerald-900/10 bg-white/80 p-4 shadow-sm backdrop-blur" aria-live="polite">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs font-bold uppercase tracking-wider text-emerald-800/80">{tr('สิทธิ์ทดลองวันนี้', 'Today’s free scans')}</div>
+        <div className="text-sm font-extrabold tabular-nums text-emerald-950">{q.left}<span className="font-semibold text-slate-400"> / {q.limit}</span></div>
+      </div>
+      <div className="mt-2.5 flex gap-1.5" role="img" aria-label={tr(`เหลือ ${q.left} จาก ${q.limit} ครั้ง`, `${q.left} of ${q.limit} left`)}>
+        {Array.from({ length: q.limit }, (_, i) => (
+          <span key={i} className={`h-2 flex-1 rounded-full transition-colors duration-500 ${i < q.left ? 'bg-gradient-to-r from-emerald-600 to-emerald-800' : 'bg-slate-200'}`} />
+        ))}
+      </div>
+      <p className="mt-2 text-[11.5px] leading-5 text-slate-500">{tr('นับเฉพาะครั้งที่ได้ผลวินิจฉัย ภาพไม่ชัดหรือสแกนไม่ได้ไม่เสียสิทธิ์', 'Only scans that return a result count. Unclear or failed scans are free.')}</p>
+    </div>
+  );
+}
+
+function ConfidenceRing({ value, tone, label }) {
+  const r = 34;
+  const c = 2 * Math.PI * r;
+  const color = tone === 'safe' ? '#2d8a5b' : '#c0392b';
+  return (
+    <div className="relative h-24 w-24 shrink-0">
+      <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
+        <circle cx="40" cy="40" r={r} fill="none" stroke="#e8efe9" strokeWidth="7" />
+        <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - value / 100)} className="transition-[stroke-dashoffset] duration-1000 ease-out" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-lg font-extrabold tabular-nums text-slate-900">{value.toFixed(1)}%</span>
+        <span className="text-[10px] font-semibold text-slate-500">{label}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function TryScan() {
+  const { lang } = useI18n();
+  const isEn = lang === 'en';
+  const tr = (th, en) => (isEn ? en : th);
+  useDocTitle({ th: 'ทดลองสแกนโรคใบข้าวฟรี | Rice AI', en: 'Try the rice leaf scanner | Rice AI' });
+
+  const [q, setQ] = useState(readQuota);
+  const [phase, setPhase] = useState('idle'); // idle | working | result | issue
+  const [preview, setPreview] = useState('');
+  const [download, setDownload] = useState(null); // model download progress 0..1, null when cached
+  const [result, setResult] = useState(null);
+  const [issue, setIssue] = useState(null); // unclear | other | bad_image | model
+  const [drag, setDrag] = useState(false);
+  const cameraRef = useRef(null);
+  const galleryRef = useRef(null);
+  const panelRef = useRef(null);
+  const answerRef = useRef(null);
+  const out = q.left <= 0;
+  // Narrow screens stack the answer under the photo: bring it into view once it's ready.
+  useEffect(() => {
+    if ((phase === 'result' || phase === 'issue') && window.innerWidth < 1024) {
+      requestAnimationFrame(() => answerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  }, [phase]);
+  const countdown = useCountdown(out);
+
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  // A new day may start while the page is open.
+  useEffect(() => {
+    const t = setInterval(() => setQ(readQuota()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  const warmUp = useCallback(() => { loadModel(setDownload).then(() => setDownload(null)).catch(() => {}); }, []);
+
+  const run = useCallback(async (file) => {
+    if (!file || readQuota().left <= 0) return;
+    setPreview((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(file); });
+    setResult(null);
+    setIssue(null);
+    setPhase('working');
+    requestAnimationFrame(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    const started = performance.now();
+    try {
+      const r = await classify(file, setDownload);
+      setDownload(null);
+      // let the scan animation read as a deliberate step, not a flicker
+      await new Promise((ok) => setTimeout(ok, Math.max(0, 1100 - (performance.now() - started))));
+      if (r.status === 'ok') {
+        setQ(spend());
+        setResult(r);
+        setPhase('result');
+      } else {
+        setResult(r);
+        setIssue(r.status);
+        setPhase('issue');
+      }
+    } catch (e) {
+      setDownload(null);
+      setIssue(e.code === 'bad_image' ? 'bad_image' : 'model');
+      setPhase('issue');
+    }
+  }, []);
+
+  const onFiles = (files) => { const f = files?.[0]; if (f) run(f); };
+  const reset = () => { setPhase('idle'); setResult(null); setIssue(null); };
+  const pickCamera = () => { warmUp(); cameraRef.current?.click(); };
+  const pickGallery = () => { warmUp(); galleryRef.current?.click(); };
+
+  // Paste a screenshot or copied photo straight onto the page (desktop convenience).
+  useEffect(() => {
+    const onPaste = (e) => {
+      const f = [...(e.clipboardData?.files || [])].find((x) => x.type.startsWith('image/'));
+      if (f && phase !== 'working') run(f);
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, [phase, run]);
+
+  const name = (code) => (isEn ? NAMES[code].en : NAMES[code].th);
+  const busy = phase === 'working';
+
+  return (
+    <div className="min-h-screen bg-[#faf8f1] text-slate-900">
+      <PublicHeader />
+      <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-8 sm:pb-20 sm:pt-12">
+        {/* heading */}
+        <div className="grid items-end gap-5 lg:grid-cols-[1fr_340px] lg:gap-10">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-900"><Sparkles size={14} />{tr('ทดลองฟรี · ไม่ต้องสมัครสมาชิก', 'Free trial · no sign-up')}</div>
+            <h1 className="mt-4 font-display text-[2rem] font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{tr('ทดลองสแกนโรคใบข้าว', 'Try the rice leaf scanner')}</h1>
+            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-600 sm:text-base">{tr('ถ่ายหรือเลือกรูปใบข้าว แล้ว AI ตัวเดียวกับในแอปจะบอกผลภายในไม่กี่วินาที แยกโรคไหม้ โรคขอบใบแห้ง โรคใบสีส้ม และใบปกติ', 'Take or choose a photo of a rice leaf. The same AI as the app tells you within seconds: rice blast, bacterial leaf blight, tungro or healthy.')}</p>
+          </div>
+          <QuotaMeter q={q} tr={tr} />
+        </div>
+
+        {/* workspace */}
+        <section ref={panelRef} className="mt-7 scroll-mt-24 overflow-hidden rounded-[1.75rem] border border-emerald-900/10 bg-white shadow-[0_30px_80px_-40px_rgba(15,45,31,.45)] lg:grid lg:grid-cols-[1.05fr_1fr]">
+          {/* left: photo */}
+          <div className="relative border-b border-emerald-900/10 bg-[radial-gradient(circle_at_30%_20%,#f1f6ee,#e6eee4)] p-4 sm:p-6 lg:border-b-0 lg:border-r">
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ''; }} />
+            <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ''; }} />
+            {preview ? (
+              <div className="relative mx-auto aspect-square w-full max-w-[460px] overflow-hidden rounded-2xl bg-slate-900 shadow-lg">
+                <img src={preview} alt={tr('ภาพใบข้าวที่เลือก', 'Selected rice leaf')} className="h-full w-full object-cover" />
+                {busy && (
+                  <>
+                    <div className="ts-scan-line pointer-events-none absolute inset-x-0 h-24" aria-hidden="true" />
+                    <div className="absolute inset-0 border-[3px] border-emerald-400/70" aria-hidden="true" />
+                  </>
+                )}
+                {!busy && (
+                  <button type="button" onClick={reset} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/60" aria-label={tr('ลบภาพ', 'Remove photo')}><X size={18} /></button>
+                )}
+              </div>
+            ) : (
+              <div
+                onDragOver={(e) => { e.preventDefault(); if (!out) setDrag(true); }}
+                onDragLeave={() => setDrag(false)}
+                onDrop={(e) => { e.preventDefault(); setDrag(false); if (!out) { warmUp(); onFiles(e.dataTransfer.files); } }}
+                onPointerEnter={warmUp}
+                className={`mx-auto flex aspect-square w-full max-w-[460px] flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 text-center transition ${drag ? 'border-emerald-600 bg-emerald-50' : 'border-emerald-900/20 bg-white/70'} ${out ? 'opacity-60' : ''}`}
+              >
+                <img src={khaoHom} alt="" className="h-24 w-24 object-contain sm:h-28 sm:w-28" />
+                <p className="mt-3 text-base font-bold text-slate-900">{out ? tr('ใช้สิทธิ์ทดลองวันนี้ครบแล้ว', 'Today’s free scans are used up') : tr('ถ่ายรูปหรือเลือกรูปใบข้าว', 'Take or choose a rice leaf photo')}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{tr('ใบเดียว เต็มกรอบ เห็นรอยแผลชัด · JPG หรือ PNG', 'One leaf, filling the frame, lesions in focus · JPG or PNG')}</p>
+                <div className="mt-5 flex w-full max-w-xs flex-col gap-2.5">
+                  <button type="button" disabled={out} onClick={pickCamera} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(31,77,58,.8)] transition hover:bg-[#173d2e] disabled:cursor-not-allowed disabled:opacity-50 sm:hidden"><Camera size={18} />{tr('ถ่ายรูปใบข้าว', 'Take a photo')}</button>
+                  <button type="button" disabled={out} onClick={pickGallery} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-5 text-sm font-bold text-emerald-950 transition hover:border-emerald-700/40 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 sm:bg-[#1f4d3a] sm:text-white sm:hover:bg-[#173d2e]"><ImagePlus size={18} />{tr('เลือกรูปจากเครื่อง', 'Choose a photo')}</button>
+                </div>
+                <p className="mt-4 hidden text-[11px] text-slate-400 sm:block"><Upload size={12} className="mr-1 inline" />{tr('ลากรูปมาวาง หรือกด Ctrl+V เพื่อวางรูปก็ได้', 'or drag a photo here, or paste with Ctrl+V')}</p>
+              </div>
+            )}
+            <p className="mx-auto mt-4 flex max-w-[460px] items-start gap-2 text-[11.5px] leading-5 text-slate-500"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-700" />{tr('ภาพไม่ถูกอัปโหลด AI วิเคราะห์ในเบราว์เซอร์ของคุณ และไม่บันทึกผลทดลองไว้ที่ใด', 'Your photo is not uploaded. The AI runs in your browser and trial results are not stored anywhere.')}</p>
+          </div>
+
+          {/* right: state */}
+          <div ref={answerRef} className="flex min-h-[340px] scroll-mt-20 flex-col p-5 sm:p-7" aria-live="polite">
+            {phase === 'idle' && !out && (
+              <div className="my-auto">
+                <h2 className="text-lg font-bold text-slate-900">{tr('ทำงานยังไง', 'How it works')}</h2>
+                <ol className="mt-4 space-y-4">
+                  {[
+                    [Camera, tr('ถ่ายใบข้าวที่มีอาการ', 'Photograph a leaf with symptoms'), tr('ใกล้พอให้ใบเต็มกรอบ ในที่แสงสว่าง', 'Close enough to fill the frame, in good light')],
+                    [Cpu, tr('AI วิเคราะห์ในเครื่องของคุณ', 'The AI runs on your device'), tr('โมเดล EfficientNet-B0 ตัวเดียวกับในแอป ความแม่นยำ 96.9% บนภาพทดสอบ', 'Same EfficientNet-B0 model as the app, 96.9% accurate on test images')],
+                    [CheckCircle2, tr('ดูผลและคำแนะนำ', 'See the result and advice'), tr('ชื่อโรค ความมั่นใจ อาการ และวิธีจัดการตามกรมการข้าว', 'Disease, confidence, symptoms and Rice Department guidance')],
+                  ].map(([Icon, t, d], i) => (
+                    <li key={t} className="flex gap-3.5">
+                      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800"><Icon size={19} /><span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#1f4d3a] text-[10px] font-bold text-white">{i + 1}</span></span>
+                      <div><div className="font-semibold text-slate-900">{t}</div><div className="mt-0.5 text-[13px] leading-5 text-slate-500">{d}</div></div>
+                    </li>
+                  ))}
+                </ol>
+                <div className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-[12.5px] leading-5 text-amber-900">{tr('AI ตรวจได้ 4 แบบ: โรคไหม้ โรคขอบใบแห้ง โรคใบสีส้ม และใบปกติ ถ้าเป็นโรคอื่น ระบบจะบอกตรง ๆ แทนการเดา', 'The AI covers 4 cases: blast, bacterial leaf blight, tungro and healthy. Anything else is flagged instead of guessed.')}</div>
+              </div>
+            )}
+
+            {phase === 'idle' && out && (
+              <div className="my-auto text-center">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600"><Lock size={26} /></span>
+                <h2 className="mt-4 text-xl font-bold text-slate-900">{tr('ใช้สิทธิ์ทดลองครบ 5 ครั้งแล้ว', 'You’ve used all 5 free scans')}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{tr('สิทธิ์ใหม่จะกลับมาเที่ยงคืนนี้ (เวลาไทย)', 'New scans arrive at midnight (Thai time)')}</p>
+                <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 font-mono text-2xl font-bold tabular-nums text-slate-900"><Clock3 size={20} className="text-slate-400" />{countdown}</div>
+                <div className="mt-6 rounded-2xl border border-emerald-900/10 bg-emerald-50/60 p-4 text-left">
+                  <div className="flex items-center gap-2 font-bold text-emerald-950"><Smartphone size={18} />{tr('สแกนไม่จำกัดด้วยแอป Rice AI', 'Unlimited scans in the Rice AI app')}</div>
+                  <p className="mt-1 text-[13px] leading-5 text-slate-600">{tr('ใช้ได้แม้ไม่มีอินเทอร์เน็ต บันทึกผลพร้อมพิกัด และดูประวัติย้อนหลัง', 'Works offline, saves results with GPS and keeps your history')}</p>
+                  <Link to="/#app" className="mt-3 inline-flex h-11 items-center gap-2 rounded-xl bg-[#1f4d3a] px-4 text-sm font-bold text-white transition hover:bg-[#173d2e]"><Download size={16} />{tr('ดาวน์โหลดแอป (Android)', 'Get the app (Android)')}</Link>
+                </div>
+              </div>
+            )}
+
+            {phase === 'working' && (
+              <div className="my-auto text-center">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800"><ScanLine size={26} className="animate-pulse" /></span>
+                <h2 className="mt-4 text-lg font-bold text-slate-900">{download != null && download < 1 ? tr('กำลังเตรียม AI ครั้งแรก', 'Preparing the AI (first time only)') : tr('AI กำลังวิเคราะห์ใบข้าว', 'Analysing the leaf')}</h2>
+                <p className="mt-1 text-sm text-slate-500">{download != null && download < 1 ? tr('ดาวน์โหลดโมเดลประมาณ 8 MB ครั้งเดียว', 'One-time model download, about 8 MB') : tr('ใช้เวลาไม่กี่วินาที', 'This takes a few seconds')}</p>
+                <div className="mx-auto mt-5 h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-100">
+                  {download != null && download < 1
+                    ? <div className="h-full rounded-full bg-emerald-700 transition-[width] duration-200" style={{ width: `${Math.round(download * 100)}%` }} />
+                    : <div className="ts-indeterminate h-full w-1/3 rounded-full bg-emerald-700" />}
+                </div>
+              </div>
+            )}
+
+            {phase === 'result' && result && (() => {
+              const meta = NAMES[result.code];
+              const info = DISEASES[result.code];
+              const healthy = result.code === 'HEALTHY';
+              return (
+                <div className="ts-rise">
+                  <div className="flex items-start gap-4">
+                    <ConfidenceRing value={result.confidence} tone={meta.tone} label={tr('มั่นใจ', 'confident')} />
+                    <div className="min-w-0">
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${healthy ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{healthy ? <Leaf size={12} /> : <AlertTriangle size={12} />}{healthy ? tr('ไม่พบโรค', 'No disease found') : tr('พบอาการของโรค', 'Disease detected')}</span>
+                      <h2 className="mt-2 font-display text-2xl font-bold leading-tight text-slate-950">{name(result.code)}</h2>
+                      {meta.sci && <div className="mt-0.5 text-[13px] italic text-slate-500">{meta.sci}</div>}
+                    </div>
+                  </div>
+
+                  {isEn ? (
+                    <p className="mt-5 text-sm leading-6 text-slate-700">{EN_SUMMARY[result.code]}</p>
+                  ) : (
+                    <dl className="mt-5 space-y-3.5 text-sm leading-6">
+                      {info?.symptoms && <div><dt className="text-xs font-bold text-slate-500">อาการที่พบ</dt><dd className="text-slate-700">{info.symptoms}</dd></div>}
+                      {!healthy && info?.cause && <div><dt className="text-xs font-bold text-slate-500">สาเหตุ</dt><dd className="text-slate-700">{info.cause}</dd></div>}
+                      {info?.advice?.[0]?.treatment && <div><dt className="text-xs font-bold text-slate-500">{healthy ? 'คำแนะนำ' : 'วิธีจัดการ'}</dt><dd className="text-slate-700">{info.advice[0].treatment}</dd></div>}
+                    </dl>
+                  )}
+
+                  <details className="group mt-4 rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-2.5">
+                    <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-bold text-slate-600">{tr('ความน่าจะเป็นของแต่ละแบบ', 'Probability for each class')}<span className="transition group-open:rotate-180">▾</span></summary>
+                    <ul className="mt-3 space-y-2">
+                      {LABELS.map((code, i) => (
+                        <li key={code} className="grid grid-cols-[96px_1fr_44px] items-center gap-2 text-xs">
+                          <span className="truncate text-slate-600">{name(code)}</span>
+                          <span className="h-1.5 overflow-hidden rounded-full bg-slate-200"><span className={`block h-full rounded-full ${code === result.code ? 'bg-emerald-700' : 'bg-slate-400'}`} style={{ width: `${(result.probs[i] * 100).toFixed(1)}%` }} /></span>
+                          <span className="text-right tabular-nums text-slate-500">{(result.probs[i] * 100).toFixed(1)}%</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+
+                  <p className="mt-4 text-[11.5px] leading-5 text-slate-500">{tr('ผลจาก AI เป็นการช่วยตัดสินใจเบื้องต้น ก่อนใช้สารเคมีควรปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตรในพื้นที่', 'AI results support, not replace, expert advice. Check with your local extension officer before using chemicals.')}</p>
+                  <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+                    <button type="button" onClick={q.left > 0 ? pickGallery : reset} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-4 text-sm font-bold text-white transition hover:bg-[#173d2e]"><RefreshCw size={16} />{q.left > 0 ? tr(`สแกนภาพอื่น (เหลือ ${q.left})`, `Scan another (${q.left} left)`) : tr('ดูสิทธิ์ที่เหลือ', 'See allowance')}</button>
+                    <Link to="/rice-diseases" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50"><BookOpenText size={16} />{tr('ข้อมูลโรคเต็ม', 'Full disease guide')}</Link>
+                  </div>
+                  <Link to="/#app" className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-emerald-900/20 px-4 py-3 text-[13px] text-slate-600 transition hover:border-emerald-700/40 hover:bg-emerald-50/50">
+                    <span className="flex items-center gap-2"><Smartphone size={16} className="text-emerald-800" />{tr('อยากบันทึกผลพร้อมพิกัด? ใช้แอป Rice AI', 'Want to save results with GPS? Use the app')}</span><ArrowRight size={15} />
+                  </Link>
+                </div>
+              );
+            })()}
+
+            {phase === 'issue' && (
+              <div className="ts-rise">
+                {(() => {
+                  const kinds = {
+                    unclear: {
+                      icon: HelpCircle, ring: 'bg-amber-50 text-amber-700', tag: tr('ภาพยังไม่ชัดพอ', 'Photo not clear enough'),
+                      title: tr('ขอภาพใหม่อีกครั้งนะครับ', 'Let’s try another photo'),
+                      body: tr(`AI มั่นใจเพียง ${result?.confidence ?? 0}% ต่ำกว่าเกณฑ์ 60% จึงไม่เดาผล เพื่อไม่ให้ได้คำแนะนำที่ผิด`, `The AI is only ${result?.confidence ?? 0}% sure, below the 60% bar, so it won’t guess.`),
+                      tips: [tr('ใบข้าวเต็มกรอบ เห็นรอยแผลชัด', 'Fill the frame with the leaf, lesions visible'), tr('ถ่ายในที่สว่าง ไม่ย้อนแสง', 'Shoot in good light, not against the sun'), tr('ถือให้นิ่ง โฟกัสที่รอยแผล', 'Hold steady and focus on the lesion'), tr('ถ่ายทีละใบ ไม่มีสิ่งอื่นในภาพมาก', 'One leaf, little else in the frame')],
+                    },
+                    other: {
+                      icon: AlertTriangle, ring: 'bg-sky-50 text-sky-700', tag: tr('นอกขอบเขตของ AI', 'Outside what the AI covers'),
+                      title: tr('อาจเป็นโรคที่ยังไม่รองรับ', 'Possibly a condition we don’t cover yet'),
+                      body: tr('ลักษณะในภาพไม่ตรงกับ 4 แบบที่ AI ตรวจได้ อาจเป็นใบจุดสีน้ำตาล ราน้ำค้าง หรือแมลงทำลาย ระบบจึงไม่ให้ชื่อโรคที่อาจผิด', 'The photo doesn’t match the 4 cases the AI knows; it may be brown spot, downy mildew or insect damage, so no name is given.'),
+                      tips: [tr('เทียบอาการกับคลังความรู้ 22 โรคจากกรมการข้าว', 'Compare symptoms with the 22-disease library'), tr('ลองใบอื่นที่เห็นอาการชัดกว่า', 'Try another leaf with clearer symptoms'), tr('ถ้าอาการลุกลาม ปรึกษาเจ้าหน้าที่เกษตรในพื้นที่', 'If it spreads, contact your local extension officer')],
+                    },
+                    bad_image: {
+                      icon: ImagePlus, ring: 'bg-amber-50 text-amber-700', tag: tr('อ่านไฟล์ไม่ได้', 'Can’t read this file'),
+                      title: tr('เปิดภาพนี้ไม่ได้', 'This image can’t be opened'),
+                      body: tr('ไฟล์อาจเสียหรือเป็นรูปแบบที่เบราว์เซอร์ไม่รองรับ ลองถ่ายใหม่หรือเลือกไฟล์ JPG/PNG', 'The file may be damaged or in a format the browser can’t read. Try a JPG or PNG.'),
+                      tips: [],
+                    },
+                    model: {
+                      icon: Cpu, ring: 'bg-red-50 text-red-700', tag: tr('โหลด AI ไม่สำเร็จ', 'AI failed to load'),
+                      title: tr('เตรียม AI ไม่สำเร็จ', 'Couldn’t start the AI'),
+                      body: tr('อาจเป็นเพราะอินเทอร์เน็ตขาดระหว่างดาวน์โหลด หรือเบราว์เซอร์รุ่นเก่า ภาพของคุณยังอยู่ ลองอีกครั้งได้', 'The download may have been interrupted or the browser is too old. Your photo is still here; try again.'),
+                      tips: [tr('ตรวจสัญญาณอินเทอร์เน็ต', 'Check your connection'), tr('ใช้ Chrome, Edge หรือ Safari รุ่นล่าสุด', 'Use an up-to-date Chrome, Edge or Safari')],
+                    },
+                  };
+                  const k = kinds[issue] || kinds.model;
+                  const Icon = k.icon;
+                  return (
+                    <>
+                      <div className="flex items-start gap-3.5">
+                        <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${k.ring}`}><Icon size={24} /></span>
+                        <div>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{k.tag}</span>
+                          <h2 className="mt-0.5 text-xl font-bold leading-snug text-slate-950">{k.title}</h2>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-slate-600">{k.body}</p>
+                      {issue === 'other' && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">{['BLAST', 'BLB', 'TUNGRO', 'HEALTHY'].map((c) => <span key={c} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11.5px] font-semibold text-slate-600">{name(c)}</span>)}</div>
+                      )}
+                      {k.tips.length > 0 && (
+                        <ol className="mt-4 space-y-2">
+                          {k.tips.map((t, i) => <li key={t} className="flex gap-2.5 text-[13.5px] leading-5 text-slate-700"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-[11px] font-bold text-emerald-800">{i + 1}</span>{t}</li>)}
+                        </ol>
+                      )}
+                      <p className="mt-4 flex items-center gap-1.5 text-[12px] font-semibold text-emerald-800"><CheckCircle2 size={14} />{tr('ครั้งนี้ไม่นับสิทธิ์ทดลอง', 'This attempt didn’t use a free scan')}</p>
+                      <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+                        <button type="button" onClick={pickCamera} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-4 text-sm font-bold text-white transition hover:bg-[#173d2e] sm:hidden"><Camera size={16} />{tr('ถ่ายภาพใหม่', 'Retake photo')}</button>
+                        <button type="button" onClick={pickGallery} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50 sm:border-transparent sm:bg-[#1f4d3a] sm:text-white sm:hover:bg-[#173d2e]"><ImagePlus size={16} />{tr('เลือกภาพใหม่', 'Choose another photo')}</button>
+                        {issue === 'other' && <Link to="/rice-diseases" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50"><BookOpenText size={16} />{tr('เปิดคลังความรู้โรคข้าว', 'Open the disease library')}</Link>}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* reassurance strip */}
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {[
+            [ShieldCheck, tr('เป็นส่วนตัว', 'Private'), tr('ภาพไม่ออกจากเครื่องของคุณ', 'Photos never leave your device')],
+            [Cpu, tr('AI ตัวเดียวกับในแอป', 'Same AI as the app'), tr('EfficientNet-B0 · แม่นยำ 96.9% บนภาพทดสอบ 761 ภาพ', 'EfficientNet-B0 · 96.9% on 761 test images')],
+            [Smartphone, tr('ใช้ต่อในแอปได้ไม่จำกัด', 'Unlimited in the app'), tr('บันทึกผล พิกัด และใช้แบบออฟไลน์', 'Save results, GPS, and work offline')],
+          ].map(([Icon, t, d]) => (
+            <div key={t} className="flex items-start gap-3 rounded-2xl border border-emerald-900/10 bg-white/70 p-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800"><Icon size={17} /></span>
+              <div><div className="text-sm font-bold text-slate-900">{t}</div><div className="mt-0.5 text-[12.5px] leading-5 text-slate-500">{d}</div></div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-center text-xs text-slate-400">{tr(`ทดลองได้ ${DAILY_LIMIT} ครั้งต่อวันต่อเครื่อง`, `${DAILY_LIMIT} free scans per day per device`)} · <Link to="/research-study" className="font-semibold text-emerald-800 hover:underline">{tr('ดูวิธีพัฒนาและทดสอบ AI', 'How the AI was built and tested')}</Link></p>
+      </main>
+      <PublicFooter />
+    </div>
+  );
+}

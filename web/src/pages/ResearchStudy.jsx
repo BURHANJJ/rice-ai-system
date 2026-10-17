@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight, ArrowUp, BookOpen, Check, ChevronRight, Database, ExternalLink, FlaskConical, Info, Layers3, MessageSquareText, Microscope, Play, Target } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUp, BookOpen, Check, ChevronRight, Database, ExternalLink, FlaskConical, Info, Layers3, MessageSquareText, Microscope, Play, ScanLine, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import KhaoHomDial, { scrollToTop } from '../components/KhaoHomDial';
 import PublicHeader from '../components/PublicHeader';
@@ -590,8 +590,9 @@ export default function ResearchStudy() {
       bubble={[tr('สงสัยเรื่องงานวิจัย ถามผมได้นะครับ', 'Questions about the study? Ask me'), tr('มีไอเดีย? บอกเราได้', 'Have an idea? Tell us.')]}
       actions={[
         { key: 'top', icon: ArrowUp, label: tr('กลับขึ้นด้านบน', 'Back to top'), onClick: scrollToTop },
-        { key: 'video', icon: Play, label: tr('ดูคลิปอธิบาย', 'Watch the video'), href: '#video' },
-        { key: 'feedback', icon: MessageSquareText, label: tr('ส่งข้อเสนอแนะ', 'Send feedback'), to: '/feedback' },
+        { key: 'video', icon: Play, label: tr('ดูคลิปอธิบาย', 'Watch the video'), hint: tr('การพัฒนาโมเดลใน 6 นาที', 'How the model was built, 6 min'), href: '#video' },
+        { key: 'try', icon: ScanLine, label: tr('ทดลองสแกนโรคฟรี', 'Try a free scan'), hint: tr('ใช้โมเดลตัวเดียวกับในงานวิจัย', 'The same model as in the study'), to: '/try-scan' },
+        { key: 'feedback', icon: MessageSquareText, label: tr('ส่งข้อเสนอแนะ', 'Send feedback'), hint: tr('แจ้งปัญหาหรือเสนอไอเดีย', 'Report a problem or share an idea'), to: '/feedback' },
       ]}
     />
   </div>;

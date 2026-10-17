@@ -12,6 +12,7 @@ import LegalPage from './pages/LegalPage';
 import RiceDiseases from './pages/RiceDiseases';
 import ResearchStudy from './pages/ResearchStudy';
 import Feedback from './pages/Feedback';
+import TryScan from './pages/TryScan';
 
 import Scan from './pages/farmer/Scan';
 import History from './pages/farmer/History';
@@ -72,6 +73,7 @@ export default function App() {
           <Route path="/rice-diseases" element={<RiceDiseases />} />
           <Route path="/research-study" element={<ResearchStudy />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/try-scan" element={<TryScan />} />
           <Route path="/risk-map" element={<PublicRiskMap />} />
 
           <Route path="/app/scan" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><Scan /></ProtectedRoute>} />

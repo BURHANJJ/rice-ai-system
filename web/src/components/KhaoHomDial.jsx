@@ -1,11 +1,11 @@
 // Khao Hom's floating quick-action dial, shared by the public pages.
 // Closed: the mascot sits in the corner with a speech bubble that types short messages.
-// Open: round actions spring out along an arc beside him; each shows its name on hover,
-// keyboard focus, and (on touch screens, which cannot hover) for as long as the dial is open.
-// Closes on a second tap, a tap anywhere else, or Esc.
+// Open: a menu card rises above him with every shortcut as a labelled row (icon, name, hint),
+// chat first and "back to top" last. Arrow keys move between rows. Closes on a second tap,
+// a tap anywhere else, or Esc. Phones skip the menu: tapping him opens the chat.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircleMore, X } from 'lucide-react';
+import { ChevronRight, MessageCircleMore, X } from 'lucide-react';
 import ChatPanel from './chat/ChatPanel';
 import khaoHomMascot from '../../assets/khao_hom_scan.svg';
 import { useI18n } from '../lib/i18n';
@@ -64,7 +64,7 @@ function useTyping(messages, paused) {
 }
 
 /**
- * actions: [{ key, icon, label, onClick? | href? | to? }] — drawn from the bottom of the arc (left) to the top.
+ * actions: [{ key, icon, label, hint?, accent?, onClick? | href? | to? }] — key 'top' is listed last.
  * bubble: messages the speech bubble types in turn. bubbleTo: optional route the bubble links to
  * (otherwise tapping the bubble opens the dial).
  */
@@ -74,7 +74,7 @@ export default function KhaoHomDial({ actions: pageActions, bubble, bubbleTo, re
   const [chatOpen, setChatOpen] = useState(false);
   // The chat assistant is the last (top-most) action on every page that uses the dial.
   const actions = chat
-    ? [...pageActions, { key: 'chat', icon: MessageCircleMore, label: t({ th: 'คุยกับน้องข้าวหอม', en: 'Chat with Khao Hom' }), onClick: () => setChatOpen(true), accent: true }]
+    ? [...pageActions, { key: 'chat', icon: MessageCircleMore, label: t({ th: 'คุยกับน้องข้าวหอม', en: 'Chat with Khao Hom' }), hint: t({ th: 'ถามเรื่องแอปและโรคข้าว', en: 'Ask about the app and rice diseases' }), onClick: () => setChatOpen(true), accent: true }]
     : pageActions;
   const ref = useRef(null);
   // Phones: the arc of labels crowds a small screen, so tapping Khao Hom goes straight to the chat.
@@ -111,8 +111,28 @@ export default function KhaoHomDial({ actions: pageActions, bubble, bubbleTo, re
     };
   }, [open]);
 
-  // Spread the buttons over a quarter circle; the radius grows with their number so they never touch.
-  const radius = Math.max(104, ((actions.length - 1) * 58) / (Math.PI / 2));
+  // Menu order: chat first (the main thing he does), page shortcuts, "back to top" last after a divider.
+  const menu = [
+    ...actions.filter((a) => a.key === 'chat'),
+    ...actions.filter((a) => a.key !== 'chat' && a.key !== 'top'),
+    ...actions.filter((a) => a.key === 'top').map((a) => ({ ...a, divider: true })),
+  ];
+  const menuRef = useRef(null);
+  const items = () => [...(menuRef.current?.querySelectorAll('[role="menuitem"]') || [])];
+  useEffect(() => {
+    if (!open) return undefined;
+    const tm = setTimeout(() => items()[0]?.focus({ preventScroll: true }), 120);
+    return () => clearTimeout(tm);
+  }, [open]);
+  const onMenuKey = (e) => {
+    const list = items();
+    const at = list.indexOf(document.activeElement);
+    const go = (i) => { e.preventDefault(); list[(i + list.length) % list.length]?.focus(); };
+    if (e.key === 'ArrowDown') go(at + 1);
+    else if (e.key === 'ArrowUp') go(at - 1);
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(list.length - 1);
+  };
   const bubbleClass = 'rs-typing-bubble absolute bottom-full right-8 mb-2 flex min-h-10 w-max max-w-[min(208px,calc(100vw-5rem))] items-center rounded-2xl rounded-br-sm border border-emerald-900/10 bg-white px-3 py-2 text-left text-xs font-bold leading-5 text-emerald-950 shadow-[0_10px_28px_-12px_rgba(15,45,31,.4)] transition hover:-translate-y-0.5 hover:border-emerald-700/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/20';
   const bubbleText = <span className="min-w-0 whitespace-normal break-words">{typed}{typing && <span aria-hidden="true" className="rs-typing-caret ml-0.5 inline-block h-4 align-middle" />}</span>;
 
@@ -126,36 +146,49 @@ export default function KhaoHomDial({ actions: pageActions, bubble, bubbleTo, re
         ? <Link to={bubbleTo} aria-label={bubble[0]} className={bubbleClass}>{bubbleText}</Link>
         : <button type="button" onClick={() => (chat ? setChatOpen(true) : setOpen(true))} aria-label={chat ? t({ th: 'คุยกับน้องข้าวหอม', en: 'Chat with Khao Hom' }) : t({ th: 'เปิดเมนูน้องข้าวหอม', en: 'Open Khao Hom menu' })} className={bubbleClass}>{bubbleText}</button>)}
 
-      <div role="menu" aria-label={t({ th: 'เมนูทางลัด', en: 'Quick actions' })} aria-hidden={!open} className="pointer-events-none absolute left-1/2 top-1/2">
-        {actions.map((a, i) => {
-          const angle = (180 - (90 / Math.max(1, actions.length - 1)) * i) * (Math.PI / 180);
-          const style = {
-            '--dx': `${Math.cos(angle) * radius}px`,
-            '--dy': `${-Math.sin(angle) * radius}px`,
-            transitionDelay: `${open ? i * 55 : (actions.length - 1 - i) * 35}ms`,
-          };
-          const Icon = a.icon;
-          const inner = (
-            <>
-              <span className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-[0_12px_28px_-10px_rgba(15,45,31,.5)] ring-4 ring-white/60 transition group-hover/dial:scale-110 group-focus-visible/dial:scale-110 ${a.accent ? 'border-emerald-900 bg-gradient-to-br from-emerald-600 to-emerald-900 text-white' : 'border-emerald-900/10 bg-white text-emerald-900 group-hover/dial:bg-emerald-800 group-hover/dial:text-white group-focus-visible/dial:bg-emerald-800 group-focus-visible/dial:text-white'}`}>
-                <Icon size={19} strokeWidth={2.2} />
-              </span>
-              <span className="rs-dial-label pointer-events-none absolute right-full top-1/2 mr-3 whitespace-nowrap rounded-full bg-emerald-950 px-3 py-1.5 text-xs font-bold text-white shadow-lg">{a.label}</span>
-            </>
-          );
-          const props = {
-            role: 'menuitem',
-            'aria-label': a.label,
-            title: a.label,
-            tabIndex: open ? 0 : -1,
-            style,
-            className: `rs-dial group/dial absolute -ml-6 -mt-6 block rounded-full focus-visible:outline-none ${open ? 'rs-dial-open pointer-events-auto' : ''}`,
-          };
-          const close = () => setOpen(false);
-          if (a.to) return <Link key={a.key} to={a.to} onClick={close} {...props}>{inner}</Link>;
-          if (a.href) return <a key={a.key} href={a.href} onClick={close} {...props}>{inner}</a>;
-          return <button key={a.key} type="button" onClick={() => { close(); a.onClick?.(); }} {...props}>{inner}</button>;
-        })}
+      {/* Menu card above the mascot: every action is a labelled row, nothing covers the page. */}
+      <div
+        ref={menuRef}
+        role="menu"
+        aria-label={t({ th: 'เมนูทางลัด', en: 'Quick actions' })}
+        aria-hidden={!open}
+        onKeyDown={onMenuKey}
+        className={`kh-menu absolute bottom-full right-0 mb-3 w-[min(19rem,calc(100vw-1.5rem))] origin-bottom-right overflow-hidden rounded-[1.4rem] border border-emerald-900/10 bg-white/95 shadow-[0_28px_70px_-24px_rgba(15,45,31,.55)] backdrop-blur-xl ${open ? 'kh-menu-open' : 'pointer-events-none'}`}
+      >
+        <div className="flex items-center gap-2.5 border-b border-emerald-900/5 bg-gradient-to-br from-[#f3f8f2] to-white px-4 py-3">
+          <img src={khaoHomMascot} alt="" className="h-9 w-9 object-contain" />
+          <div className="min-w-0">
+            <div className="text-[13px] font-extrabold leading-tight text-emerald-950">{t({ th: 'ให้น้องข้าวหอมช่วยอะไรดี', en: 'How can Khao Hom help?' })}</div>
+            <div className="text-[11px] text-slate-500">{t({ th: 'เลือกทางลัดได้เลยครับ', en: 'Pick a shortcut' })}</div>
+          </div>
+        </div>
+        <div className="p-1.5">
+          {menu.map((a, i) => {
+            const Icon = a.icon;
+            const inner = (
+              <>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${a.accent ? 'bg-gradient-to-br from-emerald-600 to-emerald-900 text-white shadow-[0_8px_18px_-8px_rgba(6,78,59,.8)]' : 'bg-emerald-50 text-emerald-800 group-hover/item:bg-emerald-100'}`}>
+                  <Icon size={18} strokeWidth={2.2} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13.5px] font-bold text-slate-900">{a.label}</span>
+                  {a.hint && <span className="block truncate text-[11.5px] text-slate-500">{a.hint}</span>}
+                </span>
+                <ChevronRight size={16} className="shrink-0 text-slate-300 transition group-hover/item:translate-x-0.5 group-hover/item:text-emerald-700" />
+              </>
+            );
+            const props = {
+              role: 'menuitem',
+              tabIndex: open ? 0 : -1,
+              style: { transitionDelay: open ? `${60 + i * 35}ms` : '0ms' },
+              className: `kh-item group/item flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left outline-none transition hover:bg-emerald-50/70 focus-visible:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-700/30 ${a.divider ? 'mt-1 border-t border-slate-100 pt-2.5' : ''}`,
+            };
+            const close = () => setOpen(false);
+            if (a.to) return <Link key={a.key} to={a.to} onClick={close} {...props}>{inner}</Link>;
+            if (a.href) return <a key={a.key} href={a.href} onClick={close} {...props}>{inner}</a>;
+            return <button key={a.key} type="button" onClick={() => { close(); a.onClick?.(); }} {...props}>{inner}</button>;
+          })}
+        </div>
       </div>
 
       <button

@@ -219,11 +219,18 @@ export default function Landing() {
               </Link>
             </div>
 
-            <a href="#tour" className="group mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-[var(--color-paddy)]">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-emerald-100 transition-transform group-hover:translate-y-0.5"><MousePointerClick size={15} /></span>
-              {t({ th: 'ดูการทำงานของแอปจริง', en: 'See the real app in action' })}
-              <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
-            </a>
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Link to="/try-scan" className="group inline-flex items-center gap-2 rounded-full border border-emerald-700/20 bg-white/90 py-1.5 pl-1.5 pr-4 text-sm font-extrabold text-[var(--color-paddy-dark)] shadow-md shadow-emerald-900/5 transition hover:-translate-y-0.5 hover:border-emerald-700/40 hover:shadow-lg">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-900 text-white"><ScanLine size={15} /></span>
+                {t({ th: 'ทดลองสแกนฟรีบนเว็บ', en: 'Try a free scan on the web' })}
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">{t({ th: 'ไม่ต้องสมัคร', en: 'No sign-up' })}</span>
+              </Link>
+              <a href="#tour" className="group inline-flex items-center gap-2 text-sm font-extrabold text-[var(--color-paddy)]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-emerald-100 transition-transform group-hover:translate-y-0.5"><MousePointerClick size={15} /></span>
+                {t({ th: 'ดูการทำงานของแอปจริง', en: 'See the real app in action' })}
+                <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+              </a>
+            </div>
           </div>
 
           <div className="rb-reveal rb-delay-2">
@@ -373,10 +380,11 @@ export default function Landing() {
         bubble={[t({ th: 'สวัสดีครับ ผมน้องข้าวหอม', en: "Hi, I'm Khao Hom" }), t({ th: 'สงสัยอะไร ถามผมได้นะครับ', en: 'Got a question? Ask me' })]}
         actions={[
           { key: 'top', icon: ArrowUp, label: t({ th: 'กลับขึ้นด้านบน', en: 'Back to top' }), onClick: scrollToTop },
-          { key: 'app', icon: Smartphone, label: t({ th: 'ดาวน์โหลดแอป', en: 'Get the app' }), href: '#app' },
-          { key: 'video', icon: Play, label: t({ th: 'ดูคลิปแนะนำ', en: 'Watch the intro' }), href: '#video' },
-          { key: 'diseases', icon: BookOpen, label: t({ th: 'คลังความรู้โรคข้าว', en: 'Rice disease guide' }), to: '/rice-diseases' },
-          { key: 'feedback', icon: MessageSquareText, label: t({ th: 'ส่งข้อเสนอแนะ', en: 'Send feedback' }), to: '/feedback' },
+          { key: 'try', icon: ScanLine, label: t({ th: 'ทดลองสแกนโรคฟรี', en: 'Try a free scan' }), hint: t({ th: 'ไม่ต้องสมัคร วันละ 5 ครั้ง', en: 'No sign-up, 5 a day' }), to: '/try-scan' },
+          { key: 'app', icon: Smartphone, label: t({ th: 'ดาวน์โหลดแอป', en: 'Get the app' }), hint: t({ th: 'Android · ใช้ได้แม้ไม่มีเน็ต', en: 'Android · works offline' }), href: '#app' },
+          { key: 'video', icon: Play, label: t({ th: 'ดูคลิปแนะนำ', en: 'Watch the intro' }), hint: t({ th: 'รู้จัก Rice AI ใน 43 วินาที', en: 'Rice AI in 43 seconds' }), href: '#video' },
+          { key: 'diseases', icon: BookOpen, label: t({ th: 'คลังความรู้โรคข้าว', en: 'Rice disease guide' }), hint: t({ th: '22 โรค จากกรมการข้าว', en: '22 diseases from the Rice Department' }), to: '/rice-diseases' },
+          { key: 'feedback', icon: MessageSquareText, label: t({ th: 'ส่งข้อเสนอแนะ', en: 'Send feedback' }), hint: t({ th: 'แจ้งปัญหาหรือเสนอไอเดีย', en: 'Report a problem or share an idea' }), to: '/feedback' },
         ]}
       />
     </div>

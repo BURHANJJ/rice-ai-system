@@ -9,6 +9,7 @@ const mobileLinkBase = 'rice-public-nav-link flex items-center justify-between r
 const NAV = [
   { to: '/', label: { th: 'หน้าหลัก', en: 'Home' }, key: 'home' },
   { to: '/#app', label: { th: 'แอปมือถือ', en: 'Mobile app' }, key: 'app' },
+  { to: '/try-scan', label: { th: 'ทดลองสแกน', en: 'Try a scan' }, key: 'try' },
   { to: '/rice-diseases', label: { th: 'ความรู้โรคข้าว', en: 'Rice diseases' }, key: 'diseases' },
   { to: '/risk-map', label: { th: 'แผนที่การระบาด', en: 'Outbreak map' }, key: 'map' },
 ];
@@ -79,7 +80,9 @@ export default function PublicHeader() {
   const { scrolled, progress } = useScrollState();
   const activeKey = isHome
     ? (appInView ? 'app' : 'home')
-    : location.pathname.startsWith('/rice-diseases')
+    : location.pathname.startsWith('/try-scan')
+      ? 'try'
+      : location.pathname.startsWith('/rice-diseases')
       ? 'diseases'
       : location.pathname.startsWith('/risk-map')
         ? 'map'
