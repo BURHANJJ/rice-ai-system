@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { AlertTriangle, ArrowRight, BrainCircuit, CheckCircle2, ClipboardCheck, Cpu, Gauge, Info, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import api from '../../lib/api';
+import { checkModel, MODEL } from '../../lib/systemStatus';
 import { useScans } from '../../lib/scanStore';
 import { useSettings } from '../../lib/settings';
 import { Btn, ErrorNote, Kpi, PageHeader, Panel, Pill } from '../../components/admin/ui';
@@ -87,13 +87,7 @@ export default function ModelQuality() {
   const low = settings.review.lowConfidence;
   const m = useMemo(() => modelMetrics(scans, reviews, low), [scans, reviews, low]);
   const [ai, setAi] = useState({ state: 'checking' });
-
-  useEffect(() => {
-    const t0 = performance.now();
-    api.get('/ai-status', { timeout: 4000 })
-      .then(({ data }) => setAi({ state: data.status === 'online' ? 'online' : 'offline', model: data.model_status, trainAcc: data.accuracy, ping: Math.round(performance.now() - t0) }))
-      .catch(() => setAi({ state: 'unreachable' }));
-  }, []);
+  useEffect(() => { checkModel().then(setAi); }, []);
 
   const hist = useMemo(() => {
     const bins = Array.from({ length: 10 }, (_, i) => ({ lo: i * 10, label: `${i * 10}–${i * 10 + 10}`, n: 0 }));
@@ -210,27 +204,28 @@ export default function ModelQuality() {
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_260px]">
           <dl className="grid gap-2.5 text-sm">
             {[
-              ['ไฟล์โมเดล', 'rice_disease_model.h5 (Keras / TensorFlow)'],
-              ['คลาสที่ทำนาย', MODEL_CLASSES.map((c) => c.name).join(' · ')],
-              ['ข้อมูลเข้า', 'ภาพใบข้าวจากแอป (บีบอัดก่อนบันทึก)'],
+              ['รุ่นโมเดล', `${MODEL.version} · ${MODEL.date}`],
+              ['สถาปัตยกรรม', MODEL.architecture],
+              ['คลาสที่ทำนาย', MODEL.classes],
+              ['ทำงานบน', MODEL.runtimes],
             ].map(([k, v]) => (
               <div key={k} className="grid grid-cols-[110px_1fr] gap-2"><dt className="text-gray-500">{k}</dt><dd className="font-bold text-gray-900">{v}</dd></div>
             ))}
           </dl>
           <dl className="grid gap-2.5 text-sm">
-            <div className="grid grid-cols-[150px_1fr] gap-2"><dt className="text-gray-500">แม่นยำตอนเทรน (ชุดทดสอบ)</dt><dd className="font-bold text-gray-900">{ai.trainAcc && ai.trainAcc !== 'N/A' ? ai.trainAcc : '–'}</dd></div>
+            <div className="grid grid-cols-[150px_1fr] gap-2"><dt className="text-gray-500">แม่นยำบนชุดทดสอบ</dt><dd className="font-bold text-gray-900">{MODEL.accuracy} <span className="font-normal text-gray-400">Macro F1 {MODEL.macroF1} · {MODEL.testImages} ภาพ</span></dd></div>
+            <div className="grid grid-cols-[150px_1fr] gap-2"><dt className="text-gray-500">เกณฑ์ความมั่นใจ</dt><dd className="font-bold text-gray-900">{MODEL.threshold}% <span className="font-normal text-gray-400">ต่ำกว่านี้ขอภาพใหม่</span></dd></div>
             <div className="grid grid-cols-[150px_1fr] gap-2"><dt className="text-gray-500">แม่นยำจริง (ตรวจทาน)</dt><dd className="font-bold text-gray-900">{pct(m.accuracy)} <span className="font-normal text-gray-400">n={m.reviewed}</span></dd></div>
             <div className="grid grid-cols-[150px_1fr] gap-2"><dt className="text-gray-500">ผลสแกนทั้งหมด</dt><dd className="font-bold text-gray-900">{(scans?.length || 0).toLocaleString()}</dd></div>
           </dl>
           <div className={`rounded-2xl p-4 ring-1 ${ai.state === 'online' ? 'bg-emerald-50 ring-emerald-100' : ai.state === 'checking' ? 'bg-gray-50 ring-gray-100' : 'bg-amber-50 ring-amber-100'}`}>
-            <div className="flex items-center gap-2 text-sm font-extrabold text-gray-900"><Cpu size={16} />AI Service</div>
+            <div className="flex items-center gap-2 text-sm font-extrabold text-gray-900"><Cpu size={16} />AI บนอุปกรณ์</div>
             <div className="mt-2">
-              {ai.state === 'online' && <Pill tone="green" icon={CheckCircle2}>ออนไลน์ · {ai.ping} ms</Pill>}
+              {ai.state === 'online' && <Pill tone="green" icon={CheckCircle2}>ไฟล์โมเดลพร้อม{ai.sizeMb ? ` · ${ai.sizeMb} MB` : ''}</Pill>}
               {ai.state === 'checking' && <Pill tone="gray">กำลังตรวจสอบ…</Pill>}
-              {ai.state === 'offline' && <Pill tone="amber">ออฟไลน์ / โหมดสาธิต</Pill>}
-              {ai.state === 'unreachable' && <Pill tone="amber">เชื่อมต่อ backend ไม่ได้</Pill>}
+              {ai.state === 'offline' && <Pill tone="amber">เปิดไฟล์โมเดลไม่ได้</Pill>}
             </div>
-            <p className="mt-2 text-[11px] leading-5 text-gray-500">{ai.model ? `model_status: ${ai.model}` : 'สถานะจาก /ai-status ของ backend'}</p>
+            <p className="mt-2 text-[11px] leading-5 text-gray-500">แอปใช้ไฟล์ TFLite ที่ติดมากับแอป ส่วนเว็บโหลด {MODEL.file} มารันในเบราว์เซอร์ ไม่มีเซิร์ฟเวอร์ AI ที่ต้องดูแล</p>
           </div>
         </div>
       </Panel>

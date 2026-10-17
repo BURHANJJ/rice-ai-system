@@ -25,7 +25,7 @@ export default function Login() {
   const routeByRole = (role) => {
     if (role === 'admin') navigate('/admin/dashboard');
     else if (role === 'researcher') navigate('/research/dashboard');
-    else navigate('/app/scan');
+    else navigate('/');
   };
 
   const rejectFarmerWebAccess = async () => {

@@ -5,7 +5,6 @@ import Account from './pages/Account';
 import ScrollManager from './components/ScrollManager';
 
 import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
 import ApplyResearcher from './pages/auth/ApplyResearcher';
 import Landing from './pages/Landing';
 import LegalPage from './pages/LegalPage';
@@ -13,12 +12,7 @@ import RiceDiseases from './pages/RiceDiseases';
 import ResearchStudy from './pages/ResearchStudy';
 import Feedback from './pages/Feedback';
 import TryScan from './pages/TryScan';
-
-import Scan from './pages/farmer/Scan';
-import History from './pages/farmer/History';
-import Wiki from './pages/farmer/Wiki';
-import Outbreak from './pages/farmer/Outbreak';
-import Profile from './pages/farmer/Profile';
+import Scan from './pages/Scan';
 
 import ResearchDashboard from './pages/researcher/ResearchDashboard';
 import RiskMap from './pages/researcher/RiskMap';
@@ -49,7 +43,7 @@ function MaintenanceGate({ children }) {
   const location = useLocation();
 
   // Keep sign-in and the private portal reachable so an administrator can disable maintenance.
-  const isPrivateArea = ['/admin', '/research', '/app'].some((prefix) => location.pathname.startsWith(prefix));
+  const isPrivateArea = ['/admin', '/research'].some((prefix) => location.pathname.startsWith(prefix));
   if (location.pathname === '/login' || (user?.role === 'admin' && isPrivateArea)) return children;
   if (!loaded) {
     return <div className="flex min-h-screen items-center justify-center bg-[var(--color-paper)] text-sm font-semibold text-[var(--color-muted)]">กำลังตรวจสอบสถานะระบบ…</div>;
@@ -66,7 +60,8 @@ export default function App() {
         <MaintenanceGate>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Farmers sign up in the app; the web is for researchers (apply) and administrators. */}
+          <Route path="/register" element={<Navigate to="/apply-researcher" replace />} />
           <Route path="/apply-researcher" element={<ApplyResearcher />} />
           <Route path="/terms" element={<LegalPage type="terms" />} />
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
@@ -76,21 +71,20 @@ export default function App() {
           <Route path="/try-scan" element={<TryScan />} />
           <Route path="/risk-map" element={<PublicRiskMap />} />
 
-          <Route path="/app/scan" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><Scan /></ProtectedRoute>} />
-          <Route path="/app/history" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><History /></ProtectedRoute>} />
-          <Route path="/app/wiki" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><Wiki /></ProtectedRoute>} />
-          <Route path="/app/outbreak" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><Outbreak /></ProtectedRoute>} />
-          <Route path="/app/profile" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><Profile /></ProtectedRoute>} />
+          {/* Old farmer web pages: farmers use the app, so these addresses lead to the right place. */}
+          <Route path="/app/scan" element={<Navigate to="/try-scan" replace />} />
+          <Route path="/app/*" element={<Navigate to="/#app" replace />} />
 
           <Route path="/research/dashboard" element={<ProtectedRoute roles={['researcher']}><ResearchDashboard /></ProtectedRoute>} />
           <Route path="/research/risk-map" element={<ProtectedRoute roles={['researcher']}><RiskMap /></ProtectedRoute>} />
           <Route path="/research/explorer" element={<ProtectedRoute roles={['researcher']}><DataExplorer /></ProtectedRoute>} />
           <Route path="/research/scan" element={<ProtectedRoute roles={['researcher', 'admin']}><Scan /></ProtectedRoute>} />
-          <Route path="/research/wiki" element={<ProtectedRoute roles={['researcher', 'admin']}><Wiki /></ProtectedRoute>} />
+          <Route path="/research/wiki" element={<Navigate to="/rice-diseases" replace />} />
           <Route path="/research/account" element={<ProtectedRoute roles={['researcher']}><Account /></ProtectedRoute>} />
 
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/reports" element={<ProtectedRoute roles={['admin']}><AllReports /></ProtectedRoute>} />
+          <Route path="/admin/scan" element={<ProtectedRoute roles={['admin']}><Scan /></ProtectedRoute>} />
           <Route path="/admin/live-feed" element={<ProtectedRoute roles={['admin']}><LiveFeed /></ProtectedRoute>} />
           <Route path="/admin/explorer" element={<ProtectedRoute roles={['admin']}><DataExplorer /></ProtectedRoute>} />
           <Route path="/admin/approvals" element={<ProtectedRoute roles={['admin']}><PendingResearchers /></ProtectedRoute>} />

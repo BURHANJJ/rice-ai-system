@@ -7,15 +7,21 @@ import { useScans } from '../../lib/scanStore';
 import { useSettings } from '../../lib/settings';
 import { collection, getDocs, query, limit, orderBy, getCountFromServer, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import api from '../../lib/api';
-import { 
+import { checkAppRelease, checkFirestore, checkModel, MODEL } from '../../lib/systemStatus';
+import {
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar 
 } from 'recharts';
 import { 
   Activity, Users, Target, Clock, ShieldAlert, 
-  MapPin, UserCog, TrendingUp, Server, Database, Zap, CheckCircle2 
+  MapPin, UserCog, TrendingUp, Smartphone, Database, Zap, CheckCircle2, AlertTriangle
 } from 'lucide-react';
+
+const STATE_LABEL = {
+  checking: <span className="text-xs font-bold text-amber-500">กำลังตรวจสอบ…</span>,
+  online: <span className="flex items-center gap-1 text-xs font-bold text-emerald-600"><CheckCircle2 size={14} /> ปกติ</span>,
+  offline: <span className="flex items-center gap-1 text-xs font-bold text-red-500"><AlertTriangle size={14} /> ติดต่อไม่ได้</span>,
+};
 
 const COLORS = {
   'BLAST': '#EF4444',
@@ -69,11 +75,17 @@ export default function AdminDashboard() {
     usageGraph: []
   });
 
+  // Real checks, not placeholders: Firestore round trip, model file served, latest app build.
   const [systemStatus, setSystemStatus] = useState({
-    ai: { state: 'checking', ping: 0 },
-    firebase: { state: 'online', ping: 15 },
-    backend: { state: 'online', ping: 45 }
+    model: { state: 'checking' },
+    firebase: { state: 'checking' },
+    app: { state: 'checking' },
   });
+  useEffect(() => {
+    checkFirestore().then((firebase) => setSystemStatus((s) => ({ ...s, firebase })));
+    checkModel().then((model) => setSystemStatus((s) => ({ ...s, model })));
+    checkAppRelease().then((app) => setSystemStatus((s) => ({ ...s, app })));
+  }, []);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -167,18 +179,6 @@ export default function AdminDashboard() {
           usageGraph
         });
 
-        // 3. Ping AI Service Status
-        const aiStart = performance.now();
-        api.get('/ai-status').then(res => {
-          const ping = Math.round(performance.now() - aiStart);
-          setSystemStatus(prev => ({
-            ...prev,
-            ai: { state: res.data.status === 'online' ? 'online' : 'offline', ping }
-          }));
-        }).catch(() => {
-          setSystemStatus(prev => ({ ...prev, ai: { state: 'offline', ping: 0 } }));
-        });
-
       } catch (error) {
         console.error("Dashboard error:", error);
         setErrorMsg("ไม่สามารถโหลดข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");
@@ -228,48 +228,42 @@ export default function AdminDashboard() {
             <Database size={24} />
           </div>
           <div className="flex-1">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Database Cloud</div>
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">ฐานข้อมูล</div>
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-800">Firebase Firestore</span>
-              <span className="text-xs font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 size={14}/> ปกติ</span>
+              {STATE_LABEL[systemStatus.firebase.state]}
             </div>
-            <div className="text-xs text-gray-400 mt-1">Latency: {systemStatus.firebase.ping}ms</div>
+            <div className="text-xs text-gray-400 mt-1">{systemStatus.firebase.ms != null ? `ตอบกลับ ${systemStatus.firebase.ms} ms` : 'วัดจากการอ่านข้อมูลจริง 1 รายการ'}</div>
           </div>
         </div>
 
-        {/* Node Backend */}
+        {/* AI model, served to browsers; the app carries its own copy */}
         <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-            <Server size={24} />
-          </div>
-          <div className="flex-1">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">API Server</div>
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-800">Node.js Gateway</span>
-              <span className="text-xs font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 size={14}/> ปกติ</span>
-            </div>
-            <div className="text-xs text-gray-400 mt-1">Latency: {systemStatus.backend.ping}ms</div>
-          </div>
-        </div>
-
-        {/* AI Engine */}
-        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${systemStatus.ai.state === 'online' ? 'bg-purple-50 text-purple-600' : 'bg-red-50 text-red-500'}`}>
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${systemStatus.model.state === 'offline' ? 'bg-red-50 text-red-500' : 'bg-purple-50 text-purple-600'}`}>
             <Target size={24} />
           </div>
           <div className="flex-1">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Inference Engine</div>
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">AI บนอุปกรณ์</div>
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-800">FastAPI ML Model</span>
-              {systemStatus.ai.state === 'online' ? (
-                <span className="text-xs font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 size={14}/> พร้อมรบ</span>
-              ) : systemStatus.ai.state === 'checking' ? (
-                 <span className="text-xs font-bold text-amber-500">กำลังตรวจสอบ...</span>
-              ) : (
-                <span className="text-xs font-bold text-red-500">ออฟไลน์</span>
-              )}
+              <span className="font-semibold text-gray-800">โมเดล {MODEL.version} · {MODEL.accuracy}</span>
+              {STATE_LABEL[systemStatus.model.state]}
             </div>
-            <div className="text-xs text-gray-400 mt-1">Latency: {systemStatus.ai.ping > 0 ? `${systemStatus.ai.ping}ms` : 'N/A'}</div>
+            <div className="text-xs text-gray-400 mt-1">{systemStatus.model.sizeMb ? `ไฟล์เว็บ ${systemStatus.model.sizeMb} MB · ` : ''}ทำงานในแอปและเบราว์เซอร์ ไม่ใช้เซิร์ฟเวอร์</div>
+          </div>
+        </div>
+
+        {/* Mobile app build people download */}
+        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+            <Smartphone size={24} />
+          </div>
+          <div className="flex-1">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">แอปมือถือ (Android)</div>
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-gray-800">{systemStatus.app.version ? `รุ่นเบต้า ${systemStatus.app.version}` : 'รุ่นเบต้า'}</span>
+              {STATE_LABEL[systemStatus.app.state]}
+            </div>
+            <div className="text-xs text-gray-400 mt-1">{systemStatus.app.released ? `เผยแพร่ ${new Date(systemStatus.app.released).toLocaleDateString('th-TH', { dateStyle: 'medium' })}` : 'จากข้อมูลหน้าดาวน์โหลด'}</div>
           </div>
         </div>
       </div>

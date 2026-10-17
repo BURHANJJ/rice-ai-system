@@ -1,17 +1,17 @@
-// Portal scanner (farmers, researchers, admins): the same in-browser V3 model and workspace as the
+// Portal scanner (researchers and admins): the same in-browser V3 model and workspace as the
 // public trial, with no daily limit. Each diagnosis is saved to Firestore exactly like the app does
 // (diagnoses: compressed photo, result, advice, GPS + province), so it shows up in history, the
 // live feed, the outbreak map and the data explorer.
 import { useEffect, useState } from 'react';
 import { doc, collection, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Cpu, Crosshair, History, Loader2, MapPin, MapPinOff, RadioTower, ShieldCheck } from 'lucide-react';
-import { db } from '../../lib/firebase';
-import { useAuth } from '../../lib/AuthContext';
-import { useDocTitle, useI18n } from '../../lib/i18n';
-import { thaiAddress } from '../../lib/geo';
-import { storageImage } from '../../lib/trialScan';
-import { ScanWorkspace } from '../TryScan';
-import DISEASES from '../../data/trialDiseases.json';
+import { db } from '../lib/firebase';
+import { useAuth } from '../lib/AuthContext';
+import { useDocTitle, useI18n } from '../lib/i18n';
+import { thaiAddress } from '../lib/geo';
+import { storageImage } from '../lib/trialScan';
+import { ScanWorkspace } from './TryScan';
+import DISEASES from '../data/trialDiseases.json';
 
 function useLocation() {
   const [loc, setLoc] = useState({ status: 'idle' }); // idle | loading | ok | denied | unsupported
@@ -41,10 +41,8 @@ export default function Scan() {
   const [loc, requestLoc] = useLocation();
   const role = String(user?.role || '').toLowerCase();
   const links = role === 'admin'
-    ? [{ to: '/admin/live-feed', label: tr('ดูในฟีดผลสแกนสด', 'Open in the live feed'), icon: RadioTower }]
-    : role === 'researcher'
-      ? [{ to: '/research/explorer', label: tr('ดูในสำรวจข้อมูล', 'Open in the data explorer'), icon: History }]
-      : [{ to: '/app/history', label: tr('ดูประวัติการสแกน', 'Open scan history'), icon: History }];
+    ? [{ to: '/admin/live-feed', label: tr('ดูในคลังภาพ AI', 'Open in the AI image feed'), icon: RadioTower }]
+    : [{ to: '/research/explorer', label: tr('ดูในสำรวจข้อมูล', 'Open in the data explorer'), icon: History }];
 
   /** Save like the app: one diagnoses document per result. */
   const save = async (r, file) => {

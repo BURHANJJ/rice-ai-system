@@ -10,19 +10,8 @@ import {
 import CommandPalette from './admin/CommandPalette';
 import { useAdminSignals } from './admin/signals';
 
+// The web portal is for researchers and administrators; farmers use the mobile app.
 const NAV = {
-  farmer: [
-    {
-      group: '',
-      items: [
-        { to: '/app/scan', label: 'สแกนใบข้าว', icon: ScanLine },
-        { to: '/app/history', label: 'ประวัติการวินิจฉัย', icon: History },
-        { to: '/app/wiki', label: 'สารานุกรมโรค', icon: BookOpen },
-        { to: '/app/outbreak', label: 'พื้นที่ระบาด', icon: Map },
-        { to: '/app/profile', label: 'โปรไฟล์ / ตั้งค่า', icon: Settings },
-      ],
-    },
-  ],
   researcher: [
     {
       group: 'ภาพรวม',
@@ -41,7 +30,7 @@ const NAV = {
       group: 'เครื่องมือ',
       items: [
         { to: '/research/scan', label: 'สแกนใบข้าว', icon: ScanLine },
-        { to: '/research/wiki', label: 'สารานุกรมโรค', icon: BookOpen },
+        { to: '/rice-diseases', label: 'สารานุกรมโรค', icon: BookOpen },
       ],
     },
     {
@@ -63,6 +52,7 @@ const NAV = {
     {
       group: 'ข้อมูลและ AI',
       items: [
+        { to: '/admin/scan', label: 'สแกนใบข้าว', icon: ScanLine, keywords: 'ตรวจโรค วิเคราะห์ภาพ' },
         { to: '/admin/reports', label: 'รายงานทั้งหมด', icon: Files },
         { to: '/admin/live-feed', label: 'คลังภาพ AI', icon: Activity },
         { to: '/admin/review', label: 'ตรวจทานผล AI', icon: ClipboardCheck, keywords: 'label ยืนยัน' },
@@ -101,10 +91,9 @@ const ACTIONS = {
     { label: 'ปรับเกณฑ์การแจ้งเตือน', hint: 'ตั้งค่าระบบ', to: '/admin/settings#alerts' },
   ],
   researcher: [],
-  farmer: [],
 };
 
-const roleLabel = { farmer: 'เกษตรกร', researcher: 'นักวิชาการ', admin: 'ผู้ดูแลระบบ' };
+const roleLabel = { researcher: 'นักวิชาการ', admin: 'ผู้ดูแลระบบ' };
 const EMPTY_SIGNALS = { items: [], count: 0, badges: {} };
 
 function SignalsBridge({ role, onChange }) {
@@ -270,7 +259,6 @@ export default function Layout({ children }) {
   let currentNavGroup = user?.role;
   if (user?.role === 'admin') {
     if (location.pathname.startsWith('/research')) currentNavGroup = 'researcher';
-    if (location.pathname.startsWith('/app')) currentNavGroup = 'farmer';
   }
   const groups = NAV[currentNavGroup] || [];
   const currentRoleLabel = roleLabel[currentNavGroup] || 'ระบบ';
@@ -360,7 +348,7 @@ export default function Layout({ children }) {
               {currentNavGroup === 'admin' && <BellMenu signals={signals} isAdmin />}
             </>
           )}
-          <Link to={portal ? accountPath : '/app/profile'} title="บัญชีของฉัน" className="hidden items-center gap-2.5 rounded-xl border-l border-emerald-900/10 pl-3 transition hover:opacity-80 sm:flex">
+          <Link to={accountPath} title="บัญชีของฉัน" className="hidden items-center gap-2.5 rounded-xl border-l border-emerald-900/10 pl-3 transition hover:opacity-80 sm:flex">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-paddy)] text-sm font-extrabold text-white">{(user?.full_name || user?.email || 'U').charAt(0).toUpperCase()}</span>
             <span className="hidden min-w-0 xl:block">
               <span className="block max-w-[160px] truncate text-[13px] font-bold text-gray-900">{user?.full_name || user?.email || 'ผู้ใช้งาน'}</span>
