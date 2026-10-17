@@ -3,7 +3,7 @@
 // (from the Rice Department library) → system topics (knowledge.js) → polite fallback.
 // The cloud AI (functions/index.js `chat`) is used instead when it is configured and reachable.
 import { diseases } from '../riceDiseases';
-import { SUGGESTIONS, TOPICS } from './knowledge';
+import { GLOSSARY, SUGGESTIONS, TITLES, TOPICS } from './knowledge';
 
 /** Lowercase, drop spaces and punctuation, keep Thai, latin letters and digits. */
 export const norm = (s) => s.toLowerCase().normalize('NFC').replace(/[^฀-๿a-z0-9]/g, '');
@@ -16,7 +16,7 @@ const DETECTABLE = new Set(['Rice Blast', 'Bacterial Leaf Blight', 'Tungro']);
 const ALIASES = {
   'Rice Blast': ['ใบไหม้', 'โรคไหม้', 'blast', 'ไหม้คอรวง'],
   'Bacterial Leaf Blight': ['ขอบใบแห้ง', 'blb', 'leafblight', 'bacterialblight'],
-  Tungro: ['ใบสีส้ม', 'ใบส้ม', 'tungro', 'ทังโร'],
+  Tungro: ['ใบสีส้ม', 'ใบส้ม', 'tungro', 'ทังโร', 'เป็นสีส้ม', 'ใบเหลืองส้ม'],
   'Brown Spot': ['ใบจุดสีน้ำตาล', 'จุดสีน้ำตาล', 'brownspot'],
   'Bacterial Leaf Streak': ['ใบขีดโปร่งแสง', 'leafstreak'],
   'Sheath Blight': ['กาบใบแห้ง', 'sheathblight'],
@@ -101,6 +101,9 @@ const replies = {
   laugh: 'ดีใจที่อารมณ์ดีครับ 😄 มีอะไรเกี่ยวกับ Rice AI หรือโรคข้าวให้ผมช่วยไหมครับ',
   offtopic: 'ขออภัยครับ เรื่องนี้อยู่นอกขอบเขตที่ผมช่วยได้ ผมตอบได้เฉพาะเรื่อง **Rice AI** (การใช้งาน แอป งานวิจัย ความเป็นส่วนตัว) และ **โรคข้าว** ครับ ลองถามเรื่องเหล่านี้ได้เลย',
   market: 'ขออภัยครับ ผมไม่มีข้อมูลราคาข้าวหรือราคาตลาด เพราะ Rice AI เน้นการวินิจฉัยโรคข้าว แนะนำดูราคาจากกรมการค้าภายในหรือสมาคมโรงสีข้าวไทยครับ ถ้ามีคำถามเรื่องโรคข้าวหรือการใช้งานแอป ผมช่วยได้เลยครับ',
+  eat: 'ผมเป็นผู้ช่วยอัตโนมัติ ไม่ได้กินข้าวครับ 😄 แต่ช่วยดูแลข้าวในแปลงได้ อยากรู้เรื่องโรคข้าวหรือการใช้งาน Rice AI ถามได้เลยครับ',
+  ack: 'ยินดีครับ มีอะไรเพิ่มเติมเกี่ยวกับ Rice AI หรือโรคข้าว ถามต่อได้เลยนะครับ',
+  unsure: 'ขออภัยครับ ผมไม่แน่ใจว่าหมายถึงเรื่องไหน ลองเลือกหัวข้อที่ใกล้เคียงด้านล่าง หรือพิมพ์เพิ่มอีกนิดได้เลยครับ',
   gibberish: 'ขออภัยครับ ผมยังไม่เข้าใจข้อความนี้ ลองพิมพ์คำถามใหม่อีกครั้ง หรือเลือกจากคำถามแนะนำด้านล่างได้ครับ',
   fallback: 'ขออภัยครับ ผมยังไม่มีข้อมูลเรื่องนี้ ลองถามใหม่ให้เจาะจงขึ้น เช่น เรื่องการใช้งานแอป ความแม่นยำ หรือชื่อโรคข้าว ถ้าเป็นเรื่องเฉพาะ ส่งคำถามถึงทีมผ่านหน้า **ส่งข้อเสนอแนะ** ได้ครับ',
 };
@@ -131,57 +134,161 @@ function bySymptoms(t) {
   };
 }
 
-/** Best-matching topic by total length of matched keywords (longer = more specific). */
+// People type the same thing many ways ("โหลด", "ดาวโหลด", "แอพ", "ยังงัย", "ได้มั้ย"). Both the
+// message and every keyword go through the same rewrite, so one keyword covers all its spellings.
+const CANON = [
+  [/แอพพลิเคชั่น|แอพพลิเคชัน|แอปพลิเคชั่น|แอปพลิเคชัน|application|แอพ|app(?!le|store)/g, 'แอป'],
+  [/ดาวน์โหลท|ดาวโหลท|ดาวโหลด|ดาวน์โหลด/g, 'ดาวน์โหลด'],
+  [/(?<!ดาวน์)โหลด/g, 'ดาวน์โหลด'],
+  [/เว็บไซต์|เว็บไซท์|เว็ปไซต์|เวปไซต์|เว็ปไซท์|เว็ป|เวป|เวบ|website/g, 'เว็บ'],
+  [/ทำยังไง|ทำยังงัย|ยังงัย|ยังงาย|ยังไร|อย่างไร|อย่างไง|ทำไง|ยังไง|ไง/g, 'ยังไง'],
+  [/ได้ป่าว|ได้เปล่า|ได้ป่ะ|ได้ปะ|ได้ไม(?![่้])/g, 'ได้ไหม'],
+  [/มั้ย|มั๊ย/g, 'ไหม'],
+  [/แสกน|scan/g, 'สแกน'],
+  [/ล็อคอิน|ล็อกอิน|ล๊อกอิน|ลอคอิน|ล็อกอิน|login|signin/g, 'เข้าสู่ระบบ'],
+  [/signup|register/g, 'สมัคร'],
+  [/พาสเวิร์ด|password|รหัส(?!ผ่าน)/g, 'รหัสผ่าน'],
+  [/เอไอ/g, 'ai'],
+  [/โทรศัพท์|โทรสับ|สมาร์ทโฟน|smartphone/g, 'มือถือ'],
+  [/ลง(?=แอป)/g, 'ติดตั้ง'],
+  [/กี่ตังค์|กี่ตัง/g, 'กี่บาท'],
+  [/แอนดรอย(?!ด์)|แอนดอย/g, 'แอนดรอยด์'],
+  [/(ครับผม|ครับ|คับ|ค่ะ|คะ|จ้า|จ้ะ|หน่อย|อ่ะ|อะ|นะ|ป่ะ|ปะ|เหรอ|หรอ)+$/g, ''],
+];
+export const canon = (t) => CANON.reduce((s, [re, to]) => s.replace(re, to), t);
+
+const TOPIC_KEYS = TOPICS.map((topic) => ({ topic, keys: [...new Set(topic.keywords.map((k) => canon(norm(k))).filter(Boolean))] }));
+const GLOSS = GLOSSARY.flatMap((g) => g.keys.map((k) => ({ k: norm(k), g }))).sort((a, b) => b.k.length - a.k.length);
+
+const bigrams = (s) => { const g = new Set(); for (let i = 0; i < s.length - 1; i++) g.add(s.slice(i, i + 2)); return g; };
+/** Share of the keyword's letter pairs found in the message: tolerates typos and missing letters. */
+function near(key, tg) {
+  const kg = bigrams(key);
+  let n = 0;
+  for (const g of kg) if (tg.has(g)) n += 1;
+  return kg.size ? n / kg.size : 0;
+}
+
+/** Best-matching topic by total length of matched keywords (longer = more specific), then typo-tolerant. */
 function bestTopic(t) {
   let best = null;
   let score = 0;
-  for (const topic of TOPICS) {
-    const s = topic.keywords.reduce((acc, k) => (t.includes(norm(k)) ? acc + norm(k).length : acc), 0);
+  for (const { topic, keys } of TOPIC_KEYS) {
+    const s = keys.reduce((acc, k) => (t.includes(k) ? acc + k.length : acc), 0) * (topic.weight || 1);
     if (s > score) { score = s; best = topic; }
   }
-  return score >= 3 ? best : null;
+  if (score >= 3) return best;
+  const tg = bigrams(t);
+  let fuzzy = 0;
+  for (const { topic, keys } of TOPIC_KEYS) {
+    for (const k of keys) {
+      if (k.length < 6) continue;
+      const s = near(k, tg);
+      if (s >= 0.8 && s * k.length > fuzzy) { fuzzy = s * k.length; best = topic; }
+    }
+  }
+  return fuzzy ? best : null;
 }
 
-export function answer(input) {
+/** Topics the message loosely resembles, for "did you mean" chips. */
+function candidates(t) {
+  const tg = bigrams(t);
+  return TOPIC_KEYS
+    .map(({ topic, keys }) => ({ topic, s: Math.max(0, ...keys.filter((k) => k.length >= 4).map((k) => near(k, tg))) }))
+    .filter((x) => x.s >= 0.55)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, 3)
+    .map((x) => x.topic);
+}
+
+const ASK = '(คือ|หมายถึง|แปลว่า|ย่อมาจาก|เป็นยังไง|whatis|meaning)';
+function glossary(t) {
+  const tt = t.replace(/riceai/g, '');
+  const hit = GLOSS.find(({ k }) => tt === k || new RegExp(`${k}${ASK}|^${ASK}${k}|^อะไรคือ${k}`).test(tt));
+  return hit ? hit.g : null;
+}
+
+const FACET = ['อาการ', 'สาเหตุ', 'เชื้อ', 'ป้องกัน', 'กำจัด', 'รักษา', 'ยา', 'พันธุ์', 'ต้านทาน', 'ระบาด', 'เสี่ยง', 'ช่วงไหน'];
+const MORE = ['ละเอียด', 'เพิ่มเติม', 'อธิบายเพิ่ม', 'ขยายความ', 'ยังไม่เข้าใจ', 'ไม่เข้าใจ', 'งง', 'ยกตัวอย่าง', 'อีกหน่อย', 'บอกอีก', 'ต่อเลย'];
+const ACK = ['โอเค', 'ok', 'okay', 'เข้าใจแล้ว', 'ได้เลย', 'รับทราบ', 'ใช่', 'อืม', 'เยี่ยม', 'ดีมาก', 'เจ๋ง', 'เก่งมาก', 'สุดยอด'];
+
+/** Most recent disease / topic the user asked about, so "แล้วป้องกันยังไง" or "ละเอียดกว่านี้" makes sense. */
+function context(history) {
+  const users = history.filter((m) => m.role === 'user').slice(-4).reverse().map((m) => canon(norm(m.content)));
+  let disease = null;
+  let topic = null;
+  for (const u of users) {
+    disease = disease || findDisease(u);
+    topic = topic || bestTopic(u);
+    if (disease || topic) break;
+  }
+  return { disease, topic, last: users[0] || '' };
+}
+
+export function answer(input, history = []) {
   const raw = (input || '').trim();
-  const t = norm(raw);
-  const seed = hash(t);
+  const t0 = norm(raw);
+  const t = canon(t0);
+  const any = (words) => has(t0, words) || has(t, words);
+  const seed = hash(t0);
   const out = (text, extra = {}) => ({ text, links: [], suggestions: [], ...extra });
+  const topicReply = (topic) => out(topic.answer, { links: topic.links, suggestions: topic.follow });
 
-  if (!t) return out(replies.empty, { suggestions: SUGGESTIONS });
-  if (has(t, PROFANE)) return out(pick(replies.profane, seed), { links: [{ label: 'ส่งข้อเสนอแนะ', to: '/feedback' }], suggestions: SUGGESTIONS.slice(0, 3) });
-  if (has(t, INJECTION)) return out(replies.injection, { suggestions: SUGGESTIONS.slice(0, 3) });
+  if (!t0) return out(replies.empty, { suggestions: SUGGESTIONS });
+  if (any(PROFANE)) return out(pick(replies.profane, seed), { links: [{ label: 'ส่งข้อเสนอแนะ', to: '/feedback' }], suggestions: SUGGESTIONS.slice(0, 3) });
+  if (any(INJECTION)) return out(replies.injection, { suggestions: SUGGESTIONS.slice(0, 3) });
   // Long runs of one character or no letters at all: ask to rephrase.
-  if (/(.)\1{5,}/.test(t) && !has(t, LAUGH)) return out(replies.gibberish, { suggestions: SUGGESTIONS });
-  if (/^[a-z]{6,}$/.test(t) && !/[aeiou]{1}[^aeiou]{0,3}[aeiou]/.test(t)) return out(replies.gibberish, { suggestions: SUGGESTIONS });
-  if (!/[฀-๿a-z]/.test(t)) return has(t, LAUGH) ? out(replies.laugh) : out(replies.gibberish, { suggestions: SUGGESTIONS });
+  if (/(.)\1{5,}/.test(t0) && !any(LAUGH)) return out(replies.gibberish, { suggestions: SUGGESTIONS });
+  if (/^[a-z]{6,}$/.test(t0) && !/[aeiou]{1}[^aeiou]{0,3}[aeiou]/.test(t0)) return out(replies.gibberish, { suggestions: SUGGESTIONS });
+  if (!/[฀-๿a-z]/.test(t0)) return any(LAUGH) ? out(replies.laugh) : out(replies.gibberish, { suggestions: SUGGESTIONS });
 
+  const ctx = context(history);
   const disease = findDisease(t);
   const topic = bestTopic(t);
-  const short = t.length <= 14;
+  const short = t0.length <= 14;
 
   if (short && !disease && !topic) {
-    if (has(t, GREET)) return out(/^[a-z]+$/.test(t) ? replies.greetEn : pick(replies.greet, seed), { suggestions: SUGGESTIONS });
-    if (has(t, THANKS)) return out(pick(replies.thanks, seed));
-    if (has(t, BYE)) return out(replies.bye);
-    if (has(t, LAUGH)) return out(replies.laugh, { suggestions: SUGGESTIONS.slice(0, 3) });
+    if (any(GREET)) return out(/^[a-z]+$/.test(t0) ? replies.greetEn : pick(replies.greet, seed), { suggestions: SUGGESTIONS });
+    if (any(THANKS)) return out(pick(replies.thanks, seed));
+    if (any(BYE)) return out(replies.bye);
+    if (any(LAUGH)) return out(replies.laugh, { suggestions: SUGGESTIONS.slice(0, 3) });
+    if (any(ACK)) return out(replies.ack, { suggestions: ctx.topic?.follow?.length ? ctx.topic.follow : SUGGESTIONS.slice(0, 3) });
   }
-  if (has(t, WHO) && !disease) return out(replies.who, { suggestions: ['Rice AI คืออะไร', 'ตรวจโรคอะไรได้บ้าง'] });
-  if (has(t, HOWAREYOU)) return out(replies.howareyou, { suggestions: SUGGESTIONS.slice(0, 3) });
-  if (has(t, FLIRT) && !disease) return out(replies.flirt, { suggestions: SUGGESTIONS.slice(0, 3) });
-  if (has(t, ['ราคาข้าว', 'ราคาตลาด', 'ขายข้าว', 'โรงสี', 'riceprice'])) return out(replies.market, { suggestions: SUGGESTIONS.slice(0, 3) });
-  if (has(t, CRITICAL) && !disease) return out(replies.critical, { links: [{ label: 'ส่งข้อเสนอแนะ', to: '/feedback' }] });
+  if (any(CRITICAL) && !disease) return out(replies.critical, { links: [{ label: 'ส่งข้อเสนอแนะ', to: '/feedback' }] });
+  if (any(WHO) && !disease && !topic) return out(replies.who, { suggestions: ['Rice AI คืออะไร', 'ตรวจโรคอะไรได้บ้าง'] });
+  if (any(['กินข้าวยัง', 'กินข้าวหรือยัง', 'ทานข้าวยัง', 'กินอะไรดี'])) return out(replies.eat, { suggestions: SUGGESTIONS.slice(0, 3) });
+  if (any(HOWAREYOU)) return out(replies.howareyou, { suggestions: SUGGESTIONS.slice(0, 3) });
+  if (any(FLIRT) && !disease) return out(replies.flirt, { suggestions: SUGGESTIONS.slice(0, 3) });
+  if (any(['ราคาข้าว', 'ราคาตลาด', 'ขายข้าว', 'โรงสี', 'riceprice'])) return out(replies.market, { suggestions: SUGGESTIONS.slice(0, 3) });
 
-  if (has(t, ['โรคข้าวมีอะไร', 'มีโรคอะไรบ้าง', 'โรคทั้งหมด', 'รายชื่อโรค', 'โรคมีกี่', 'listdiseases']) && !disease) return listDiseases();
+  // Follow-ups that lean on the previous question.
+  if (!disease && ctx.disease && t.length <= 24 && has(t, FACET) && !(topic && !['after_result'].includes(topic.id))) return diseaseAnswer(ctx.disease, t);
+  // "อาการโรคไหม้" → "แล้วโรคขอบใบแห้งล่ะ": same question, new disease
+  if (disease && !has(t, FACET) && t.length <= 22 && has(ctx.last, FACET)) {
+    const facet = FACET.filter((f) => ctx.last.includes(f)).join('');
+    return diseaseAnswer(disease, t + facet);
+  }
+  if (!disease && !topic && t.length <= 24 && has(t, MORE)) {
+    if (ctx.disease) return diseaseAnswer(ctx.disease, '');
+    if (ctx.topic) return out(`เรื่อง **${TITLES[ctx.topic.id] || ctx.topic.id}** มีรายละเอียดเต็มในลิงก์ด้านล่างครับ หรือถามเจาะจงเพิ่มได้เลย เช่น ข้อที่ยังสงสัยตรงไหน`, { links: ctx.topic.links, suggestions: ctx.topic.follow });
+  }
+
+  const term = glossary(t);
+  if (term && !disease) return out(term.text, { suggestions: ['AI ทำงานยังไง', 'แม่นยำแค่ไหน'] });
+  if (any(['โรคข้าวมีอะไร', 'มีโรคอะไรบ้าง', 'โรคทั้งหมด', 'รายชื่อโรค', 'โรคมีกี่', 'listdiseases']) && !disease) return listDiseases();
   if (disease && !(topic && ['detectable', 'accuracy', 'versions', 'comparison', 'dataset'].includes(topic.id) && !has(t, ['อาการ', 'ป้องกัน', 'สาเหตุ', 'รักษา']))) {
     return diseaseAnswer(disease, t);
   }
-  if (topic) return out(topic.answer, { links: topic.links, suggestions: topic.follow });
+  if (topic) return topicReply(topic);
+  if (t === 'riceai' || t === 'rice') return topicReply(TOPICS.find((x) => x.id === 'about'));
   const symptomHit = bySymptoms(t);
   if (symptomHit) return symptomHit;
-  if (has(t, OFFTOPIC)) return out(replies.offtopic, { suggestions: SUGGESTIONS.slice(0, 4) });
-  if (has(t, GREET)) return out(pick(replies.greet, seed), { suggestions: SUGGESTIONS });
-  if (has(t, THANKS)) return out(pick(replies.thanks, seed));
-  if (has(t, ['ข้าว', 'โรค', 'ใบ', 'แปลง', 'rice'])) return out(replies.fallback, { links: [{ label: 'คลังความรู้โรคข้าว', to: '/rice-diseases' }, { label: 'ส่งข้อเสนอแนะ', to: '/feedback' }], suggestions: SUGGESTIONS.slice(1, 5) });
+  if (any(OFFTOPIC)) return out(replies.offtopic, { suggestions: SUGGESTIONS.slice(0, 4) });
+  if (any(GREET)) return out(pick(replies.greet, seed), { suggestions: SUGGESTIONS });
+  if (any(THANKS)) return out(pick(replies.thanks, seed));
+  // Nothing certain: offer the closest topics instead of a dead end.
+  const near3 = candidates(t);
+  if (near3.length) return out(replies.unsure, { suggestions: near3.map((x) => TITLES[x.id]).filter(Boolean) });
+  if (any(['ข้าว', 'โรค', 'ใบ', 'แปลง', 'rice'])) return out(replies.fallback, { links: [{ label: 'คลังความรู้โรคข้าว', to: '/rice-diseases' }, { label: 'ส่งข้อเสนอแนะ', to: '/feedback' }], suggestions: SUGGESTIONS.slice(1, 5) });
   return out(replies.offtopic, { suggestions: SUGGESTIONS.slice(0, 4) });
 }

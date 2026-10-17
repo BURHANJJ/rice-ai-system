@@ -43,5 +43,5 @@ export async function ask(history) {
   }
   // Built-in answers come back instantly; a short pause reads more naturally.
   await new Promise((r) => setTimeout(r, 450 + Math.min(900, question.length * 12)));
-  return { ...answer(question), source: 'local' };
+  return { ...answer(question, history.slice(0, -1)), source: 'local' };
 }

@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const web = join(here, '..', '..', 'web', 'src', 'lib');
-const { TOPICS, FACTS } = await import(pathToFileURL(join(web, 'chatbot', 'knowledge.js')).href);
+const { TOPICS, FACTS, GLOSSARY } = await import(pathToFileURL(join(web, 'chatbot', 'knowledge.js')).href);
 const { diseases, RKB_ACCESSED } = await import(pathToFileURL(join(web, 'riceDiseases.js')).href);
 
 const parts = [
@@ -18,6 +18,9 @@ const parts = [
   '',
   '## System topics',
   ...TOPICS.map((t) => `### ${t.id}\n${t.answer}\nPages: ${t.links.map((l) => `${l.label} (${l.to})`).join(', ') || '-'}`),
+  '',
+  '## Glossary',
+  ...GLOSSARY.map((g) => `- ${g.text}`),
   '',
   `## Rice disease library (Rice Department Rice Knowledge Bank, checked ${RKB_ACCESSED})`,
   'The AI model recognises only: Rice Blast, Bacterial Leaf Blight, Tungro and Healthy leaves (+ "other disease"). Every other disease below is information only.',
