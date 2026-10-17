@@ -440,6 +440,26 @@ export default function ResearchStudy() {
             <p className="border-t border-slate-100 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:px-5">{tr('การเปรียบเทียบจึงเปลี่ยนแค่สถาปัตยกรรม ทุกอย่างที่เหลือเหมือนกัน ส่วน EfficientNet-B0 ในการเปรียบเทียบเป็นการเทรนใหม่บน GPU ไม่ใช่ไฟล์ V2 ที่ใช้งาน จึงได้ตัวเลขต่างจาก V2 เล็กน้อย (98.25% กับ 97.90%)', 'So the comparison changes only the architecture. Its EfficientNet-B0 is a fresh GPU run, not the deployed V2 file, which is why its figure differs slightly (98.25% vs 97.90%).')}</p>
           </div>
 
+          {/* Inside the six-model column: what every model shared and the few per-model settings. */}
+          <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="border-b border-slate-100 px-4 py-4 sm:px-5"><h3 className="font-bold text-slate-900">{tr('ภายใน 6 โมเดลที่นำมาเปรียบเทียบ: อะไรเหมือน อะไรต่าง', 'Inside the six-model comparison: what was shared, what differed')}</h3><p className="mt-1 text-xs leading-5 text-slate-500">{tr('ขยายคอลัมน์ "เปรียบเทียบ 6 โมเดล" ด้านบนออกเป็นรายโมเดล', 'The "six-model comparison" column above, opened up model by model')}</p></div>
+            <div className="flex flex-wrap gap-1.5 border-b border-slate-100 px-4 py-3 sm:px-5">
+              <span className="mr-1 self-center text-[11px] font-extrabold uppercase tracking-wider text-emerald-900">{tr('เหมือนกันทุกตัว', 'Same for all')}</span>
+              {[tr('ภาพฝึก/ตรวจสอบ/ทดสอบชุดเดียวกัน', 'Same train/val/test images'), tr('น้ำหนัก ImageNet', 'ImageNet weights'), '224×224', tr('ฝึก 2 ช่วง', 'Two stages'), `Adam · lr ${cmp.recipe.head.lr} → ${cmp.recipe.finetune.lr}`, `label smoothing ${cmp.recipe.label_smoothing}`, `dropout ${cmp.recipe.dropout}`, 'class weight', `augmentation ${cmp.recipe.augment}`, tr(`ผลเท่ากับ batch ${cmp.recipe.batch}`, `Effective batch ${cmp.recipe.batch}`), `seed ${cmp.seeds.join(', ')}`, 'GPU RTX 4070'].map((v) => <span key={v} className="rounded-md bg-emerald-50/70 px-2 py-1 text-[11px] leading-4 text-emerald-950">{v}</span>)}
+            </div>
+            <div className="overflow-x-auto"><table className="w-full min-w-[640px] border-collapse text-left text-xs">
+              <thead><tr className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500"><th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 font-bold">{tr('โมเดล', 'Model')}</th><th className="px-3 py-3 font-bold">{tr('ขนาด (พารามิเตอร์)', 'Size (params)')}</th><th className="px-3 py-3 font-bold">{tr('การปรับค่าพิกเซล', 'Pixel scaling')}</th><th className="px-3 py-3 font-bold">{tr('ป้อนภาพต่อครั้ง', 'Images per step')}</th><th className="px-3 py-3 font-bold">{tr('lr ช่วงที่ 2', 'Stage-2 lr')}</th></tr></thead>
+              <tbody>{cmp.models.map((m) => {
+                const pre = { densenet121: ['torch', 0], vgg16: ['caffe', 0], resnet50: ['caffe', 0] }[m.key] || [tr('อยู่ในโมเดล', 'Built into model'), 1];
+                const micro = ['densenet121', 'vgg16', 'resnet50', 'convnext_tiny'].includes(m.key) ? [tr(`16 × 2 (= ${cmp.recipe.batch})`, `16 × 2 (= ${cmp.recipe.batch})`), 0] : [String(cmp.recipe.batch), 1];
+                const lr = m.finetuneLr && m.finetuneLr !== cmp.recipe.finetune.lr ? [String(m.finetuneLr), 0] : [String(cmp.recipe.finetune.lr), 1];
+                const cell = ([v, same]) => <span className={`inline-block rounded-md px-2 py-1 leading-4 ${same ? 'bg-emerald-50/60 text-emerald-950' : 'bg-amber-50 text-amber-950'}`}>{v}</span>;
+                return <tr key={m.key} className="border-t border-slate-100"><td className="sticky left-0 z-10 bg-white px-4 py-2.5 font-bold text-slate-800">{m.name}</td><td className="px-3 py-2.5 tabular-nums text-slate-700">{(m.params / 1e6).toFixed(1)} M</td><td className="px-3 py-2.5">{cell(pre)}</td><td className="px-3 py-2.5">{cell(micro)}</td><td className="px-3 py-2.5">{cell(lr)}</td></tr>;
+              })}</tbody>
+            </table></div>
+            <p className="border-t border-slate-100 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:px-5">{tr('สีเหลืองคือค่าที่ต่างจากตัวอื่น และไม่ได้ทำให้ได้เปรียบ: การปรับค่าพิกเซลต้องตรงกับที่น้ำหนัก ImageNet ของแต่ละโมเดลถูกฝึกมา · 16 × 2 คือป้อนทีละ 16 ภาพสองครั้งแล้วค่อยปรับน้ำหนัก เพราะ GPU 8 GB ไม่พอ ผลเท่ากับ 32 · VGG-16 ใช้ lr ต่ำกว่าเพราะค่าปกติทำให้โมเดลพัง (ดูกล่องด้านล่าง)', 'Amber marks a per-model setting, none of which gives an edge: pixel scaling must match how each model’s ImageNet weights were trained · 16 × 2 means two batches of 16 per update because 8 GB of GPU memory was not enough, equal to 32 · VGG-16 uses a lower lr because the usual one broke it (see below).')}</p>
+          </div>
+
           <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
             <article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-900"><FlaskConical size={17} className="text-emerald-800" />{tr('สูตรการเทรน', 'Training recipe')}</div>
