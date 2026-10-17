@@ -32,11 +32,12 @@ async function predict(imageBuffer, mimeType) {
     clearTimeout(timeout);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      // Unclear photo or not a rice leaf (confidence below 75%): the user should retake it,
-      // not be told the AI is down.
-      if (res.status === 400 && (data.error === 'not_a_leaf' || data.error === 'low_confidence')) {
+      // Unclear photo, not a rice leaf (confidence below 75%) or a leaf problem outside the four
+      // supported classes (out_of_scope, model v3+): tell the user why, not that the AI is down.
+      if (res.status === 400 && ['not_a_leaf', 'low_confidence', 'out_of_scope'].includes(data.error)) {
         const err = new Error(data.message || 'not_a_leaf');
         err.isNotALeaf = true;
+        err.aiError = data.error;
         throw err;
       }
       throw new Error(data.message || `ai-service responded ${res.status}`);

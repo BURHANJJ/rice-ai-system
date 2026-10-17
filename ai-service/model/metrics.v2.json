@@ -1,0 +1,96 @@
+{
+  "model_version": "v2 (2026-10-11)",
+  "architecture": "EfficientNetB0 transfer learning, full fine-tune",
+  "dataset": "Paddy Doctor (Kaggle paddy-disease-classification), 4 classes, 5,069 images",
+  "split": {
+    "train": {
+      "BLAST": 1216,
+      "BLB": 335,
+      "TUNGRO": 762,
+      "HEALTHY": 1235
+    },
+    "val": {
+      "BLAST": 261,
+      "BLB": 72,
+      "TUNGRO": 163,
+      "HEALTHY": 264
+    },
+    "test": {
+      "BLAST": 261,
+      "BLB": 72,
+      "TUNGRO": 163,
+      "HEALTHY": 265
+    }
+  },
+  "test": {
+    "size": 761,
+    "accuracy": 0.9789750328515112,
+    "macro": {
+      "precision": 0.9789720658184212,
+      "recall": 0.9767950706033718,
+      "f1": 0.9778053107257975
+    },
+    "weighted": {
+      "precision": 0.9792064299845787,
+      "recall": 0.9789750328515112,
+      "f1": 0.9789957800035778
+    },
+    "auc_macro_ovr": 0.9992097037423722,
+    "per_class": {
+      "BLAST": {
+        "precision": 0.996078431372549,
+        "recall": 0.9731800766283525,
+        "f1": 0.9844961240310077,
+        "support": 261
+      },
+      "BLB": {
+        "precision": 0.9859154929577465,
+        "recall": 0.9722222222222222,
+        "f1": 0.9790209790209791,
+        "support": 72
+      },
+      "TUNGRO": {
+        "precision": 0.9634146341463414,
+        "recall": 0.9693251533742331,
+        "f1": 0.9663608562691132,
+        "support": 163
+      },
+      "HEALTHY": {
+        "precision": 0.9704797047970479,
+        "recall": 0.9924528301886792,
+        "f1": 0.9813432835820896,
+        "support": 265
+      }
+    },
+    "confusion_matrix": [
+      [
+        254,
+        1,
+        4,
+        2
+      ],
+      [
+        0,
+        70,
+        1,
+        1
+      ],
+      [
+        0,
+        0,
+        158,
+        5
+      ],
+      [
+        1,
+        0,
+        1,
+        263
+      ]
+    ]
+  },
+  "previous": {
+    "model_version": "v1 (Colab, 2026-08-15)",
+    "test_accuracy": 0.7542706964520368
+  }
+}

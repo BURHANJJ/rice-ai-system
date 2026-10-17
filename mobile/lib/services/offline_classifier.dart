@@ -11,7 +11,9 @@ import 'api_service.dart' show ApiException;
 ///
 /// Runs the same EfficientNetB0 classifier as the server, converted to TensorFlow Lite
 /// (float16). Input contract matches the server: RGB squashed to 224x224, raw 0–255 floats
-/// (rescaling is inside the model). Output: softmax over [BLAST, BLB, TUNGRO, HEALTHY].
+/// (rescaling is inside the model). Output: softmax over the labels in class_indices.json:
+/// [BLAST, BLB, TUNGRO, HEALTHY, OTHER] from model v3. OTHER (a leaf problem the app does not
+/// cover yet) is never shown as a diagnosis; the user gets the same message as from the server.
 class OfflineClassifier {
   OfflineClassifier._();
   static final OfflineClassifier instance = OfflineClassifier._();
@@ -20,8 +22,11 @@ class OfflineClassifier {
   static const _labelsAsset = 'assets/model/class_indices.json';
   static const _diseasesAsset = 'assets/model/diseases.json';
   static const _size = 224;
-  /// Same cut-off as the server (ai-service/main.py): below this the photo is likely unclear or not a rice leaf.
-  static const _minConfidence = 75.0;
+  static const _configAsset = 'assets/model/model_config.json';
+
+  /// Same cut-off as the server (model/metrics.json "threshold"): below this the photo is likely
+  /// unclear or not a rice leaf. Shipped with each model in model_config.json; 75% if missing.
+  double _minConfidence = 75.0;
 
   Interpreter? _interpreter;
   List<String> _labels = const ['BLAST', 'BLB', 'TUNGRO', 'HEALTHY'];
@@ -33,6 +38,13 @@ class OfflineClassifier {
     final labels = jsonDecode(await rootBundle.loadString(_labelsAsset)) as Map<String, dynamic>;
     _labels = List.generate(labels.length, (i) => labels['$i'] as String);
     _diseases = jsonDecode(await rootBundle.loadString(_diseasesAsset)) as Map<String, dynamic>;
+    try {
+      final config = jsonDecode(await rootBundle.loadString(_configAsset)) as Map<String, dynamic>;
+      final t = (config['min_confidence'] as num?)?.toDouble();
+      if (t != null && t > 0 && t < 100) _minConfidence = t;
+    } catch (_) {
+      // Older model bundles have no config: keep the default cut-off.
+    }
   }
 
   /// Classifies [bytes] and returns a map shaped like the server's /diagnosis/predict response,
@@ -53,6 +65,10 @@ class OfflineClassifier {
       throw ApiException(400, 'low_confidence', 'ภาพไม่ชัดเจน หรือไม่ใช่ใบข้าว กรุณาถ่ายภาพใบข้าวให้ชัดเจนอีกครั้ง');
     }
     final code = _labels[best];
+    if (code == 'OTHER') {
+      throw ApiException(400, 'out_of_scope',
+          'ภาพนี้อาจเป็นโรคหรืออาการอื่นที่ระบบยังไม่รองรับ ระบบวิเคราะห์ได้เฉพาะโรคไหม้ โรคขอบใบแห้ง โรคใบสีส้ม และใบปกติ กรุณาปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตร');
+    }
     final d = (_diseases[code] as Map<String, dynamic>?) ?? {};
     return {
       'compressed_base64': prepared.jpegBase64,

@@ -70,7 +70,7 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
         _isAiOnline = true;
         _isPlaceholder = false;
         _onDevice = true;
-        _aiAccuracy = '97.9%';
+        _aiAccuracy = '96.9%';
       });
       return;
     }

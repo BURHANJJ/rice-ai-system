@@ -1,96 +1,391 @@
 {
-  "model_version": "v2 (2026-10-11)",
-  "architecture": "EfficientNetB0 transfer learning, full fine-tune",
-  "dataset": "Paddy Doctor (Kaggle paddy-disease-classification), 4 classes, 5,069 images",
+  "model_version": "v3 (2026-10-17)",
+  "architecture": "EfficientNetB0 transfer learning, full fine-tune (BatchNorm frozen), 5 outputs",
+  "classes": [
+    "BLAST",
+    "BLB",
+    "TUNGRO",
+    "HEALTHY",
+    "OTHER"
+  ],
+  "out_of_scope_class": "OTHER",
+  "dataset": "Paddy Doctor (Kaggle paddy-disease-classification): 4 supported classes (5,069 images) + OTHER from 6 further classes (5,338 images)",
+  "other_sources": [
+    "bacterial_leaf_streak",
+    "bacterial_panicle_blight",
+    "brown_spot",
+    "dead_heart",
+    "downy_mildew",
+    "hispa"
+  ],
+  "selection": {
+    "rule": "highest validation accuracy, ties broken by lowest validation loss",
+    "candidates": [
+      {
+        "seed": 2026,
+        "val_accuracy": 0.9634849429130554,
+        "val_loss": 0.48629888892173767,
+        "train_seconds": 2422.0
+      },
+      {
+        "seed": 7,
+        "val_accuracy": 0.9602818489074707,
+        "val_loss": 0.49185052514076233,
+        "train_seconds": 2343.7
+      },
+      {
+        "seed": 42,
+        "val_accuracy": 0.9519538879394531,
+        "val_loss": 0.5214736461639404,
+        "train_seconds": 2447.0
+      }
+    ],
+    "picked_seed": 2026
+  },
+  "training": {
+    "script": "ai-service/training/train_v3.py",
+    "device": "NVIDIA RTX 4070 Laptop GPU",
+    "framework": "Keras 3.15 + PyTorch 2.11 (CUDA 12.8)",
+    "recipe": "same as v2: 6 epochs head lr 1e-3, 18 epochs fine-tune lr 1e-4, label smoothing 0.1, dropout 0.3, class weights, augmentation 0.15, batch 32",
+    "code_commit": "cea097e"
+  },
   "split": {
-    "train": {
-      "BLAST": 1216,
-      "BLB": 335,
-      "TUNGRO": 762,
-      "HEALTHY": 1235
+    "in_scope": {
+      "train": {
+        "BLAST": 1216,
+        "BLB": 335,
+        "TUNGRO": 762,
+        "HEALTHY": 1235
+      },
+      "val": {
+        "BLAST": 261,
+        "BLB": 72,
+        "TUNGRO": 163,
+        "HEALTHY": 264
+      },
+      "test": {
+        "BLAST": 261,
+        "BLB": 72,
+        "TUNGRO": 163,
+        "HEALTHY": 265
+      }
     },
-    "val": {
-      "BLAST": 261,
-      "BLB": 72,
-      "TUNGRO": 163,
-      "HEALTHY": 264
-    },
-    "test": {
-      "BLAST": 261,
-      "BLB": 72,
-      "TUNGRO": 163,
-      "HEALTHY": 265
+    "other": {
+      "train": 3736,
+      "val": 801,
+      "test": 801
     }
+  },
+  "threshold": 0.6,
+  "threshold_selection": {
+    "set": "validation",
+    "rule": "maximise correct answers - 2 x wrong diagnoses",
+    "grid": [
+      {
+        "threshold": 0.4,
+        "score": 650.0,
+        "correct_answers": 736,
+        "wrong_answers": 43
+      },
+      {
+        "threshold": 0.45,
+        "score": 658.0,
+        "correct_answers": 734,
+        "wrong_answers": 38
+      },
+      {
+        "threshold": 0.5,
+        "score": 666.0,
+        "correct_answers": 730,
+        "wrong_answers": 32
+      },
+      {
+        "threshold": 0.55,
+        "score": 671.0,
+        "correct_answers": 725,
+        "wrong_answers": 27
+      },
+      {
+        "threshold": 0.6,
+        "score": 675.0,
+        "correct_answers": 713,
+        "wrong_answers": 19
+      },
+      {
+        "threshold": 0.65,
+        "score": 669.0,
+        "correct_answers": 703,
+        "wrong_answers": 17
+      },
+      {
+        "threshold": 0.7,
+        "score": 660.0,
+        "correct_answers": 688,
+        "wrong_answers": 14
+      },
+      {
+        "threshold": 0.75,
+        "score": 655.0,
+        "correct_answers": 677,
+        "wrong_answers": 11
+      },
+      {
+        "threshold": 0.8,
+        "score": 632.0,
+        "correct_answers": 650,
+        "wrong_answers": 9
+      },
+      {
+        "threshold": 0.85,
+        "score": 593.0,
+        "correct_answers": 603,
+        "wrong_answers": 5
+      },
+      {
+        "threshold": 0.9,
+        "score": 464.0,
+        "correct_answers": 464,
+        "wrong_answers": 0
+      }
+    ]
+  },
+  "test_at_75": {
+    "in_scope_user_view": {
+      "answered": 0.9093298291721419,
+      "answered_correct": 0.9985549132947977,
+      "wrong_answers": 1,
+      "rejected": 69
+    },
+    "other_rejected": 0.9875156054931336
   },
   "test": {
     "size": 761,
-    "accuracy": 0.9789750328515112,
+    "accuracy": 0.9684625492772667,
+    "correct": 737,
+    "sent_to_other": 15,
     "macro": {
-      "precision": 0.9789720658184212,
-      "recall": 0.9767950706033718,
-      "f1": 0.9778053107257975
+      "precision": 0.9841596223469625,
+      "recall": 0.9591036804493922,
+      "f1": 0.9713695044341174
     },
     "weighted": {
-      "precision": 0.9792064299845787,
-      "recall": 0.9789750328515112,
-      "f1": 0.9789957800035778
+      "precision": 0.9879134056119682,
+      "recall": 0.9684625492772667,
+      "f1": 0.9780244226792741
     },
-    "auc_macro_ovr": 0.9992097037423722,
+    "auc_macro_ovr": 0.9991807942242505,
     "per_class": {
       "BLAST": {
-        "precision": 0.996078431372549,
-        "recall": 0.9731800766283525,
-        "f1": 0.9844961240310077,
+        "precision": 0.9960474308300395,
+        "recall": 0.9655172413793104,
+        "f1": 0.980544747081712,
         "support": 261
       },
       "BLB": {
-        "precision": 0.9859154929577465,
-        "recall": 0.9722222222222222,
-        "f1": 0.9790209790209791,
+        "precision": 0.9705882352941176,
+        "recall": 0.9166666666666666,
+        "f1": 0.9428571428571428,
         "support": 72
       },
       "TUNGRO": {
-        "precision": 0.9634146341463414,
+        "precision": 0.9813664596273292,
         "recall": 0.9693251533742331,
-        "f1": 0.9663608562691132,
+        "f1": 0.9753086419753086,
         "support": 163
       },
       "HEALTHY": {
-        "precision": 0.9704797047970479,
-        "recall": 0.9924528301886792,
-        "f1": 0.9813432835820896,
+        "precision": 0.9886363636363636,
+        "recall": 0.9849056603773585,
+        "f1": 0.9867674858223062,
         "support": 265
       }
     },
     "confusion_matrix": [
       [
-        254,
-        1,
-        4,
-        2
+        252,
+        2,
+        2,
+        0,
+        5
       ],
       [
         0,
-        70,
+        66,
         1,
-        1
+        1,
+        4
       ],
       [
         0,
         0,
         158,
-        5
+        2,
+        3
       ],
       [
         1,
         0,
-        1,
-        263
+        0,
+        261,
+        3
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
       ]
-    ]
+    ],
+    "user_view": {
+      "answered": 0.9566360052562418,
+      "answered_correct": 0.9958791208791209,
+      "wrong_answers": 3,
+      "rejected": 33
+    }
+  },
+  "test_other": {
+    "size": 801,
+    "rejected": 0.9800249687890137,
+    "given_wrong_diagnosis": 16,
+    "predicted_other": 0.9600499375780275,
+    "per_source_rejected": {
+      "bacterial_leaf_streak": 1.0,
+      "bacterial_panicle_blight": 1.0,
+      "brown_spot": 0.9793103448275862,
+      "dead_heart": 1.0,
+      "downy_mildew": 0.9354838709677419,
+      "hispa": 0.9707112970711297
+    }
+  },
+  "tflite": {
+    "type": "float16",
+    "size_mb": 8.148736,
+    "argmax_agreement_with_keras": 1.0,
+    "same_user_outcome": 0.9993597951344431,
+    "cpu_ms_median_4_threads": 11.691049996443326
   },
   "previous": {
+    "model_version": "v2 (2026-10-11)",
+    "test": {
+      "accuracy": 0.9789750328515112,
+      "correct": 745,
+      "macro": {
+        "precision": 0.9789720658184212,
+        "recall": 0.9767950706033718,
+        "f1": 0.9778053107257975
+      },
+      "auc_macro_ovr": 0.9992211531565516,
+      "user_view": {
+        "answered": 0.9277266754270697,
+        "answered_correct": 0.9971671388101983,
+        "wrong_answers": 2,
+        "rejected": 55
+      }
+    },
+    "test_other": {
+      "size": 801,
+      "rejected": 0.6267166042446941,
+      "given_wrong_diagnosis": 299,
+      "predicted_other": null,
+      "per_source_rejected": {
+        "bacterial_leaf_streak": 0.631578947368421,
+        "bacterial_panicle_blight": 0.5490196078431373,
+        "brown_spot": 0.6620689655172414,
+        "dead_heart": 0.6666666666666666,
+        "downy_mildew": 0.5913978494623656,
+        "hispa": 0.5983263598326359
+      }
+    },
+    "mcnemar_vs_v3_in_scope": {
+      "v2_only_right": 13,
+      "v3_only_right": 5,
+      "p": 0.09625244140625
+    }
+  },
+  "older": {
     "model_version": "v1 (Colab, 2026-08-15)",
     "test_accuracy": 0.7542706964520368
+  },
+  "tensorflow": "2.21.0",
+  "test_5class": {
+    "size": 1562,
+    "accuracy": 0.9641485275288092,
+    "correct": 1506,
+    "macro": {
+      "precision": 0.9484183094689664,
+      "recall": 0.9592929318751192,
+      "f1": 0.9535545298799851
+    },
+    "per_class": {
+      "BLAST": {
+        "precision": 0.9692307692307692,
+        "recall": 0.9655172413793104,
+        "f1": 0.9673704414587332,
+        "support": 261
+      },
+      "BLB": {
+        "precision": 0.9295774647887324,
+        "recall": 0.9166666666666666,
+        "f1": 0.9230769230769231,
+        "support": 72
+      },
+      "TUNGRO": {
+        "precision": 0.9028571428571428,
+        "recall": 0.9693251533742331,
+        "f1": 0.9349112426035503,
+        "support": 163
+      },
+      "HEALTHY": {
+        "precision": 0.9595588235294118,
+        "recall": 0.9849056603773585,
+        "f1": 0.9720670391061452,
+        "support": 265
+      },
+      "OTHER": {
+        "precision": 0.9808673469387755,
+        "recall": 0.9600499375780275,
+        "f1": 0.9703470031545741,
+        "support": 801
+      }
+    },
+    "confusion_matrix": [
+      [
+        252,
+        2,
+        2,
+        0,
+        5
+      ],
+      [
+        0,
+        66,
+        1,
+        1,
+        4
+      ],
+      [
+        0,
+        0,
+        158,
+        2,
+        3
+      ],
+      [
+        1,
+        0,
+        0,
+        261,
+        3
+      ],
+      [
+        7,
+        3,
+        14,
+        8,
+        769
+      ]
+    ],
+    "note": "argmax only, before the confidence cut-off; OTHER = 6 diseases the app does not diagnose"
   }
 }

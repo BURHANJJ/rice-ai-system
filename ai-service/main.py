@@ -87,6 +87,15 @@ CLASSES = [
 
 IMG_SIZE = (224, 224)  # must match IMG_SIZE in the training notebook
 
+# From model v3 the classifier has a fifth output, OTHER: rice-leaf problems the system does not
+# cover yet (e.g. brown spot, hispa). It is never returned as a diagnosis; the user is told the
+# photo looks like something outside the four supported classes instead.
+OUT_OF_SCOPE_CODE = "OTHER"
+OUT_OF_SCOPE_MESSAGE = (
+    "ภาพนี้อาจเป็นโรคหรืออาการอื่นที่ระบบยังไม่รองรับ ระบบวิเคราะห์ได้เฉพาะโรคไหม้ โรคขอบใบแห้ง "
+    "โรคใบสีส้ม และใบปกติ กรุณาปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตร"
+)
+
 app = FastAPI(title="Rice AI Inference Service", version="1.1.0")
 
 _model = None
@@ -177,6 +186,13 @@ def _model_metrics() -> dict:
         return {}
 
 
+def _min_confidence() -> float:
+    """Answer only when the top class reaches this % (model/metrics.json "threshold", picked on the
+    validation set for each model release). Below it the photo is treated as unclear / not a rice leaf."""
+    t = _model_metrics().get("threshold")
+    return float(t) * 100 if isinstance(t, (int, float)) and 0 < t < 1 else 75.0
+
+
 @app.get("/health")
 def health():
     m = _model_metrics()
@@ -188,6 +204,7 @@ def health():
         "model_version": m.get("model_version"),
         "test_accuracy": m.get("test", {}).get("accuracy"),
         "test_size": m.get("test", {}).get("size"),
+        "min_confidence": _min_confidence(),
     }
 
 
@@ -247,9 +264,23 @@ async def predict(request: Request):
         try:
             class_code, confidence = predict_with_real_model(image_bytes)
             source = "trained_model"
-            
+
+            # Looks like a rice-leaf problem outside the four supported classes
+            if class_code == OUT_OF_SCOPE_CODE:
+                elapsed_ms = int((time.time() - started) * 1000)
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": "out_of_scope",
+                        "message": OUT_OF_SCOPE_MESSAGE,
+                        "confidence": confidence,
+                        "model_status": _model_status,
+                        "elapsed_ms": elapsed_ms,
+                    },
+                )
+
             # Reject predictions with low confidence (likely not a rice leaf or unclear)
-            if confidence < 75.0:
+            if confidence < _min_confidence():
                 elapsed_ms = int((time.time() - started) * 1000)
                 return JSONResponse(
                     status_code=400,

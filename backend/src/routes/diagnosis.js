@@ -76,7 +76,7 @@ router.post('/diagnosis/predict', authRequired, upload.single('image'), async (r
     result = await predict(req.file.buffer, req.file.mimetype);
   } catch (e) {
     if (e.isNotALeaf) {
-      return res.status(400).json({ error: 'not_a_leaf', message: e.message });
+      return res.status(400).json({ error: e.aiError || 'not_a_leaf', message: e.message });
     }
     audit({ userId: req.user.user_id, activity: 'ai_inference_error', severity: 'critical', metadata: { message: e.message } });
     return res.status(502).json({ error: 'ai_service_error', message: 'Unable to classify image at this time' });
