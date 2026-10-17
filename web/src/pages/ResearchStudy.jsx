@@ -94,6 +94,9 @@ function useFindings(tr, main) {
   return { summaryTitle, findings, reading };
 }
 
+// The six Paddy Doctor classes V3 learns as "other": key, Thai, English, image count.
+const OTHER_DISEASES = [['brown_spot', 'ใบจุดสีน้ำตาล', 'Brown spot', 965], ['hispa', 'แมลงดำหนาม', 'Hispa', 1594], ['dead_heart', 'ยอดเหี่ยว (หนอนกอ)', 'Dead heart', 1442], ['downy_mildew', 'ราน้ำค้าง', 'Downy mildew', 620], ['bacterial_leaf_streak', 'ใบขีดโปร่งแสง', 'Bacterial leaf streak', 380], ['bacterial_panicle_blight', 'รวงไหม้จากแบคทีเรีย', 'Bacterial panicle blight', 337]];
+
 export default function ResearchStudy() {
   const { t } = useI18n();
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
@@ -318,7 +321,7 @@ export default function ResearchStudy() {
         <article className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3"><div><Eyebrow>{tr('ใช้เฉพาะ V3', 'V3 only')}</Eyebrow><h3 className="mt-2 text-base font-bold text-slate-900">{tr('ภาพโรคอื่น 5,338 ภาพ 6 ชนิด (คลาส OTHER)', 'Other diseases: 5,338 images, 6 kinds (class OTHER)')}</h3><p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">{tr('อีก 6 คลาสใน Paddy Doctor ชุดเดียวกัน ระบบยังไม่ให้คำแนะนำโรคเหล่านี้ จึงสอนให้โมเดลจำว่าอยู่นอกขอบเขต แบ่ง 70/15/15 ตามชนิดโรค: train 3,736 · validation 801 · test 801', 'The remaining six Paddy Doctor classes. The app has no advice for them, so the model learns to flag them as out of scope. Split 70/15/15 by disease: train 3,736 · validation 801 · test 801.')}</p></div></div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {[['brown_spot', 'ใบจุดสีน้ำตาล', 'Brown spot', 965], ['hispa', 'แมลงดำหนาม', 'Hispa', 1594], ['dead_heart', 'ยอดเหี่ยว (หนอนกอ)', 'Dead heart', 1442], ['downy_mildew', 'ราน้ำค้าง', 'Downy mildew', 620], ['bacterial_leaf_streak', 'ใบขีดโปร่งแสง', 'Bacterial leaf streak', 380], ['bacterial_panicle_blight', 'รวงไหม้จากแบคทีเรีย', 'Bacterial panicle blight', 337]].map(([k, th, en, n]) => <div key={k} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs"><span className="font-semibold text-slate-700">{tr(th, en)}</span><span className="tabular-nums text-slate-500">{n.toLocaleString()}</span></div>)}
+            {OTHER_DISEASES.map(([k, th, en, n]) => <div key={k} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs"><span className="font-semibold text-slate-700">{tr(th, en)}</span><span className="tabular-nums text-slate-500">{n.toLocaleString()}</span></div>)}
           </div>
         </article>
           <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
@@ -562,7 +565,9 @@ export default function ResearchStudy() {
                 <h3 className="text-sm font-bold text-slate-900">{tr('ข้อมูลรุ่น', 'Release details')}</h3>
                 <dl className="mt-3 space-y-1.5 text-xs leading-5 text-slate-600">{[
                   [tr('สถาปัตยกรรม', 'Architecture'), 'EfficientNet-B0 · 5 classes'],
-                  [tr('ภาพโรคอื่นที่ใช้ฝึก', 'Other-disease images'), tr(`${(dep.otherSplit.train + dep.otherSplit.val + dep.otherSplit.test).toLocaleString()} ภาพ 6 ชนิด`, `${(dep.otherSplit.train + dep.otherSplit.val + dep.otherSplit.test).toLocaleString()} images, 6 diseases`)],
+                  [tr('ภาพ 4 โรค', 'Four-disease images'), tr('5,069 ภาพชุดเดิมของ V2 (BLAST, BLB, TUNGRO, HEALTHY)', 'The same 5,069 images as V2 (BLAST, BLB, TUNGRO, HEALTHY)')],
+                  [tr('ภาพโรคอื่น', 'Other-disease images'), <>{tr(`${(dep.otherSplit.train + dep.otherSplit.val + dep.otherSplit.test).toLocaleString()} ภาพ 6 ชนิด`, `${(dep.otherSplit.train + dep.otherSplit.val + dep.otherSplit.test).toLocaleString()} images, 6 diseases`)}<ul className="mt-1 space-y-0.5">{OTHER_DISEASES.map(([k, th, en, n]) => <li key={k} className="flex justify-between gap-3"><span>{tr(th, en)}</span><span className="tabular-nums text-slate-500">{n.toLocaleString()}</span></li>)}</ul></>],
+                  [tr('แบ่งข้อมูล', 'Split'), tr(`ฝึก ${(3548 + dep.otherSplit.train).toLocaleString()} · ตรวจสอบ ${(760 + dep.otherSplit.val).toLocaleString()} · ทดสอบ ${(761 + dep.otherSplit.test).toLocaleString()} ภาพ (ภาพ 4 โรคอยู่กองเดิม)`, `Train ${(3548 + dep.otherSplit.train).toLocaleString()} · val ${(760 + dep.otherSplit.val).toLocaleString()} · test ${(761 + dep.otherSplit.test).toLocaleString()} (four-disease images stay in their piles)`)],
                   [tr('การเลือกรุ่น', 'Selection'), tr('เทรน 3 seed เลือกด้วย validation accuracy', '3 seeds, picked by validation accuracy')],
                   [tr('ไฟล์บนมือถือ', 'Phone file'), `${dep.tflite.size_mb.toFixed(1)} MB · ${dep.tflite.cpu_ms_median_4_threads.toFixed(0)} ms`],
                   ['AUC (4 classes)', dep.auc.toFixed(4)],
