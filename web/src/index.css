@@ -694,4 +694,15 @@ body {
 }
 .rs-sway { transform-box: fill-box; transform-origin: 45% 100%; animation: rs-sway 5.5s ease-in-out var(--rs-delay, 0s) infinite alternate; }
 @keyframes rs-sway { from { transform: rotate(-3deg); } to { transform: rotate(4deg); } }
-@media (prefers-reduced-motion: reduce) { .rs-sway, .rs-quick-menu, .rs-typing-bubble, .rs-typing-caret { animation: none; } }
+/* Khao Hom speed dial (research-study): actions spring out along an arc, labels on hover/focus, always shown on touch. */
+.rs-dial {
+  transform: translate(0, 0) scale(.3);
+  opacity: 0;
+  transition: transform 340ms cubic-bezier(.34,1.56,.64,1), opacity 200ms ease;
+}
+.rs-dial.rs-dial-open { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 1; }
+.rs-dial-label { opacity: 0; transform: translate(6px, -50%); transition: opacity 160ms ease, transform 160ms ease; }
+.rs-dial:hover .rs-dial-label,
+.rs-dial:focus-visible .rs-dial-label { opacity: 1; transform: translate(0, -50%); }
+@media (hover: none) { .rs-dial-open .rs-dial-label { opacity: 1; transform: translate(0, -50%); } }
+@media (prefers-reduced-motion: reduce) { .rs-sway, .rs-quick-menu, .rs-typing-bubble, .rs-typing-caret { animation: none; } .rs-dial, .rs-dial-label { transition: none; } }

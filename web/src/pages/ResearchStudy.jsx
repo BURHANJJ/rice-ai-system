@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight, ArrowUp, BookOpen, Check, ChevronRight, Database, ExternalLink, FlaskConical, Info, Layers3, MessageSquareText, Microscope, Target, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUp, BookOpen, Check, ChevronRight, Database, ExternalLink, FlaskConical, Info, Layers3, MessageSquareText, Microscope, Play, Target, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import khaoHomMascot from '../../assets/khao_hom_scan.svg';
@@ -668,26 +668,30 @@ export default function ResearchStudy() {
       {!quickMenuOpen && <Link to="/feedback" aria-label={bubbleMessages[0]} className="rs-typing-bubble absolute bottom-full right-8 mb-2 flex min-h-10 w-max max-w-[min(208px,calc(100vw-5rem))] items-center rounded-2xl rounded-br-sm border border-emerald-900/10 bg-white px-3 py-2 text-xs font-bold leading-5 text-emerald-950 shadow-[0_10px_28px_-12px_rgba(15,45,31,.4)] transition hover:-translate-y-0.5 hover:border-emerald-700/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/20">
         <span className="min-w-0 whitespace-normal break-words">{typedBubble}{isTypingBubble && <span aria-hidden="true" className="rs-typing-caret ml-0.5 inline-block h-4 align-middle" />}</span>
       </Link>}
-      {quickMenuOpen && <div role="dialog" aria-label={tr('เมนูทางลัด', 'Quick actions')} className="rs-quick-menu absolute bottom-full right-0 mb-3 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-[1.35rem] border border-emerald-950/[0.08] bg-white/95 p-2 shadow-[0_22px_60px_-20px_rgba(15,45,31,.38)] backdrop-blur-xl">
-        <div className="flex items-center justify-between gap-3 px-3 pb-2.5 pt-2">
-          <div><div className="text-[10px] font-extrabold uppercase tracking-[.18em] text-emerald-800">Rice AI</div><div className="mt-0.5 text-sm font-extrabold text-slate-900">{tr('เมนูทางลัด', 'Quick actions')}</div></div>
-          <button type="button" onClick={() => setQuickMenuOpen(false)} aria-label={tr('ปิดเมนู', 'Close menu')} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30"><X size={16} /></button>
-        </div>
-        <div className="space-y-1 border-t border-slate-100 pt-1.5">
-          <button type="button" onClick={() => { setQuickMenuOpen(false); window.scrollTo({ top: 0, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }} className="group/action flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100/80 text-emerald-900 transition group-hover/action:bg-emerald-200"><ArrowUp size={17} /></span>
-            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-slate-800">{tr('กลับขึ้นด้านบน', 'Back to top')}</span><span className="mt-0.5 block text-[11px] leading-4 text-slate-500">{tr('เลื่อนกลับไปจุดเริ่มต้นของหน้า', 'Return to the beginning of the page')}</span></span>
-            <ChevronRight size={16} className="shrink-0 text-slate-300 transition group-hover/action:translate-x-0.5 group-hover/action:text-emerald-800" />
-          </button>
-          <Link to="/feedback" onClick={() => setQuickMenuOpen(false)} className="group/action flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100/80 text-emerald-900 transition group-hover/action:bg-emerald-200"><MessageSquareText size={17} /></span>
-            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-slate-800">{tr('ส่งข้อเสนอแนะ', 'Send feedback')}</span><span className="mt-0.5 block text-[11px] leading-4 text-slate-500">{tr('แจ้งปัญหาหรือเสนอแนวทางปรับปรุง', 'Report an issue or suggest an improvement')}</span></span>
-            <ChevronRight size={16} className="shrink-0 text-slate-300 transition group-hover/action:translate-x-0.5 group-hover/action:text-emerald-800" />
-          </Link>
-        </div>
-      </div>}
-      <button type="button" onClick={() => setQuickMenuOpen((open) => !open)} aria-label={quickMenuOpen ? tr('ปิดเมนูน้องข้าวหอม', 'Close Khao Hom menu') : tr('เปิดเมนูน้องข้าวหอม', 'Open Khao Hom menu')} aria-expanded={quickMenuOpen} aria-haspopup="dialog" className="relative flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/25">
+      {/* Speed dial: round actions fan out beside Khao Hom; each says what it does on hover, focus or (on touch screens) while open. */}
+      <div role="menu" aria-label={tr('เมนูทางลัด', 'Quick actions')} aria-hidden={!quickMenuOpen} className="pointer-events-none absolute left-1/2 top-1/2">
+        {[
+          { key: 'top', icon: ArrowUp, label: tr('กลับขึ้นด้านบน', 'Back to top'), onClick: () => window.scrollTo({ top: 0, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }) },
+          { key: 'video', icon: Play, label: tr('ดูคลิปอธิบาย', 'Watch the video'), href: '#video' },
+          { key: 'feedback', icon: MessageSquareText, label: tr('ส่งข้อเสนอแนะ', 'Send feedback'), to: '/feedback' },
+        ].map((a, i, all) => {
+          const angle = (180 - (90 / (all.length - 1)) * i) * (Math.PI / 180);
+          const style = { '--dx': `${Math.cos(angle) * 104}px`, '--dy': `${-Math.sin(angle) * 104}px`, transitionDelay: `${quickMenuOpen ? i * 55 : (all.length - 1 - i) * 35}ms` };
+          const Icon = a.icon;
+          const inner = <>
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-900/10 bg-white text-emerald-900 shadow-[0_12px_28px_-10px_rgba(15,45,31,.5)] ring-4 ring-white/60 transition group-hover/dial:scale-110 group-hover/dial:bg-emerald-800 group-hover/dial:text-white group-focus-visible/dial:scale-110 group-focus-visible/dial:bg-emerald-800 group-focus-visible/dial:text-white"><Icon size={19} strokeWidth={2.2} /></span>
+            <span className="rs-dial-label pointer-events-none absolute right-full top-1/2 mr-3 whitespace-nowrap rounded-full bg-emerald-950 px-3 py-1.5 text-xs font-bold text-white shadow-lg">{a.label}</span>
+          </>;
+          const props = { role: 'menuitem', 'aria-label': a.label, title: a.label, tabIndex: quickMenuOpen ? 0 : -1, style, className: `rs-dial group/dial absolute -ml-6 -mt-6 block rounded-full focus-visible:outline-none ${quickMenuOpen ? 'rs-dial-open pointer-events-auto' : ''}` };
+          const close = () => setQuickMenuOpen(false);
+          if (a.to) return <Link key={a.key} to={a.to} onClick={close} {...props}>{inner}</Link>;
+          if (a.href) return <a key={a.key} href={a.href} onClick={close} {...props}>{inner}</a>;
+          return <button key={a.key} type="button" onClick={() => { close(); a.onClick(); }} {...props}>{inner}</button>;
+        })}
+      </div>
+      <button type="button" onClick={() => setQuickMenuOpen((open) => !open)} aria-label={quickMenuOpen ? tr('ปิดเมนูน้องข้าวหอม', 'Close Khao Hom menu') : tr('เปิดเมนูน้องข้าวหอม', 'Open Khao Hom menu')} aria-expanded={quickMenuOpen} aria-haspopup="menu" className="relative flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/25">
         <img src={khaoHomMascot} alt="" aria-hidden="true" className="rs-quick-mascot h-20 w-20 object-contain drop-shadow-2xl transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:rotate-[-3deg] group-hover:scale-110 group-hover:drop-shadow-[0_22px_28px_rgba(20,83,45,0.28)] motion-reduce:transition-none sm:h-24 sm:w-24 lg:h-28 lg:w-28" />
+        <span aria-hidden="true" className={`absolute right-0 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-950 text-white shadow-lg ring-2 ring-white transition duration-300 ${quickMenuOpen ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}><X size={14} strokeWidth={2.6} /></span>
       </button>
     </div>
   </div>;
