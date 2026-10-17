@@ -73,8 +73,7 @@ export default function App() {
           <Route path="/rice-diseases" element={<RiceDiseases />} />
           <Route path="/research-study" element={<ResearchStudy />} />
           <Route path="/feedback" element={<Feedback />} />
-          <Route path="/try-scan" element={<TryScan />} />
-          <Route path="/risk-map" element={<PublicRiskMap />} />
+          <Route path="/try-scan" element={<TryScan />} />          <Route path="/risk-map" element={<PublicRiskMap />} />
 
           <Route path="/app/scan" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><Scan /></ProtectedRoute>} />
           <Route path="/app/history" element={<ProtectedRoute roles={['farmer', 'researcher', 'admin']}><History /></ProtectedRoute>} />

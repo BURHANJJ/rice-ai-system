@@ -107,6 +107,20 @@ export async function classify(file, onProgress) {
   return { status, code, confidence, probs };
 }
 
+/** Same stored copy as the app (offline_classifier.dart): ≤800 px JPEG, quality 60, base64 without prefix. */
+export async function storageImage(file) {
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  const scale = Math.min(1, 800 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close?.();
+  return canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+}
+
 // ---- daily allowance --------------------------------------------------------------------------
 
 const KEY = 'riceai-trial-v1';

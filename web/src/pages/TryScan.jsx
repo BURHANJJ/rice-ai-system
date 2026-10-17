@@ -73,13 +73,24 @@ function ConfidenceRing({ value, tone, label }) {
   );
 }
 
-export default function TryScan() {
+/**
+ * The scan workspace (photo on the left, state on the right), shared by the public trial page and
+ * the portal scanner.
+ *   quota        {left, limit} for the trial; null = unlimited (portal)
+ *   onSuccess    called once per diagnosis (the trial spends one free scan here)
+ *   onDiagnosis  async (result, file) => {state: 'saved'|'queued', id}: the portal saves it
+ *   idleTop      extra content above "how it works" (the portal's GPS card)
+ *   resultLinks  [{to, label, icon}] extra buttons under a result
+ */
+export function ScanWorkspace({ quota = null, onSuccess, onDiagnosis, idleTop = null, resultLinks = [], privacyNote, portal = false }) {
   const { lang } = useI18n();
   const isEn = lang === 'en';
   const tr = (th, en) => (isEn ? en : th);
-  useDocTitle({ th: 'ทดลองสแกนโรคใบข้าวฟรี | Rice AI', en: 'Try the rice leaf scanner | Rice AI' });
-
-  const [q, setQ] = useState(readQuota);
+  const q = quota || { left: Infinity, limit: Infinity };
+  const latest = useRef({});
+  latest.current = { quota, onSuccess, onDiagnosis };
+  const [save, setSave] = useState(null); // portal: {state: 'saving'|'saved'|'queued'|'error', id?}
+  const [lastFile, setLastFile] = useState(null);
   const [phase, setPhase] = useState('idle'); // idle | working | result | issue
   const [preview, setPreview] = useState('');
   const [download, setDownload] = useState(null); // model download progress 0..1, null when cached
@@ -90,7 +101,7 @@ export default function TryScan() {
   const galleryRef = useRef(null);
   const panelRef = useRef(null);
   const answerRef = useRef(null);
-  const out = q.left <= 0;
+  const out = quota ? quota.left <= 0 : false;
   // Narrow screens stack the answer under the photo: bring it into view once it's ready.
   useEffect(() => {
     if ((phase === 'result' || phase === 'issue') && window.innerWidth < 1024) {
@@ -100,19 +111,29 @@ export default function TryScan() {
   const countdown = useCountdown(out);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
-  // A new day may start while the page is open.
-  useEffect(() => {
-    const t = setInterval(() => setQ(readQuota()), 30000);
-    return () => clearInterval(t);
+
+  const persist = useCallback(async (r, file) => {
+    const fn = latest.current.onDiagnosis;
+    if (!fn) return;
+    setSave({ state: 'saving' });
+    try {
+      setSave(await fn(r, file));
+    } catch (e) {
+      console.error('saving the diagnosis failed', e);
+      setSave({ state: 'error' });
+    }
   }, []);
 
   const warmUp = useCallback(() => { loadModel(setDownload).then(() => setDownload(null)).catch(() => {}); }, []);
 
   const run = useCallback(async (file) => {
-    if (!file || readQuota().left <= 0) return;
+    const lim = latest.current.quota;
+    if (!file || (lim && lim.left <= 0)) return;
     setPreview((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(file); });
     setResult(null);
     setIssue(null);
+    setSave(null);
+    setLastFile(file);
     setPhase('working');
     requestAnimationFrame(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     const started = performance.now();
@@ -122,9 +143,10 @@ export default function TryScan() {
       // let the scan animation read as a deliberate step, not a flicker
       await new Promise((ok) => setTimeout(ok, Math.max(0, 1100 - (performance.now() - started))));
       if (r.status === 'ok') {
-        setQ(spend());
+        latest.current.onSuccess?.();
         setResult(r);
         setPhase('result');
+        persist(r, file);
       } else {
         setResult(r);
         setIssue(r.status);
@@ -135,11 +157,11 @@ export default function TryScan() {
       setIssue(e.code === 'bad_image' ? 'bad_image' : 'model');
       setPhase('issue');
     }
-  }, []);
+  }, [persist]);
 
   const onFiles = (files) => { const f = files?.[0]; if (f) run(f); };
   // Back to the empty upload area: forget the photo too (the effect above frees its object URL).
-  const reset = () => { setPreview(''); setPhase('idle'); setResult(null); setIssue(null); };
+  const reset = () => { setPreview(''); setPhase('idle'); setResult(null); setIssue(null); setSave(null); };
   const pickCamera = () => { warmUp(); cameraRef.current?.click(); };
   const pickGallery = () => { warmUp(); galleryRef.current?.click(); };
 
@@ -157,21 +179,7 @@ export default function TryScan() {
   const busy = phase === 'working';
 
   return (
-    <div className="min-h-screen bg-[#faf8f1] text-slate-900">
-      <PublicHeader />
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-8 sm:pb-20 sm:pt-12">
-        {/* heading */}
-        <div className="grid items-end gap-5 lg:grid-cols-[1fr_340px] lg:gap-10">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-900"><Sparkles size={14} />{tr('ทดลองฟรี · ไม่ต้องสมัครสมาชิก', 'Free trial · no sign-up')}</div>
-            <h1 className="mt-4 font-display text-[2rem] font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{tr('ทดลองสแกนโรคใบข้าว', 'Try the rice leaf scanner')}</h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-600 sm:text-base">{tr('ถ่ายหรือเลือกรูปใบข้าว แล้ว AI ตัวเดียวกับในแอปจะบอกผลภายในไม่กี่วินาที แยกโรคไหม้ โรคขอบใบแห้ง โรคใบสีส้ม และใบปกติ', 'Take or choose a photo of a rice leaf. The same AI as the app tells you within seconds: rice blast, bacterial leaf blight, tungro or healthy.')}</p>
-          </div>
-          <QuotaMeter q={q} tr={tr} />
-        </div>
-
-        {/* workspace */}
-        <section ref={panelRef} className="mt-7 scroll-mt-24 overflow-hidden rounded-[1.75rem] border border-emerald-900/10 bg-white shadow-[0_30px_80px_-40px_rgba(15,45,31,.45)] lg:grid lg:grid-cols-[1.05fr_1fr]">
+        <section ref={panelRef} className="scroll-mt-24 overflow-hidden rounded-[1.75rem] border border-emerald-900/10 bg-white shadow-[0_30px_80px_-40px_rgba(15,45,31,.45)] lg:grid lg:grid-cols-[1.05fr_1fr]">
           {/* left: photo */}
           <div className="relative border-b border-emerald-900/10 bg-[radial-gradient(circle_at_30%_20%,#f1f6ee,#e6eee4)] p-4 sm:p-6 lg:border-b-0 lg:border-r">
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ''; }} />
@@ -215,13 +223,14 @@ export default function TryScan() {
                 <p className="relative mt-4 hidden items-center gap-1.5 text-[11.5px] text-slate-400 sm:flex"><Upload size={13} />{tr('หรือลากรูปมาวางตรงนี้', 'or drop a photo here')}<kbd className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-sans text-[10.5px] font-semibold text-slate-500">Ctrl</kbd>+<kbd className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-sans text-[10.5px] font-semibold text-slate-500">V</kbd></p>
               </div>
             )}
-            <p className="mx-auto mt-4 flex max-w-[460px] items-start gap-2 text-[11.5px] leading-5 text-slate-500"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-700" />{tr('ภาพไม่ถูกอัปโหลด AI วิเคราะห์ในเบราว์เซอร์ของคุณ และไม่บันทึกผลทดลองไว้ที่ใด', 'Your photo is not uploaded. The AI runs in your browser and trial results are not stored anywhere.')}</p>
+            <p className="mx-auto mt-4 flex max-w-[460px] items-start gap-2 text-[11.5px] leading-5 text-slate-500"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-700" />{privacyNote || tr('ภาพไม่ถูกอัปโหลด AI วิเคราะห์ในเบราว์เซอร์ของคุณ และไม่บันทึกผลทดลองไว้ที่ใด', 'Your photo is not uploaded. The AI runs in your browser and trial results are not stored anywhere.')}</p>
           </div>
 
           {/* right: state */}
           <div ref={answerRef} className="flex min-h-[340px] scroll-mt-20 flex-col p-5 sm:p-7" aria-live="polite">
             {phase === 'idle' && !out && (
               <div className="my-auto">
+                {idleTop}
                 <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-700">{tr('3 ขั้นตอน · รู้ผลในไม่กี่วินาที', '3 steps · results in seconds')}</div>
                 <h2 className="mt-1 font-display text-2xl font-bold text-slate-950">{tr('ทำงานยังไง', 'How it works')}</h2>
                 <ol className="relative mt-5">
@@ -324,13 +333,26 @@ export default function TryScan() {
                   </details>
 
                   <p className="mt-4 text-[11.5px] leading-5 text-slate-500">{tr('ผลจาก AI เป็นการช่วยตัดสินใจเบื้องต้น ก่อนใช้สารเคมีควรปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตรในพื้นที่', 'AI results support, not replace, expert advice. Check with your local extension officer before using chemicals.')}</p>
+                  {portal && save && (
+                    <div className={`mt-4 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold ${save.state === 'error' ? 'bg-red-50 text-red-800' : save.state === 'saving' ? 'bg-slate-50 text-slate-600' : 'bg-emerald-50 text-emerald-900'}`} aria-live="polite">
+                      {save.state === 'saving' && <><RefreshCw size={15} className="animate-spin" />{tr('กำลังบันทึกผลเข้าระบบ…', 'Saving to the system…')}</>}
+                      {save.state === 'saved' && <><CheckCircle2 size={15} />{tr('บันทึกเข้าระบบแล้ว', 'Saved to the system')}<span className="ml-auto font-mono text-[11px] font-normal text-emerald-800/70">#{save.id?.slice(0, 8)}</span></>}
+                      {save.state === 'queued' && <><Clock3 size={15} />{tr('รอเชื่อมต่อ จะส่งเข้าระบบเองเมื่อออนไลน์ (อย่าเพิ่งปิดหน้านี้)', 'Waiting for a connection; it will sync once online (keep this page open)')}</>}
+                      {save.state === 'error' && <><AlertTriangle size={15} />{tr('บันทึกไม่สำเร็จ', 'Couldn’t save')}<button type="button" onClick={() => persist(result, lastFile)} className="ml-auto rounded-lg bg-white px-2.5 py-1 text-xs font-bold text-red-800 ring-1 ring-red-200 hover:bg-red-100">{tr('ลองบันทึกอีกครั้ง', 'Try again')}</button></>}
+                    </div>
+                  )}
                   <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-                    <button type="button" onClick={q.left > 0 ? pickGallery : reset} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-4 text-sm font-bold text-white transition hover:bg-[#173d2e]"><RefreshCw size={16} />{q.left > 0 ? tr(`สแกนภาพอื่น (เหลือ ${q.left})`, `Scan another (${q.left} left)`) : tr('ดูสิทธิ์ที่เหลือ', 'See allowance')}</button>
+                    <button type="button" onClick={q.left > 0 ? pickGallery : reset} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-4 text-sm font-bold text-white transition hover:bg-[#173d2e]"><RefreshCw size={16} />{!quota ? tr('สแกนภาพถัดไป', 'Scan the next photo') : q.left > 0 ? tr(`สแกนภาพอื่น (เหลือ ${q.left})`, `Scan another (${q.left} left)`) : tr('ดูสิทธิ์ที่เหลือ', 'See allowance')}</button>
                     <Link to="/rice-diseases" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50"><BookOpenText size={16} />{tr('ข้อมูลโรคเต็ม', 'Full disease guide')}</Link>
+                    {resultLinks.map(({ to, label, icon: LinkIcon }) => (
+                      <Link key={to} to={to} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50 sm:col-span-2">{LinkIcon && <LinkIcon size={16} />}{label}<ArrowRight size={15} /></Link>
+                    ))}
                   </div>
-                  <Link to="/#app" className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-emerald-900/20 px-4 py-3 text-[13px] text-slate-600 transition hover:border-emerald-700/40 hover:bg-emerald-50/50">
-                    <span className="flex items-center gap-2"><Smartphone size={16} className="text-emerald-800" />{tr('อยากบันทึกผลพร้อมพิกัด? ใช้แอป Rice AI', 'Want to save results with GPS? Use the app')}</span><ArrowRight size={15} />
-                  </Link>
+                  {!portal && (
+                    <Link to="/#app" className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-emerald-900/20 px-4 py-3 text-[13px] text-slate-600 transition hover:border-emerald-700/40 hover:bg-emerald-50/50">
+                      <span className="flex items-center gap-2"><Smartphone size={16} className="text-emerald-800" />{tr('อยากบันทึกผลพร้อมพิกัด? ใช้แอป Rice AI', 'Want to save results with GPS? Use the app')}</span><ArrowRight size={15} />
+                    </Link>
+                  )}
                 </div>
               );
             })()}
@@ -418,7 +440,7 @@ export default function TryScan() {
                         <button type="button" onClick={pickGallery} className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50 sm:border-transparent sm:bg-[#1f4d3a] sm:text-white sm:shadow-[0_10px_24px_-12px_rgba(31,77,58,.8)] sm:hover:bg-[#173d2e] ${issue === 'other' ? '' : 'sm:col-span-2'}`}><ImagePlus size={17} />{tr('เลือกภาพใหม่', 'Choose another photo')}</button>
                         {issue === 'other' && <Link to="/rice-diseases" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white px-4 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50"><BookOpenText size={17} />{tr('เปิดคลังความรู้โรคข้าว', 'Open the disease library')}</Link>}
                       </div>
-                      <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-slate-500"><CheckCircle2 size={14} className="text-emerald-700" />{tr(`ครั้งนี้ไม่นับสิทธิ์ · เหลือ ${q.left} จาก ${q.limit} ครั้งวันนี้`, `Not counted · ${q.left} of ${q.limit} left today`)}</p>
+                      <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-slate-500"><CheckCircle2 size={14} className="text-emerald-700" />{quota ? tr(`ครั้งนี้ไม่นับสิทธิ์ · เหลือ ${q.left} จาก ${q.limit} ครั้งวันนี้`, `Not counted · ${q.left} of ${q.limit} left today`) : tr('ผลครั้งนี้ไม่ถูกบันทึกเข้าระบบ', 'Nothing was saved for this attempt')}</p>
                     </div>
                   );
                 })()}
@@ -426,6 +448,37 @@ export default function TryScan() {
             )}
           </div>
         </section>
+  );
+}
+
+export default function TryScan() {
+  const { lang } = useI18n();
+  const isEn = lang === 'en';
+  const tr = (th, en) => (isEn ? en : th);
+  useDocTitle({ th: 'ทดลองสแกนโรคใบข้าวฟรี | Rice AI', en: 'Try the rice leaf scanner | Rice AI' });
+  const [q, setQ] = useState(readQuota);
+  // A new day may start while the page is open.
+  useEffect(() => {
+    const t = setInterval(() => setQ(readQuota()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#faf8f1] text-slate-900">
+      <PublicHeader />
+      <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-8 sm:pb-20 sm:pt-12">
+        <div className="grid items-end gap-5 lg:grid-cols-[1fr_340px] lg:gap-10">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-900"><Sparkles size={14} />{tr('ทดลองฟรี · ไม่ต้องสมัครสมาชิก', 'Free trial · no sign-up')}</div>
+            <h1 className="mt-4 font-display text-[2rem] font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">{tr('ทดลองสแกนโรคใบข้าว', 'Try the rice leaf scanner')}</h1>
+            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-600 sm:text-base">{tr('ถ่ายหรือเลือกรูปใบข้าว แล้ว AI ตัวเดียวกับในแอปจะบอกผลภายในไม่กี่วินาที แยกโรคไหม้ โรคขอบใบแห้ง โรคใบสีส้ม และใบปกติ', 'Take or choose a photo of a rice leaf. The same AI as the app tells you within seconds: rice blast, bacterial leaf blight, tungro or healthy.')}</p>
+          </div>
+          <QuotaMeter q={q} tr={tr} />
+        </div>
+
+        <div className="mt-7">
+          <ScanWorkspace quota={q} onSuccess={() => setQ(spend())} />
+        </div>
 
         {/* reassurance strip */}
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
