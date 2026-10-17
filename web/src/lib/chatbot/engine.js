@@ -225,7 +225,53 @@ function context(history) {
   return { disease, topic, last: users[0] || '' };
 }
 
+// ---- suggestion chips: never send people in circles ------------------------------------------
+
+const FACETS = [
+  ['symptoms', ['อาการ', 'ลักษณะ', 'ดูยังไง', 'สังเกต', 'symptom']],
+  ['cause', ['สาเหตุ', 'เชื้อ', 'เกิดจาก', 'cause']],
+  ['control', ['ป้องกัน', 'กำจัด', 'รักษา', 'แก้', 'ยา', 'สาร', 'ฉีด', 'พ่น', 'control']],
+  ['variety', ['พันธุ์', 'ต้านทาน', 'ทนโรค']],
+  ['risk', ['เสี่ยง', 'ระบาด', 'ช่วงไหน', 'เมื่อไหร่']],
+];
+/** Where a question would lead: a topic id, a disease + facet, or the text itself. */
+function route(q) {
+  const t = canon(norm(q || ''));
+  const d = findDisease(t);
+  if (d) return `d:${d.tag}:${(FACETS.find(([, w]) => has(t, w)) || ['all'])[0]}`;
+  const g = glossary(t);
+  if (g) return `g:${g.keys[0]}`;
+  const topic = bestTopic(t);
+  return topic ? topic.id : t;
+}
+// A sensible path through the system for people who keep tapping chips.
+const JOURNEY = ['about', 'detectable', 'how_to_scan', 'download', 'accuracy', 'photo_tips', 'offline', 'outbreak_map', 'wiki', 'after_result', 'how_ai', 'versions', 'privacy', 'price', 'team', 'research_page'];
+const DISEASE_TRY = ['อาการโรคไหม้เป็นยังไง', 'ป้องกันโรคขอบใบแห้งยังไง', 'อาการโรคใบสีส้ม', 'โรคข้าวมีอะไรบ้าง'];
+
+/** Drop chips that repeat something already asked or answered; top up with fresh, related ones. */
+function freshSuggestions(res, input, history) {
+  const seen = new Set([route(input), ...history.filter((m) => m.role === 'user').map((m) => route(m.content))]);
+  const out = [];
+  const routes = new Set();
+  const add = (s) => {
+    if (!s || out.length >= 3) return;
+    const r = route(s);
+    if (seen.has(r) || routes.has(r)) return;
+    routes.add(r);
+    out.push(s);
+  };
+  (res.suggestions || []).forEach(add);
+  // after a disease answer, other diseases are the natural next step; otherwise walk the journey
+  if (route(input).startsWith('d:')) DISEASE_TRY.forEach(add);
+  JOURNEY.forEach((id) => add(TITLES[id]));
+  return { ...res, suggestions: out };
+}
+
 export function answer(input, history = []) {
+  return freshSuggestions(reply(input, history), input, history);
+}
+
+function reply(input, history) {
   const raw = (input || '').trim();
   const t0 = norm(raw);
   const t = canon(t0);
