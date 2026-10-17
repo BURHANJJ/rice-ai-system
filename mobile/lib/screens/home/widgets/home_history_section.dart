@@ -64,7 +64,7 @@ class _HomeHistorySectionState extends State<HomeHistorySection> {
 
   DateTime _parseUtcDate(String dateStr) {
     if (dateStr.endsWith('Z')) return DateTime.parse(dateStr).toLocal();
-    return DateTime.parse(dateStr.replaceFirst(' ', 'T') + 'Z').toLocal();
+    return DateTime.parse('${dateStr.replaceFirst(' ', 'T')}Z').toLocal();
   }
 
   String _formatDate(String dateStr) {

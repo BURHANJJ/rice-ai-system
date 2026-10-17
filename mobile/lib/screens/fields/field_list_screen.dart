@@ -43,7 +43,9 @@ class _FieldListScreenState extends State<FieldListScreen> {
     try {
       final perm = await Geolocator.checkPermission();
       if (perm != LocationPermission.always && perm != LocationPermission.whileInUse) return;
-      final pos = await Geolocator.getCurrentPosition(timeLimit: const Duration(seconds: 8));
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(timeLimit: Duration(seconds: 8)),
+      );
       if (mounted) setState(() => _here = pos);
     } catch (_) {}
   }

@@ -120,8 +120,9 @@ class _FieldFormScreenState extends State<FieldFormScreen> {
         _address = addr;
       });
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         AppToast.error(context, e is String ? e : 'ระบุตำแหน่งไม่สำเร็จ ลองใหม่อีกครั้ง', title: 'ระบุตำแหน่งไม่ได้');
+      }
     } finally {
       if (mounted) setState(() => _locating = false);
     }

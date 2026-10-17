@@ -149,13 +149,13 @@ class _FieldDetailScreenState extends State<FieldDetailScreen> {
           }
           final f = snap.data;
           if (f == null) {
-            return SafeArea(
+            return const SafeArea(
               child: Column(
                 children: [
-                  const Padding(
+                  Padding(
                       padding: EdgeInsets.all(20),
                       child: Align(alignment: Alignment.centerLeft, child: AppBackButton())),
-                  const Expanded(child: Center(child: EmptyState(icon: Remix.plant_line, title: 'ไม่พบแปลงนี้', mascot: RiceyMood.think))),
+                  Expanded(child: Center(child: EmptyState(icon: Remix.plant_line, title: 'ไม่พบแปลงนี้', mascot: RiceyMood.think))),
                 ],
               ),
             );
