@@ -15,6 +15,7 @@ export const MODEL = {
   threshold: 60,
   testImages: 761,
   file: '/models/rice-v3.onnx',
+  sizeMb: 8.2, // rice-v3.onnx on disk (Content-Length is the gzip size, so it is not used)
   runtimes: 'TensorFlow Lite (แอป) · ONNX Runtime Web (เว็บ)',
 };
 
@@ -37,8 +38,7 @@ export async function checkModel() {
   try {
     const { value: res, ms } = await timed(() => fetch(MODEL.file, { method: 'HEAD', cache: 'no-store' }));
     if (!res.ok) return { state: 'offline' };
-    const bytes = Number(res.headers.get('content-length')) || 0;
-    return { state: 'online', ms, sizeMb: bytes ? +(bytes / 1e6).toFixed(1) : null };
+    return { state: 'online', ms, sizeMb: MODEL.sizeMb };
   } catch {
     return { state: 'offline' };
   }
