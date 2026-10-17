@@ -7,12 +7,13 @@ const ORG_EN = 'the Computer and Information Science for Management programme, F
 
 export const privacyEn = {
   title: 'Privacy Policy',
-  updated: '11 October 2026',
-  version: '1.0',
+  updated: '13 October 2026',
+  version: '1.1',
   summary: [
     'We keep your account details, leaf photos, results and location (when you allow it) to diagnose diseases and build the outbreak map.',
     'The public map uses scan results without names or emails, but the photo, disease, time and location of a scan can still be accessed.',
     'We do not sell data, show ads or track you for marketing.',
+    'When you send feedback, we store your message and any contact details you provide so the administrator can review it and follow up.',
     `You can ask to see, correct or delete your data at any time at ${CONTACT_EMAIL}.`,
   ],
   sections: [
@@ -39,6 +40,7 @@ export const privacyEn = {
               ['Location', 'Latitude, longitude, province and sub-district/district name', "Your phone's GPS, only when you allow it"],
               ['Field notebook', 'Field name, location, area, rice variety, planting date, activities, costs, yield', 'You enter it'],
               ['Notifications', 'Device token for notifications (FCM token), read status', 'Registered by the app when you allow notifications'],
+              ['Feedback', 'Category, subject, details, optional name/email, submission page and account ID when signed in', 'The website feedback form'],
               ['Activity log', 'Key actions such as sign-in, adding or editing data and file exports, with time', 'Recorded automatically'],
               ['Settings', 'Theme, text size, language', 'You choose them'],
             ],
@@ -61,6 +63,7 @@ export const privacyEn = {
               ['Build the outbreak map and alert users in at-risk provinces', 'Legitimate interest in plant disease surveillance (section 24(5))'],
               ['Let administrators review AI results and use reviewed photos to improve the model', 'Legitimate interest in improving accuracy (section 24(5))'],
               ['Give researchers de-identified data for research', 'Research and statistics (section 24(1)); names, emails and coordinates are removed first'],
+              ['Receive feedback and follow up when you ask us to', 'Your consent before submitting the form (section 19)'],
               ['Prevent misuse and keep an audit trail', 'Legitimate interest in security (section 24(5))'],
             ],
           },
@@ -109,6 +112,7 @@ export const privacyEn = {
             'Account data, scan results and field notebooks are kept while your account is active or until the project ends',
             'When you ask us to delete your account, we delete your account data and identifiable scan results within 30 days',
             'Security logs are kept for no more than one year',
+            'Feedback is kept while it is being reviewed and handled; you may request deletion by contacting the project email',
             'De-identified data and aggregate statistics may be kept for study, as they cannot identify anyone',
           ],
         },
@@ -221,7 +225,7 @@ export const termsEn = {
         { note: 'AI results support a first decision only. They are not a diagnosis by a researcher or an agricultural extension officer.' },
         {
           list: [
-            'The 97.9% accuracy was measured on a set of 761 test images; photos from real Thai fields may give different results',
+            'The 96.9% accuracy was measured on a set of 761 test images; photos from real Thai fields may give different results',
             'The system recognises only four classes. If a leaf has another disease, it may still answer with one of these four; photos the AI is less than 75% sure about are rejected and you are asked to retake them',
             "Before using any chemical, confirm the symptoms with your local agricultural officer and follow the label and the Department of Agriculture's guidance exactly",
             "Disease information and advice come from the Rice Department's Rice Knowledge Bank and may be revised",

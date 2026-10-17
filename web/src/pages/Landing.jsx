@@ -155,7 +155,7 @@ export default function Landing() {
           <div className="min-w-0 rb-reveal">
             <div className="rice-hero-kicker mb-4 sm:mb-5">
               <ShieldCheck size={16} />
-              {t({ th: 'AI ตรวจโรคใบข้าว · แม่นยำ 97.9%', en: 'AI rice-leaf diagnosis · 97.9% accurate' })}
+              {t({ th: 'AI ตรวจโรคใบข้าว · แม่นยำ 96.9%', en: 'AI rice-leaf diagnosis · 96.9% accurate' })}
             </div>
             <h1 className="rice-hero-title">
               Rice AI<br />

@@ -18,7 +18,7 @@ const NOT_YET = [
   { th: 'iPhone (iOS) ยังไม่มีรุ่นทดสอบ', en: 'No iPhone (iOS) beta yet' },
   { th: 'ยังไม่อยู่บน Google Play ต้องติดตั้งจากไฟล์ APK', en: 'Not on Google Play yet; install from the APK file' },
   { th: 'ประกาศเตือนการระบาดจะเข้ากล่องแจ้งเตือนในแอป อาจช้าได้ถึง 15 นาที (ยังไม่มี Push ทันที)', en: 'Outbreak notices arrive in the in-app inbox and can take up to 15 minutes (no instant push yet)' },
-  { th: 'ความแม่นยำ 97.9% วัดจากชุดภาพทดสอบ รูปจากนาไทยอาจได้ผลต่างไป', en: '97.9% accuracy was measured on a test set; photos from Thai fields may score differently' },
+  { th: 'ความแม่นยำ 96.9% วัดจากชุดภาพทดสอบ รูปจากนาไทยอาจได้ผลต่างไป', en: '96.9% accuracy was measured on a test set; photos from Thai fields may score differently' },
 ];
 
 const STEPS = [
