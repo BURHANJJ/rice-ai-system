@@ -275,3 +275,38 @@ export function Significance({ tr }) {
     <p className="border-t border-slate-100 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:px-5">{tr(`ตัวเลขแต่ละช่องเรียงตาม seed ${data.seeds.join(', ')}`, `Values in each cell follow seeds ${data.seeds.join(', ')}`)}</p>
   </div>;
 }
+
+// Each training run as a dot on one accuracy axis, a row per model: the spread between the three
+// seeds is the point, so runs that sit on top of each other read as "stable" at a glance.
+export function SeedSpread({ tr }) {
+  const [hover, setHover] = useState(null);
+  const rows = byAccuracy();
+  const all = rows.flatMap((m) => m.runs.map((r) => r.accuracy * 100));
+  const lo = Math.floor(Math.min(...all) - 0.3), hi = Math.min(100, Math.ceil(Math.max(...all) + 0.3));
+  const W = 640, L = 132, R = 16, rowH = 34, T = 8, H = T + rows.length * rowH + 30;
+  const X = (v) => L + ((v - lo) / (hi - lo)) * (W - L - R);
+  const ticks = []; for (let v = lo; v <= hi; v += 1) ticks.push(v);
+  return <figure className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+    <figcaption className="text-sm font-bold text-slate-800">{tr('Accuracy ของแต่ละรอบ (seed)', 'Accuracy of each run (seed)')}</figcaption>
+    <p className="mt-1 text-xs leading-5 text-slate-500">{tr('จุดเล็ก = 1 รอบ · ขีดตั้ง = ค่าเฉลี่ย · จุดอยู่ชิดกัน = ผลนิ่ง ไม่ขึ้นกับดวง · จุดที่ซ้อนกันคือได้ค่าเท่ากัน (EfficientNet-B0 ได้ 98.29% สองรอบ) · ชี้ที่จุดเพื่อดู seed', 'Small dot = one run · tick = mean · dots close together = a stable result, not luck · overlapping dots scored the same (EfficientNet-B0 hit 98.29% twice) · hover a dot for its seed')}</p>
+    <div className="relative mt-3">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={tr('ความแม่นยำของ 3 รอบการเทรนในแต่ละโมเดล', 'Accuracy of the three training runs per model')}>
+        {ticks.map((v) => <g key={v}><line x1={X(v)} x2={X(v)} y1={T} y2={H - 26} stroke="#eef1ef" /><text x={X(v)} y={H - 10} textAnchor="middle" fontSize="11" fill="#64748b">{v}%</text></g>)}
+        {rows.map((m, i) => {
+          const y = T + i * rowH + rowH / 2, main = m.role === 'main', c = main ? GREEN : GRAY;
+          const xs = m.runs.map((r) => X(r.accuracy * 100));
+          return <g key={m.key}>
+            <text x={L - 10} y={y + 4} textAnchor="end" fontSize="12" fontWeight={main ? 700 : 500} fill={main ? '#123326' : '#334155'}>{m.name}</text>
+            <line x1={Math.min(...xs)} x2={Math.max(...xs)} y1={y} y2={y} stroke={c} strokeWidth="2" strokeLinecap="round" opacity=".55" />
+            <line x1={X(m.accuracy.mean * 100)} x2={X(m.accuracy.mean * 100)} y1={y - 9} y2={y + 9} stroke={c} strokeWidth="2.5" strokeLinecap="round" />
+            {m.runs.map((r) => <g key={r.seed} onMouseEnter={() => setHover({ m, r })} onMouseLeave={() => setHover(null)} className="cursor-pointer">
+              <circle cx={X(r.accuracy * 100)} cy={y} r="5.5" fill={c} stroke="#fff" strokeWidth="2" />
+              <circle cx={X(r.accuracy * 100)} cy={y} r="12" fill="transparent" />
+            </g>)}
+          </g>;
+        })}
+      </svg>
+      {hover && <div className="pointer-events-none absolute right-2 top-0 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-md"><span className="font-bold text-slate-900">{hover.m.name}</span> · seed {hover.r.seed}: <span className="font-semibold tabular-nums">{pct(hover.r.accuracy)}</span> ({hover.r.correct}/761)</div>}
+    </div>
+  </figure>;
+}
