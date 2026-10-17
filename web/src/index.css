@@ -369,9 +369,11 @@ body {
 
 /* hero stage: pointer tilt + parallax layers */
 .rb-stage { perspective: 1200px; --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 50%; }
+/* Depth is a sideways parallax shift (--px/--py in -1..1 times the layer's --d), not translateZ:
+   translateZ under perspective scales the layer up after it is painted, which blurred the phone screens.
+   At rest the transform is the identity, so the screenshots draw 1:1 and stay sharp. */
 .rb-stage-layer {
-  transform-style: preserve-3d;
-  transform: rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--d, 0));
+  transform: rotateX(var(--rx)) rotateY(var(--ry)) translate(calc(var(--px, 0) * var(--d, 0px) * .35), calc(var(--py, 0) * var(--d, 0px) * .35));
   transition: transform 500ms cubic-bezier(.2,.8,.2,1);
 }
 .rb-stage-glare { background: radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.75), transparent 45%); opacity: .7; }

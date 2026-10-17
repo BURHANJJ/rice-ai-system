@@ -61,12 +61,16 @@ export function useTilt(max = 8) {
         el.style.setProperty('--rx', `${(0.5 - y) * max * 2}deg`);
         el.style.setProperty('--mx', `${x * 100}%`);
         el.style.setProperty('--my', `${y * 100}%`);
+        el.style.setProperty('--px', `${(x - 0.5) * 2}`);
+        el.style.setProperty('--py', `${(y - 0.5) * 2}`);
       });
     };
     const leave = () => {
       cancelAnimationFrame(raf);
       el.style.setProperty('--ry', '0deg');
       el.style.setProperty('--rx', '0deg');
+      el.style.setProperty('--px', '0');
+      el.style.setProperty('--py', '0');
     };
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerleave', leave);
