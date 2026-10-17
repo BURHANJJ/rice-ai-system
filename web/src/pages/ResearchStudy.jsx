@@ -289,6 +289,15 @@ export default function ResearchStudy() {
                 ['#8fb5a0', tr('ชุดสอบจริง · Test 15%', 'Final exam · Test 15%'), tr('ซ่อนไว้จนจบ ไม่เคยให้โมเดลเห็นเลย ตัวเลขความแม่นยำทั้งหมดมาจากกองนี้', 'Hidden until the end and never shown to the model; every accuracy figure comes from here')],
               ].map(([c, title, desc]) => <div key={title} className="rounded-xl bg-white p-3"><div className="flex items-center gap-2 text-xs font-bold text-slate-800"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: c }} />{title}</div><p className="mt-1.5 text-[11px] leading-5 text-slate-500">{desc}</p></div>)}
             </div>
+            {/* V1 is the exception: two piles only, so it never had an untouched exam. */}
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-amber-950"><span>{tr('ยกเว้น V1 (Colab): แบ่งแค่ 2 กอง', 'Except V1 (Colab): only two piles')}</span><span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-amber-900">{tr('V2 · V3 · การเปรียบเทียบ ใช้ 3 กองด้านบน', 'V2 · V3 · the comparison use the three piles above')}</span></div>
+              <div className="mt-2 flex h-8 overflow-hidden rounded-lg text-[11px] font-bold" role="img" aria-label={tr('V1 แบ่งเรียน 85% สอบย่อย 15% ไม่มีชุดสอบจริง', 'V1 split: train 85%, validation 15%, no test set')}>
+                <div className="flex items-center justify-center bg-slate-400 text-white" style={{ width: '85%' }}>{tr('เรียน 85% · ≈4,309', 'Train 85% · ≈4,309')}</div>
+                <div className="flex items-center justify-center border-l-2 border-white bg-[#c89b3c] text-[#3a2a08]" style={{ width: '15%' }}>≈760</div>
+              </div>
+              <p className="mt-2 text-[11px] leading-5 text-amber-950/85">{tr('ไม่มีชุดสอบจริงแยก ตัวเลข 70.26% ของ V1 จึงมาจากชุดสอบย่อยของมันเอง ภายหลังเราเอา V1 มาสอบกับชุดสอบจริง 761 รูปของ V2 ได้ 75.43% แต่บางรูปอาจเคยอยู่ในกองเรียนของ V1 ตัวเลขนี้จึงอาจดีกว่าความจริง', 'With no separate test set, V1’s 70.26% comes from its own validation pile. Rescored later on V2’s 761 test images it reached 75.43%, but some of those images may have been in V1’s training pile, so that figure may flatter it.')}</p>
+            </div>
             <p className="mt-4 text-xs leading-5 text-slate-600">{tr('ภาพทั้งหมดถูกย่อเป็น 224 × 224 พิกเซลด้วยวิธีเดียวกับที่ระบบใช้จริง รายชื่อภาพทดสอบ 761 ภาพตรวจแล้วว่าตรงกันทุกภาพในทุกการทดลอง', 'All images are resized to 224 × 224 exactly as the live system does. The 761 test filenames were checked to match one for one in every experiment.')}</p>
           </article>
         </div>
