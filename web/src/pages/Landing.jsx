@@ -103,12 +103,12 @@ function HeroStage() {
       </div>
 
       <div className="rb-stage-layer absolute inset-0" style={{ '--d': '30px' }}>
-        <Phone screens={['Outbreak3D']} className="absolute left-[5%] top-[21%] w-[31%] -rotate-[10deg] opacity-90 shadow-xl [filter:saturate(.92)]" />
+        <Phone screens={['Outbreak3D']} className="absolute left-[4%] top-[24%] w-[29%] -rotate-[8deg] [filter:saturate(.88)_brightness(.98)]" />
       </div>
 
       <div className="rb-stage-layer absolute inset-0" style={{ '--d': '60px' }}>
-        <div aria-hidden="true" className="absolute left-1/2 top-[86%] h-[5%] w-[34%] -translate-x-[40%] rounded-[50%] bg-emerald-950/25 blur-xl" />
-        <button type="button" onClick={() => setI((v) => (v + 1) % HERO_SCREENS.length)} aria-label={t({ th: 'เปลี่ยนหน้าจอตัวอย่าง', en: 'Show next screen' })} className="absolute left-1/2 top-[6%] w-[38%] -translate-x-[40%] cursor-pointer">
+        <div aria-hidden="true" className="absolute left-[54%] top-[85%] h-[5%] w-[32%] -translate-x-[40%] rounded-[50%] bg-emerald-950/25 blur-xl" />
+        <button type="button" onClick={() => setI((v) => (v + 1) % HERO_SCREENS.length)} aria-label={t({ th: 'เปลี่ยนหน้าจอตัวอย่าง', en: 'Show next screen' })} className="absolute left-[54%] top-[7%] w-[36%] -translate-x-[40%] cursor-pointer">
           <Phone screens={HERO_SCREENS} active={i} glow>
             {i === 0 && <span className="rb-scanline" />}
           </Phone>
@@ -117,7 +117,7 @@ function HeroStage() {
 
       <div className="rb-stage-layer pointer-events-none absolute inset-0" style={{ '--d': '95px' }}>
         {/* chip for the screen on show; sits beside the phone, not over its content */}
-        <div key={`c${i}`} className="rb-pop absolute right-0 top-[19%] flex items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2.5 pr-4 shadow-[0_18px_40px_-16px_rgba(15,45,31,.45)] ring-1 ring-emerald-900/5 backdrop-blur-xl">
+        <div key={`c${i}`} className="rb-pop absolute right-0 top-[30%] flex items-center gap-3 sm:-right-[7%] rounded-2xl border border-white/80 bg-white/80 p-2.5 pr-4 shadow-[0_18px_40px_-16px_rgba(15,45,31,.45)] ring-1 ring-emerald-900/5 backdrop-blur-xl">
           <span className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${chip.tone} text-white shadow-md`}>
             <ChipIcon size={19} strokeWidth={2.2} />
             <span className="absolute -right-1 -top-1 flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-emerald-500" /></span>
@@ -126,7 +126,7 @@ function HeroStage() {
         </div>
 
         {/* model accuracy badge */}
-        <div className="rb-float-slow absolute left-[1%] top-[6%] hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2.5 pr-4 shadow-[0_18px_40px_-16px_rgba(15,45,31,.4)] ring-1 ring-emerald-900/5 backdrop-blur-xl sm:flex">
+        <div className="rb-float-slow absolute -left-[3%] top-[4%] hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2.5 pr-4 shadow-[0_18px_40px_-16px_rgba(15,45,31,.4)] ring-1 ring-emerald-900/5 backdrop-blur-xl sm:flex">
           <span className="relative h-11 w-11">
             <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90"><circle cx="22" cy="22" r="18" fill="none" stroke="#e7f3ec" strokeWidth="5" /><circle cx="22" cy="22" r="18" fill="none" stroke="url(#rbAcc)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${0.969 * 113.1} 113.1`} /><defs><linearGradient id="rbAcc" x1="0" x2="1"><stop offset="0" stopColor="#34d399" /><stop offset="1" stopColor="#15803d" /></linearGradient></defs></svg>
             <ShieldCheck size={15} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-emerald-700" />
@@ -134,7 +134,7 @@ function HeroStage() {
           <span><span className="block text-[11px] font-bold text-gray-500">{t({ th: 'ความแม่นยำโมเดล', en: 'Model accuracy' })}</span><span className="block text-sm font-extrabold text-gray-900">96.9% <span className="font-semibold text-gray-500">{t({ th: 'บนชุดทดสอบ', en: 'on the test set' })}</span></span></span>
         </div>
 
-        <img src="/app/khao_hom_hello.webp" alt={t({ th: 'น้องข้าวหอม', en: 'Khao Hom, the Rice AI mascot' })} className="rb-peek absolute bottom-[8%] right-[1%] w-[22%] drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
+        <img src="/app/khao_hom_hello.webp" alt={t({ th: 'น้องข้าวหอม', en: 'Khao Hom, the Rice AI mascot' })} className="rb-peek absolute bottom-[7%] right-0 w-[19%] drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
       </div>
 
       {/* step control: tap to jump; the active step's bar fills until the next screen */}
