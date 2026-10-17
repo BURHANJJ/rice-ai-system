@@ -587,8 +587,7 @@ export default function ResearchStudy() {
     </main>
     <PublicFooter subtitle={{ th: 'การค้นคว้าและการศึกษา', en: 'Research & Education' }} />
     <KhaoHomDial
-      bubble={[tr('ส่งข้อเสนอแนะได้เลย', 'Send feedback'), tr('มีไอเดีย? บอกเราได้', 'Have an idea? Tell us.')]}
-      bubbleTo="/feedback"
+      bubble={[tr('สงสัยเรื่องงานวิจัย ถามผมได้นะครับ', 'Questions about the study? Ask me'), tr('มีไอเดีย? บอกเราได้', 'Have an idea? Tell us.')]}
       actions={[
         { key: 'top', icon: ArrowUp, label: tr('กลับขึ้นด้านบน', 'Back to top'), onClick: scrollToTop },
         { key: 'video', icon: Play, label: tr('ดูคลิปอธิบาย', 'Watch the video'), href: '#video' },

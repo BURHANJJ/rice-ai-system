@@ -1,12 +1,16 @@
 {
   "name": "rice-ai-functions",
   "private": true,
-  "description": "Push delivery for outbreak broadcasts (FCM)",
+  "description": "Push delivery for outbreak broadcasts (FCM) and Khao Hom chat assistant (Claude)",
   "main": "index.js",
-  "engines": { "node": "20" },
+  "engines": {
+    "node": "20"
+  },
   "scripts": {
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "kb": "node chatbot/build-kb.mjs",
+    "predeploy": "node chatbot/build-kb.mjs"
   },
   "dependencies": {
     "firebase-admin": "^12.7.0",

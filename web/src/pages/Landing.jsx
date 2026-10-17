@@ -370,7 +370,7 @@ export default function Landing() {
 
       <KhaoHomDial
         revealAfter={520}
-        bubble={[t({ th: 'สวัสดีครับ ผมน้องข้าวหอม', en: "Hi, I'm Khao Hom" }), t({ th: 'กดผมเพื่อดูทางลัดนะครับ', en: 'Tap me for shortcuts' })]}
+        bubble={[t({ th: 'สวัสดีครับ ผมน้องข้าวหอม', en: "Hi, I'm Khao Hom" }), t({ th: 'สงสัยอะไร ถามผมได้นะครับ', en: 'Got a question? Ask me' })]}
         actions={[
           { key: 'top', icon: ArrowUp, label: t({ th: 'กลับขึ้นด้านบน', en: 'Back to top' }), onClick: scrollToTop },
           { key: 'app', icon: Smartphone, label: t({ th: 'ดาวน์โหลดแอป', en: 'Get the app' }), href: '#app' },

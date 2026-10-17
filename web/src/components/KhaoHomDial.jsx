@@ -5,7 +5,8 @@
 // Closes on a second tap, a tap anywhere else, or Esc.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { MessageCircleMore, X } from 'lucide-react';
+import ChatPanel from './chat/ChatPanel';
 import khaoHomMascot from '../../assets/khao_hom_scan.svg';
 import { useI18n } from '../lib/i18n';
 
@@ -66,9 +67,14 @@ function useTyping(messages, paused) {
  * bubble: messages the speech bubble types in turn. bubbleTo: optional route the bubble links to
  * (otherwise tapping the bubble opens the dial).
  */
-export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0 }) {
+export default function KhaoHomDial({ actions: pageActions, bubble, bubbleTo, revealAfter = 0, chat = true }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  // The chat assistant is the last (top-most) action on every page that uses the dial.
+  const actions = chat
+    ? [...pageActions, { key: 'chat', icon: MessageCircleMore, label: t({ th: 'คุยกับน้องข้าวหอม', en: 'Chat with Khao Hom' }), onClick: () => setChatOpen(true), accent: true }]
+    : pageActions;
   const ref = useRef(null);
   // revealAfter: px to scroll before he shows up (e.g. past a hero that already has a mascot in it)
   const [shown, setShown] = useState(revealAfter === 0);
@@ -80,7 +86,7 @@ export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0
     return () => window.removeEventListener('scroll', check);
   }, [revealAfter]);
   useEffect(() => { if (!shown) setOpen(false); }, [shown]);
-  const [typed, typing] = useTyping(bubble, open || !shown);
+  const [typed, typing] = useTyping(bubble, open || !shown || chatOpen);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -104,10 +110,10 @@ export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0
       {/* Soft scrim so the open dial reads clearly over busy content; tapping it closes the dial.
           Kept outside the sliding container: a transformed parent would clip a fixed child to its own box. */}
       <div aria-hidden="true" onClick={() => setOpen(false)} className={`fixed inset-0 z-40 bg-[radial-gradient(circle_at_100%_100%,rgba(6,40,28,.28),rgba(6,40,28,.10)_45%,transparent_75%)] transition-opacity duration-300 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
-    <div ref={ref} aria-hidden={!shown} className={`group fixed bottom-4 right-3 z-40 transition duration-500 ease-out sm:bottom-5 sm:right-5 lg:bottom-7 lg:right-7 ${shown ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-8 opacity-0'}`}>
+    <div ref={ref} aria-hidden={!shown || chatOpen} className={`group fixed bottom-4 right-3 z-40 transition duration-500 ease-out sm:bottom-5 sm:right-5 lg:bottom-7 lg:right-7 ${shown && !chatOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-8 opacity-0'}`}>
       {!open && (bubbleTo
         ? <Link to={bubbleTo} aria-label={bubble[0]} className={bubbleClass}>{bubbleText}</Link>
-        : <button type="button" onClick={() => setOpen(true)} aria-label={t({ th: 'เปิดเมนูน้องข้าวหอม', en: 'Open Khao Hom menu' })} className={bubbleClass}>{bubbleText}</button>)}
+        : <button type="button" onClick={() => (chat ? setChatOpen(true) : setOpen(true))} aria-label={chat ? t({ th: 'คุยกับน้องข้าวหอม', en: 'Chat with Khao Hom' }) : t({ th: 'เปิดเมนูน้องข้าวหอม', en: 'Open Khao Hom menu' })} className={bubbleClass}>{bubbleText}</button>)}
 
       <div role="menu" aria-label={t({ th: 'เมนูทางลัด', en: 'Quick actions' })} aria-hidden={!open} className="pointer-events-none absolute left-1/2 top-1/2">
         {actions.map((a, i) => {
@@ -120,7 +126,7 @@ export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0
           const Icon = a.icon;
           const inner = (
             <>
-              <span className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-900/10 bg-white text-emerald-900 shadow-[0_12px_28px_-10px_rgba(15,45,31,.5)] ring-4 ring-white/60 transition group-hover/dial:scale-110 group-hover/dial:bg-emerald-800 group-hover/dial:text-white group-focus-visible/dial:scale-110 group-focus-visible/dial:bg-emerald-800 group-focus-visible/dial:text-white">
+              <span className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-[0_12px_28px_-10px_rgba(15,45,31,.5)] ring-4 ring-white/60 transition group-hover/dial:scale-110 group-focus-visible/dial:scale-110 ${a.accent ? 'border-emerald-900 bg-gradient-to-br from-emerald-600 to-emerald-900 text-white' : 'border-emerald-900/10 bg-white text-emerald-900 group-hover/dial:bg-emerald-800 group-hover/dial:text-white group-focus-visible/dial:bg-emerald-800 group-focus-visible/dial:text-white'}`}>
                 <Icon size={19} strokeWidth={2.2} />
               </span>
               <span className="rs-dial-label pointer-events-none absolute right-full top-1/2 mr-3 whitespace-nowrap rounded-full bg-emerald-950 px-3 py-1.5 text-xs font-bold text-white shadow-lg">{a.label}</span>
@@ -155,6 +161,7 @@ export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0
         </span>
       </button>
     </div>
+      {chat && <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />}
     </>
   );
 }
