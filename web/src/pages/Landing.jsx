@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import KhaoHomDial, { scrollToTop } from '../components/KhaoHomDial';
 import PublicHeader from '../components/PublicHeader';
@@ -7,12 +8,11 @@ import BetaDownload from '../components/landing/BetaDownload';
 import PaddyField from '../components/landing/PaddyField';
 import PromoVideo from '../components/landing/PromoVideo';
 import { Phone, CountUp } from '../components/landing/LandingKit';
-import { spotlight, useCycle, useRevealAll, useTilt } from '../components/landing/landingHooks';
+import { spotlight, useRevealAll, useTilt } from '../components/landing/landingHooks';
 import { useI18n, useDocTitle } from '../lib/i18n';
-import { Cpu, Cloud, ArrowRight, ArrowUp, BookOpen, MessageSquareText, Play, ShieldCheck, PlayCircle, Apple, Smartphone, UserRoundCheck, CheckCircle2, Sparkles, MousePointerClick } from 'lucide-react';
+import { Cpu, Cloud, ArrowRight, ArrowUp, BookOpen, Droplets, MessageSquareText, Play, ScanLine, ShieldCheck, PlayCircle, Apple, Smartphone, UserRoundCheck, CheckCircle2, Sparkles, MousePointerClick, Zap } from 'lucide-react';
 
 const HERO_SCREENS = ['Scan', 'Result', 'Home'];
-const HERO_CAPTION = [{ th: 'วางใบข้าวในกรอบ', en: 'Frame the leaf' }, { th: 'AI วิเคราะห์เสร็จ', en: 'AI result ready' }, { th: 'หน้าหลัก · อากาศจริง', en: 'Home · live weather' }];
 
 const GALLERY = [
   ['Main', { th: 'เข้าสู่ระบบ', en: 'Sign in' }],
@@ -60,66 +60,99 @@ const PILLAR_TONE = {
   amber: { bar: 'from-amber-300 via-orange-400 to-yellow-300', icon: 'bg-amber-100 text-amber-600', chip: 'border-amber-100 bg-amber-50 text-amber-700', eyebrow: 'text-amber-700/75', check: 'text-amber-500', spot: 'rgba(245,158,11,0.14)' },
 };
 
+const HERO_STEP = { th: ['สแกน', 'ผลวิเคราะห์', 'อากาศ'], en: ['Scan', 'Result', 'Weather'] };
+const HERO_MS = 3600;
+
+/** Hero showcase: two phones over orbit rings, glass chips that explain the screen on show,
+ *  and a step control whose bar fills while a screen is up (pauses on hover, tap a step to jump). */
 function HeroStage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const tilt = useTilt(7);
-  const [i, setI] = useCycle(HERO_SCREENS.length, 3200);
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const still = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  useEffect(() => {
+    if (paused || still) return undefined;
+    const timer = setTimeout(() => setI((v) => (v + 1) % HERO_SCREENS.length), HERO_MS);
+    return () => clearTimeout(timer);
+  }, [i, paused, still]);
+
+  const chips = [
+    { icon: ScanLine, tone: 'from-emerald-400 to-emerald-700', eyebrow: { th: 'AI พร้อมตรวจ', en: 'AI ready' }, title: { th: 'แยกได้ 4 ประเภท', en: 'Tells 4 classes apart' } },
+    { icon: Zap, tone: 'from-amber-300 to-orange-500', eyebrow: { th: 'รู้ผลในไม่กี่วินาที', en: 'Results in seconds' }, title: { th: 'ใช้ได้แม้ไม่มีเน็ต', en: 'Works offline too' } },
+    { icon: Droplets, tone: 'from-sky-300 to-blue-600', eyebrow: { th: 'ความชื้น 91%', en: 'Humidity 91%' }, title: { th: 'เตือนเสี่ยงโรคระบาด', en: 'Outbreak-risk alert' } },
+  ];
+  const chip = chips[i];
+  const ChipIcon = chip.icon;
+  const steps = HERO_STEP[lang === 'en' ? 'en' : 'th'];
+
   return (
-    <div ref={tilt} className="rb-stage relative mx-auto aspect-[1/1.02] w-full max-w-[560px]">
-      <div className="absolute inset-[6%] rounded-[2.5rem] bg-gradient-to-br from-emerald-100/90 via-white to-amber-50 shadow-2xl shadow-emerald-950/10 ring-1 ring-emerald-100" />
-      <div className="absolute inset-[6%] overflow-hidden rounded-[2.5rem]">
-        <div className="absolute inset-0 rb-soft-grid opacity-50" />
-        <div className="rb-stage-glare absolute inset-0" />
+    <div ref={tilt} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} className="rb-stage relative mx-auto aspect-[1/1.04] w-full max-w-[560px]">
+      {/* backdrop: soft glow, slowly turning orbit rings with rice grains, a warm sun */}
+      <div aria-hidden="true" className="absolute inset-0">
+        <div className="absolute inset-[7%] rounded-full bg-[radial-gradient(circle_at_50%_45%,rgba(167,243,208,.75),rgba(236,253,245,.55)_45%,transparent_70%)]" />
+        <div className="absolute right-[6%] top-[4%] h-[28%] w-[28%] rounded-full bg-[radial-gradient(circle,rgba(253,224,138,.55),transparent_70%)]" />
+        <div className="rb-orbit absolute inset-[5%] rounded-full border border-dashed border-emerald-800/15">
+          <span className="absolute left-1/2 top-0 h-2 w-3.5 -translate-x-1/2 -translate-y-1/2 rotate-[20deg] rounded-full bg-amber-400/80" />
+          <span className="absolute bottom-[14%] left-[3%] h-1.5 w-3 rotate-[-30deg] rounded-full bg-amber-500/70" />
+        </div>
+        <div className="rb-orbit-rev absolute inset-[17%] rounded-full border border-emerald-800/10">
+          <span className="absolute right-[2%] top-1/2 h-2.5 w-2.5 rounded-full bg-emerald-500/60 ring-4 ring-emerald-500/15" />
+        </div>
+        <div className="rb-stage-glare absolute inset-[7%] rounded-full" />
       </div>
 
       <div className="rb-stage-layer absolute inset-0" style={{ '--d': '30px' }}>
-        {/* back phone */}
-        <Phone screens={['Outbreak3D']} className="absolute left-[9%] top-[17%] w-[34%] -rotate-[9deg] opacity-95 shadow-xl" />
+        <Phone screens={['Outbreak3D']} className="absolute left-[5%] top-[21%] w-[31%] -rotate-[10deg] opacity-90 shadow-xl [filter:saturate(.92)]" />
       </div>
 
       <div className="rb-stage-layer absolute inset-0" style={{ '--d': '60px' }}>
-        <button type="button" onClick={() => setI((v) => (v + 1) % HERO_SCREENS.length)} aria-label={t({ th: 'เปลี่ยนหน้าจอตัวอย่าง', en: 'Show next screen' })} className="absolute left-1/2 top-[7%] w-[38%] -translate-x-[36%] cursor-pointer">
+        <div aria-hidden="true" className="absolute left-1/2 top-[86%] h-[5%] w-[34%] -translate-x-[40%] rounded-[50%] bg-emerald-950/25 blur-xl" />
+        <button type="button" onClick={() => setI((v) => (v + 1) % HERO_SCREENS.length)} aria-label={t({ th: 'เปลี่ยนหน้าจอตัวอย่าง', en: 'Show next screen' })} className="absolute left-1/2 top-[6%] w-[38%] -translate-x-[40%] cursor-pointer">
           <Phone screens={HERO_SCREENS} active={i} glow>
             {i === 0 && <span className="rb-scanline" />}
           </Phone>
         </button>
       </div>
 
-      <div className="rb-stage-layer absolute inset-0" style={{ '--d': '95px' }}>
-        <div key={`c${i}`} className="rb-pop absolute right-[3%] top-[30%] flex items-center gap-3 rounded-2xl border border-white bg-white/95 p-3 pr-4 shadow-xl shadow-emerald-950/15 backdrop-blur">
-          {i === 1 ? (
-            <>
-              <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-xs font-black text-red-700 ring-4 ring-red-100">92%</span>
-              <span><span className="block text-[11px] font-extrabold uppercase text-gray-400">{t({ th: 'ผลวิเคราะห์', en: 'Result' })}</span><span className="block text-sm font-extrabold text-gray-900">{t({ th: 'พบโรคใบไหม้', en: 'Rice blast found' })}</span></span>
-            </>
-          ) : i === 2 ? (
-            <>
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"><Cloud size={22} /></span>
-              <span><span className="block text-[11px] font-extrabold uppercase text-gray-400">{t({ th: 'ความชื้น 91%', en: 'Humidity 91%' })}</span><span className="block text-sm font-extrabold text-gray-900">{t({ th: 'เสี่ยงโรคระบาด', en: 'Outbreak risk' })}</span></span>
-            </>
-          ) : (
-            <>
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><Cpu size={22} /></span>
-              <span><span className="block text-[11px] font-extrabold uppercase text-gray-400">{t({ th: 'AI พร้อม', en: 'AI ready' })}</span><span className="block text-sm font-extrabold text-gray-900">{t({ th: 'ตรวจได้ 4 ประเภท', en: 'Detects 4 classes' })}</span></span>
-            </>
-          )}
+      <div className="rb-stage-layer pointer-events-none absolute inset-0" style={{ '--d': '95px' }}>
+        {/* chip for the screen on show; sits beside the phone, not over its content */}
+        <div key={`c${i}`} className="rb-pop absolute right-0 top-[19%] flex items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2.5 pr-4 shadow-[0_18px_40px_-16px_rgba(15,45,31,.45)] ring-1 ring-emerald-900/5 backdrop-blur-xl">
+          <span className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${chip.tone} text-white shadow-md`}>
+            <ChipIcon size={19} strokeWidth={2.2} />
+            <span className="absolute -right-1 -top-1 flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-emerald-500" /></span>
+          </span>
+          <span><span className="block text-[11px] font-bold text-gray-500">{t(chip.eyebrow)}</span><span className="block text-sm font-extrabold text-gray-900">{t(chip.title)}</span></span>
         </div>
 
-        <div className="absolute left-[2%] top-[62%] hidden rounded-2xl border border-white bg-white/95 p-3.5 shadow-xl shadow-emerald-950/10 backdrop-blur sm:block rb-float-slow">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-[var(--color-paddy)]"><ShieldCheck size={19} /></span>
-            <span><span className="block text-[11px] font-extrabold uppercase text-gray-400">Rice Protection</span><span className="block text-sm font-extrabold text-gray-900">{t({ th: 'พร้อมเฝ้าระวังโรคข้าว', en: 'Watching over your rice' })}</span></span>
-          </div>
+        {/* model accuracy badge */}
+        <div className="rb-float-slow absolute left-[1%] top-[6%] hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/80 p-2.5 pr-4 shadow-[0_18px_40px_-16px_rgba(15,45,31,.4)] ring-1 ring-emerald-900/5 backdrop-blur-xl sm:flex">
+          <span className="relative h-11 w-11">
+            <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90"><circle cx="22" cy="22" r="18" fill="none" stroke="#e7f3ec" strokeWidth="5" /><circle cx="22" cy="22" r="18" fill="none" stroke="url(#rbAcc)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${0.969 * 113.1} 113.1`} /><defs><linearGradient id="rbAcc" x1="0" x2="1"><stop offset="0" stopColor="#34d399" /><stop offset="1" stopColor="#15803d" /></linearGradient></defs></svg>
+            <ShieldCheck size={15} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-emerald-700" />
+          </span>
+          <span><span className="block text-[11px] font-bold text-gray-500">{t({ th: 'ความแม่นยำโมเดล', en: 'Model accuracy' })}</span><span className="block text-sm font-extrabold text-gray-900">96.9% <span className="font-semibold text-gray-500">{t({ th: 'บนชุดทดสอบ', en: 'on the test set' })}</span></span></span>
         </div>
 
-        <img src="/app/khao_hom_hello.webp" alt={t({ th: 'น้องข้าวหอม', en: 'Khao Hom, the Rice AI mascot' })} className="rb-peek pointer-events-none absolute bottom-[9%] right-[2%] w-[25%] drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
+        <img src="/app/khao_hom_hello.webp" alt={t({ th: 'น้องข้าวหอม', en: 'Khao Hom, the Rice AI mascot' })} className="rb-peek absolute bottom-[8%] right-[1%] w-[22%] drop-shadow-[0_18px_24px_rgba(20,83,45,0.28)]" />
       </div>
 
-      <div className="absolute -bottom-[1%] left-1/2 z-10 flex -translate-x-1/2 items-center whitespace-nowrap gap-2 rounded-full border border-emerald-100 bg-white/90 px-3 py-1.5 text-xs font-extrabold text-[var(--color-paddy)] shadow-md backdrop-blur">
+      {/* step control: tap to jump; the active step's bar fills until the next screen */}
+      <div role="tablist" aria-label={t({ th: 'หน้าจอตัวอย่าง', en: 'Sample screens' })} className="absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/80 bg-white/85 p-1 shadow-[0_12px_30px_-12px_rgba(15,45,31,.35)] ring-1 ring-emerald-900/5 backdrop-blur-xl">
         {HERO_SCREENS.map((s, k) => (
-          <span key={s} className={`h-1.5 rounded-full transition-all duration-500 ${k === i ? 'w-5 bg-[var(--color-paddy)]' : 'w-1.5 bg-emerald-900/20'}`} />
+          <button
+            key={s}
+            type="button"
+            role="tab"
+            aria-selected={k === i}
+            onClick={() => setI(k)}
+            className={`relative flex items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-extrabold transition-colors ${k === i ? 'bg-[var(--color-paddy)] text-white shadow' : 'text-emerald-900/60 hover:bg-emerald-50 hover:text-emerald-900'}`}
+          >
+            <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${k === i ? 'bg-white/20' : 'bg-emerald-900/10'}`}>{k + 1}</span>
+            {steps[k]}
+            {k === i && !still && <span aria-hidden="true" className="absolute inset-x-2.5 bottom-0.5 h-[2px] overflow-hidden rounded-full bg-white/20"><span key={`p${i}`} className="rb-progress block h-full rounded-full bg-amber-300" style={{ animationDuration: `${HERO_MS}ms`, animationPlayState: paused ? 'paused' : 'running' }} /></span>}
+          </button>
         ))}
-        <span className="ml-1">{t(HERO_CAPTION[i])}</span>
       </div>
     </div>
   );
@@ -345,6 +378,7 @@ export default function Landing() {
       <PublicFooter />
 
       <KhaoHomDial
+        revealAfter={520}
         bubble={[t({ th: 'สวัสดีครับ ผมน้องข้าวหอม', en: "Hi, I'm Khao Hom" }), t({ th: 'กดผมเพื่อดูทางลัดนะครับ', en: 'Tap me for shortcuts' })]}
         actions={[
           { key: 'top', icon: ArrowUp, label: t({ th: 'กลับขึ้นด้านบน', en: 'Back to top' }), onClick: scrollToTop },

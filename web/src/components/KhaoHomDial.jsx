@@ -66,11 +66,21 @@ function useTyping(messages, paused) {
  * bubble: messages the speech bubble types in turn. bubbleTo: optional route the bubble links to
  * (otherwise tapping the bubble opens the dial).
  */
-export default function KhaoHomDial({ actions, bubble, bubbleTo }) {
+export default function KhaoHomDial({ actions, bubble, bubbleTo, revealAfter = 0 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const [typed, typing] = useTyping(bubble, open);
+  // revealAfter: px to scroll before he shows up (e.g. past a hero that already has a mascot in it)
+  const [shown, setShown] = useState(revealAfter === 0);
+  useEffect(() => {
+    if (!revealAfter) return undefined;
+    const check = () => setShown(window.scrollY > revealAfter);
+    check();
+    window.addEventListener('scroll', check, { passive: true });
+    return () => window.removeEventListener('scroll', check);
+  }, [revealAfter]);
+  useEffect(() => { if (!shown) setOpen(false); }, [shown]);
+  const [typed, typing] = useTyping(bubble, open || !shown);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -90,7 +100,7 @@ export default function KhaoHomDial({ actions, bubble, bubbleTo }) {
   const bubbleText = <span className="min-w-0 whitespace-normal break-words">{typed}{typing && <span aria-hidden="true" className="rs-typing-caret ml-0.5 inline-block h-4 align-middle" />}</span>;
 
   return (
-    <div ref={ref} className="group fixed bottom-4 right-3 z-40 sm:bottom-5 sm:right-5 lg:bottom-7 lg:right-7">
+    <div ref={ref} aria-hidden={!shown} className={`group fixed bottom-4 right-3 z-40 transition duration-500 ease-out sm:bottom-5 sm:right-5 lg:bottom-7 lg:right-7 ${shown ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-8 opacity-0'}`}>
       {/* soft scrim so the open dial reads clearly over busy content; tapping it closes the dial */}
       <div aria-hidden="true" onClick={() => setOpen(false)} className={`fixed inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(6,40,28,.28),rgba(6,40,28,.10)_45%,transparent_75%)] transition-opacity duration-300 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
       {!open && (bubbleTo

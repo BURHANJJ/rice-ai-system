@@ -694,6 +694,14 @@ body {
 }
 .rs-sway { transform-box: fill-box; transform-origin: 45% 100%; animation: rs-sway 5.5s ease-in-out var(--rs-delay, 0s) infinite alternate; }
 @keyframes rs-sway { from { transform: rotate(-3deg); } to { transform: rotate(4deg); } }
+/* Landing hero: slow orbit rings and the step progress bar */
+.rb-orbit { animation: rb-orbit 60s linear infinite; }
+.rb-orbit-rev { animation: rb-orbit 90s linear infinite reverse; }
+.rb-progress { transform-origin: left center; animation-name: rb-progress; animation-timing-function: linear; animation-fill-mode: both; }
+@keyframes rb-orbit { to { transform: rotate(360deg); } }
+@keyframes rb-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .rb-orbit, .rb-orbit-rev { animation: none; } }
+
 /* Khao Hom speed dial (research-study): actions spring out along an arc, labels on hover/focus, always shown on touch. */
 .rs-dial {
   transform: translate(0, 0) scale(.3);
