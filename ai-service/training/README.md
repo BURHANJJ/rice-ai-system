@@ -54,7 +54,8 @@ python build_v3.py                                                # เลือ
 |---|---|
 | `train.py` | แบ่งภาพเป็น 3 ชุด (เทรน 70% / ตรวจสอบ 15% / ทดสอบ 15%) แล้วเทรน 2 ช่วง ช่วงแรกเทรนแค่ชั้นสุดท้าย 6 รอบ ช่วงที่สองปลดล็อกทั้งโมเดลเทรนต่ออีก 18 รอบ |
 | `test_eval.py` | เอาภาพชุดทดสอบมาวัดผลโมเดลทั้งรุ่นเก่าและรุ่นใหม่ แปลงโมเดลเป็น TFLite สำหรับมือถือ และวาดกราฟที่ใช้ในรายงาน |
-| `bench.py` | ส่งภาพ 200 ภาพไปที่ AI service ที่เปิดอยู่ แล้วจับเวลาว่าแต่ละภาพใช้เวลาตอบกี่มิลลิวินาที |
+| `prepare_v3_data.py` · `train_v3.py` · `build_v3.py` | รุ่นที่ 3: เพิ่มคลาส "โรคอื่น" จาก 6 ชนิด เทรน 3 seed เลือกรุ่นและเกณฑ์ความมั่นใจ แล้วเขียน `model/` |
+| `export_onnx.py` | แปลงรุ่นที่ใช้งานเป็น ONNX สำหรับเว็บ (น้ำหนัก fp16) และตรวจว่าตอบตรงกับโมเดลต้นฉบับ |
 | `evaluate.py` | วัดผลโมเดลรุ่นแรกซ้ำแบบเดียวกับใน Colab เพื่อยืนยันว่าได้ 70.26% จริง |
 | `colab_v1_th.ipynb` | โน้ตบุ๊ก Colab ที่ใช้เทรนรุ่นแรก |
 | `colab_v1_with_outputs.ipynb` | โน้ตบุ๊กเดียวกันแต่มีผลลัพธ์ตอนรันเก็บไว้ด้วย |
@@ -97,20 +98,13 @@ python test_eval.py
 
 ผลจะอยู่ใน `D:/rice-eval/run/test_metrics.json` ส่วนกราฟอยู่ใน `D:/rice-eval/report/fig/`
 
-**4. วัดความเร็วของเซิร์ฟเวอร์ (ถ้าต้องการ)**
-
-เปิด AI service ก่อน (`python main.py` ในโฟลเดอร์ `ai-service`) แล้วรัน
-
-```bash
-python bench.py
-```
-
 ## เอาโมเดลใหม่ไปใช้
 
-1. ก๊อปไฟล์ `run/rice_disease_model.keras` กับ `run/class_indices.json` ไปทับใน `ai-service/model/` (ก๊อปไฟล์เดิมสำรองไว้ก่อน)
-2. แก้ `ai-service/model/metrics.json` ให้เป็นผลจาก `run/test_metrics.json` ตัวเลขความแม่นยำที่แสดงในแอปและหน้าเว็บอ่านมาจากไฟล์นี้
-3. ก๊อป `run/rice_disease_model.tflite` กับ `class_indices.json` ไปที่ `mobile/assets/model/` สำหรับการวิเคราะห์แบบออฟไลน์บนมือถือ
-4. ปิดแล้วเปิด AI service ใหม่ และ build แอปมือถือใหม่
+ระบบไม่มีเซิร์ฟเวอร์ AI โมเดลทำงานบนอุปกรณ์ จึงต้องส่งไฟล์ไป 2 ที่
+
+1. ก๊อปไฟล์ `run/rice_disease_model.keras` กับ `run/class_indices.json` ไปทับใน `ai-service/model/` (สำรองไฟล์เดิมไว้ก่อน) และแก้ `metrics.json` ให้เป็นผลจาก `run/test_metrics.json`
+2. **แอป**: ก๊อป `run/rice_disease_model.tflite`, `class_indices.json` และ `model_config.json` (เกณฑ์ความมั่นใจ) ไปที่ `mobile/assets/model/` แล้ว build แอปรุ่นใหม่
+3. **เว็บ**: รัน `KERAS_BACKEND=torch python export_onnx.py` ได้ไฟล์ `web/public/models/rice-v3.onnx` สคริปต์จะเทียบคำตอบกับโมเดลต้นฉบับบนภาพทดสอบให้ด้วย จากนั้นแก้ตัวเลขใน `web/src/lib/systemStatus.js` และ `web/src/lib/trialScan.js` (ถ้าเกณฑ์เปลี่ยน) แล้ว deploy เว็บ
 
 ## ผลที่ได้
 

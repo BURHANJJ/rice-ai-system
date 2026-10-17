@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'api_service.dart';
 import 'notification_service.dart';
 
 class AppUser {
@@ -49,7 +48,6 @@ class AppUser {
 }
 
 class AuthProvider extends ChangeNotifier {
-  final ApiService _api;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -64,12 +62,8 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _afterSignIn(User fbUser) async {
     await _loadUserProfile(fbUser.uid);
-    final idToken = await fbUser.getIdToken();
-    if (idToken != null) await _api.saveToken(idToken);
     notifyListeners();
   }
-
-  AuthProvider({ApiService? api}) : _api = api ?? ApiService.instance;
 
   Future<void> bootstrap() async {
     try {
@@ -196,12 +190,6 @@ class AuthProvider extends ChangeNotifier {
       };
 
       await _db.collection('users').doc(uid).set(userData);
-
-      final idToken = await cred.user!.getIdToken();
-      if (idToken != null) {
-        await _api.saveToken(idToken);
-      }
-
       await _loadUserProfile(uid);
       notifyListeners();
     }
@@ -259,7 +247,6 @@ class AuthProvider extends ChangeNotifier {
     // unregister this phone while still signed in, so the next user doesn't receive these alerts
     await NotificationService.instance.detachUser();
     await _auth.signOut();
-    await _api.clearToken();
     user = null;
     notifyListeners();
   }

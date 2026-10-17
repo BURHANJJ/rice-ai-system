@@ -1,4 +1,4 @@
-﻿name: rice_ai_mobile
+name: rice_ai_mobile
 description: "Rice AI â€” Farmer mobile app: AI-powered rice leaf disease diagnosis (Rice Blast, Bacterial Leaf Blight, Rice Tungro Virus, Healthy)."
 publish_to: 'none'
 version: 0.9.2+3
@@ -17,7 +17,6 @@ dependencies:
   geolocator: ^13.0.4
   shared_preferences: ^2.3.2
   intl: ^0.19.0
-  flutter_secure_storage: ^9.2.2
   cached_network_image: ^3.4.1
   flutter_map: ^7.0.2
   latlong2: ^0.9.1

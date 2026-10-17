@@ -5,15 +5,15 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
-import 'api_service.dart' show ApiException;
+import 'scan_exception.dart';
 
-/// On-device fallback for when the Rice AI server cannot be reached (no signal in the paddy).
+/// The app's rice leaf classifier. It runs entirely on the phone, so scanning works in a paddy
+/// with no signal and photos never leave the device.
 ///
-/// Runs the same EfficientNetB0 classifier as the server, converted to TensorFlow Lite
-/// (float16). Input contract matches the server: RGB squashed to 224x224, raw 0–255 floats
-/// (rescaling is inside the model). Output: softmax over the labels in class_indices.json:
-/// [BLAST, BLB, TUNGRO, HEALTHY, OTHER] from model v3. OTHER (a leaf problem the app does not
-/// cover yet) is never shown as a diagnosis; the user gets the same message as from the server.
+/// Model v3 (EfficientNetB0) converted to TensorFlow Lite (float16); the website runs the same
+/// model as ONNX. Input: RGB squashed to 224x224, raw 0–255 floats (rescaling is inside the model).
+/// Output: softmax over the labels in class_indices.json: [BLAST, BLB, TUNGRO, HEALTHY, OTHER].
+/// OTHER (a leaf problem the app does not cover yet) is never shown as a diagnosis.
 class OfflineClassifier {
   OfflineClassifier._();
   static final OfflineClassifier instance = OfflineClassifier._();
@@ -47,8 +47,8 @@ class OfflineClassifier {
     }
   }
 
-  /// Classifies [bytes] and returns a map shaped like the server's /diagnosis/predict response,
-  /// so the scan screen can save and show it the same way.
+  /// Classifies [bytes] and returns the result map the scan screen shows and saves to Firestore.
+  /// Throws [ScanException] for an unclear photo or a condition the model doesn't cover.
   Future<Map<String, dynamic>> diagnose(Uint8List bytes) async {
     await _ensureLoaded();
     final sw = Stopwatch()..start();
@@ -62,11 +62,11 @@ class OfflineClassifier {
     }
     final confidence = double.parse((probs[best] * 100).toStringAsFixed(2));
     if (confidence < _minConfidence) {
-      throw ApiException(400, 'low_confidence', 'ภาพไม่ชัดเจน หรือไม่ใช่ใบข้าว กรุณาถ่ายภาพใบข้าวให้ชัดเจนอีกครั้ง');
+      throw const ScanException('low_confidence', 'ภาพไม่ชัดเจน หรือไม่ใช่ใบข้าว กรุณาถ่ายภาพใบข้าวให้ชัดเจนอีกครั้ง');
     }
     final code = _labels[best];
     if (code == 'OTHER') {
-      throw ApiException(400, 'out_of_scope',
+      throw const ScanException('out_of_scope',
           'ภาพนี้อาจเป็นโรคหรืออาการอื่นที่ระบบยังไม่รองรับ ระบบวิเคราะห์ได้เฉพาะโรคไหม้ โรคขอบใบแห้ง โรคใบสีส้ม และใบปกติ กรุณาปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตร');
     }
     final d = (_diseases[code] as Map<String, dynamic>?) ?? {};
@@ -83,7 +83,7 @@ class OfflineClassifier {
       'advice': d['advice'] ?? const [],
       'disclaimer': 'ผลจาก AI เป็นเพียงเครื่องมือสนับสนุนการตัดสินใจเบื้องต้น ควรปรึกษาผู้เชี่ยวชาญด้านการเกษตรก่อนตัดสินใจใช้สารเคมีหรือวิธีรักษาใด ๆ',
       'ai_source': 'on-device-tflite',
-      'ai_warning': 'วิเคราะห์บนเครื่องเนื่องจากเชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ผลจะซิงก์ขึ้นระบบเมื่อมีอินเทอร์เน็ต',
+      'ai_warning': null,
       'elapsed_ms': sw.elapsedMilliseconds,
     };
   }

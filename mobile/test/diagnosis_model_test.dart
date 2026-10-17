@@ -6,7 +6,7 @@ import 'package:rice_ai_mobile/models/diagnosis.dart';
 
 void main() {
   group('DiagnosisResult.fromJson', () {
-    test('parses a server (/diagnosis/predict) response', () {
+    test('parses a full on-device result', () {
       final r = DiagnosisResult.fromJson({
         'diagnosis_id': 'abc123',
         'disease_name': 'โรคไหม้ (Rice Blast)',
@@ -17,7 +17,7 @@ void main() {
         'advice': [
           {'treatment': 'ลดปุ๋ยไนโตรเจน', 'chemical_name': 'กลุ่ม triazole', 'dosage': 'ตามฉลาก'},
         ],
-        'ai_source': 'ai-service',
+        'ai_source': 'on-device-tflite',
         'location': {'latitude': 6.86, 'longitude': 101.25, 'province': 'ปัตตานี'},
       });
       expect(r.diseaseCode, 'BLAST');
@@ -46,14 +46,17 @@ void main() {
   });
 
   group('offline model assets', () {
-    test('class order and disease data cover the same four classes', () {
+    test('model v3 labels: four diagnoses with disease data, plus OTHER (never shown as a diagnosis)', () {
       final labels = jsonDecode(File('assets/model/class_indices.json').readAsStringSync()) as Map<String, dynamic>;
       final diseases = jsonDecode(File('assets/model/diseases.json').readAsStringSync()) as Map<String, dynamic>;
-      expect(List.generate(4, (i) => labels['$i']), ['BLAST', 'BLB', 'TUNGRO', 'HEALTHY']);
-      for (final code in labels.values) {
+      final config = jsonDecode(File('assets/model/model_config.json').readAsStringSync()) as Map<String, dynamic>;
+      expect(List.generate(labels.length, (i) => labels['$i']), ['BLAST', 'BLB', 'TUNGRO', 'HEALTHY', 'OTHER']);
+      expect(config['out_of_scope_class'], 'OTHER');
+      for (final code in labels.values.where((c) => c != config['out_of_scope_class'])) {
         expect(diseases[code], isNotNull, reason: 'missing offline data for $code');
         expect((diseases[code]['advice'] as List), isNotEmpty);
       }
+      expect(config['min_confidence'], 60.0);
       expect(File('assets/model/rice_disease_model.tflite').lengthSync(), greaterThan(1000000));
     });
   });

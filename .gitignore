@@ -20,7 +20,6 @@ venv/
 *.db-journal
 *.db-wal
 *.db-shm
-backend/local-mock-storage/
 
 # Secrets: never commit these (examples live in *.env.example)
 .env

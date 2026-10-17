@@ -19,10 +19,9 @@ import '../../services/field_service.dart';
 import '../fields/field_detail_screen.dart';
 import '../fields/widgets/field_widgets.dart';
 import '../history/history_detail_screen.dart';
-import '../../services/api_service.dart';
 import '../../services/offline_classifier_stub.dart' if (dart.library.ffi) '../../services/offline_classifier.dart';
-import 'package:http/http.dart' as http;
 import '../../services/location_helper.dart';
+import '../../services/scan_exception.dart';
 import '../../services/navigation_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_ui.dart';
@@ -46,11 +45,8 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
   int _issueSeq = 0;
   final _issueKey = GlobalKey();
 
-  // AI Status
-  bool _isAiOnline = true;
-  String _aiAccuracy = 'กำลังตรวจสอบ...';
-  bool _isPlaceholder = false;
-  bool _onDevice = false;
+  // The model ships inside the app (model v3, test-set accuracy 96.85%), so it is always available.
+  static const _aiAccuracy = '96.9%';
 
   late AnimationController _scanController;
   Timer? _phaseTimer;
@@ -64,38 +60,6 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _fetchAiStatus();
-  }
-
-  Future<void> _fetchAiStatus() async {
-    if (!ApiService.hasServer) {
-      // Beta build: the AI runs on this phone, same model and test accuracy as the server.
-      setState(() {
-        _isAiOnline = true;
-        _isPlaceholder = false;
-        _onDevice = true;
-        _aiAccuracy = '96.9%';
-      });
-      return;
-    }
-    try {
-      final res = await ApiService.instance.get('/ai-status');
-      if (mounted) {
-        setState(() {
-          _isAiOnline = res['status'] == 'online';
-          _aiAccuracy = res['accuracy'] ?? 'N/A';
-          _isPlaceholder = res['is_placeholder'] ?? true;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isAiOnline = false;
-          _aiAccuracy = 'N/A';
-          _isPlaceholder = true;
-        });
-      }
-    }
   }
 
   @override
@@ -184,46 +148,17 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
 
       final bytes = await _image!.readAsBytes();
 
-      // 1. Get AI Prediction from backend (backend no longer saves to SQLite).
-      //    No signal in the field, or the AI server is down -> run the TFLite model on the phone.
-      Map<String, dynamic> data;
-      if (!ApiService.hasServer) {
-        data = await OfflineClassifier.instance.diagnose(bytes);
-        data['ai_warning'] = null;
-        if (_position != null) {
-          data['location'] = {
-            'latitude': _position!.latitude,
-            'longitude': _position!.longitude,
-            'province': _provinceFromNote()
-          };
-        }
-      } else {
-        try {
-          data = Map<String, dynamic>.from(await ApiService.instance.uploadImage(
-            '/diagnosis/predict',
-            bytes,
-            _image!.name,
-            latitude: _position?.latitude,
-            longitude: _position?.longitude,
-          ));
-        } on Object catch (e) {
-          final unreachable = e is SocketException ||
-              e is TimeoutException ||
-              e is http.ClientException ||
-              (e is ApiException && (e.statusCode == 502 || e.statusCode == 503 || e.statusCode == 504));
-          if (!unreachable || kIsWeb) rethrow;
-          data = await OfflineClassifier.instance.diagnose(bytes);
-          if (_position != null) {
-            data['location'] = {
-              'latitude': _position!.latitude,
-              'longitude': _position!.longitude,
-              'province': _provinceFromNote()
-            };
-          }
-        }
+      // 1. The AI runs on this phone (TFLite), so scanning works with no signal at all.
+      final data = await OfflineClassifier.instance.diagnose(bytes);
+      if (_position != null) {
+        data['location'] = {
+          'latitude': _position!.latitude,
+          'longitude': _position!.longitude,
+          'province': _provinceFromNote()
+        };
       }
 
-      // 2. Use compressed Base64 from backend to ensure it fits in Firestore's 1MB limit
+      // 2. The classifier also returns a ≤800 px JPEG so the record fits Firestore's 1 MB limit.
       final base64Image = data['compressed_base64'] ?? base64Encode(bytes);
 
       // 3. Save to Firestore (Diagnoses collection)
@@ -524,13 +459,8 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
 
   Widget _buildStatusBadge() {
     final p = context.pal;
-    final tone = _isAiOnline ? (_isPlaceholder ? Tone.warn : Tone.safe) : Tone.danger;
-    final (fg, bg) = context.tone(tone);
-    final label = _onDevice
-        ? 'AI บนเครื่อง'
-        : _isAiOnline
-            ? (_isPlaceholder ? 'AI ทดสอบ (Mock)' : 'AI พร้อมใช้งาน')
-            : 'AI ขัดข้อง';
+    final (fg, bg) = context.tone(Tone.safe);
+    const label = 'AI บนเครื่อง';
     return Container(
       padding: const EdgeInsets.fromLTRB(4, 4, 12, 4),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
@@ -546,11 +476,8 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
               style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12),
             ),
           ),
-          if (_isAiOnline) ...[
-            Container(
-                width: 1, height: 12, margin: const EdgeInsets.symmetric(horizontal: 8), color: fg.withOpacity(0.3)),
-            Text(_aiAccuracy, style: TextStyle(color: p.body, fontWeight: FontWeight.w600, fontSize: 12)),
-          ],
+          Container(width: 1, height: 12, margin: const EdgeInsets.symmetric(horizontal: 8), color: fg.withOpacity(0.3)),
+          Text(_aiAccuracy, style: TextStyle(color: p.body, fontWeight: FontWeight.w600, fontSize: 12)),
         ],
       ),
     );
@@ -1124,10 +1051,10 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
               decoration: BoxDecoration(
                   color: p.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: p.line)),
               child: Row(children: [
-                Icon(Remix.wifi_off_line, size: 18, color: p.muted),
+                Icon(Remix.cpu_line, size: 18, color: p.muted),
                 const SizedBox(width: 10),
                 Expanded(
-                    child: Text(_result!.aiWarning ?? 'วิเคราะห์บนเครื่อง (ออฟไลน์)',
+                    child: Text(_result!.aiWarning ?? 'AI วิเคราะห์บนเครื่องนี้ ภาพไม่ถูกส่งออก และใช้ได้แม้ไม่มีอินเทอร์เน็ต',
                         style: TextStyle(color: p.muted, fontSize: 12.5, height: 1.5))),
               ]),
             )),
@@ -1383,7 +1310,7 @@ class ChemicalAdvice extends StatelessWidget {
 
 enum _AfterSave { scan, history, home }
 
-enum _IssueKind { retake, outOfScope, network, model, login, save, unknown }
+enum _IssueKind { retake, outOfScope, model, login, save, unknown }
 
 /// A scan problem turned into plain Thai: what happened, why it matters and what to try.
 class _ScanIssue {
@@ -1420,7 +1347,7 @@ class _ScanIssue {
       };
 
   factory _ScanIssue.from(Object e, {bool saving = false}) {
-    final raw = e is ApiException ? '${e.statusCode} ${e.error}: ${e.message ?? ''}' : e.toString();
+    final raw = e is ScanException ? '${e.code}: ${e.message}' : e.toString();
     if (saving) {
       return _ScanIssue(
         kind: _IssueKind.save,
@@ -1434,7 +1361,7 @@ class _ScanIssue {
         detail: raw,
       );
     }
-    final code = e is ApiException ? e.error : '';
+    final code = e is ScanException ? e.code : '';
     if (code == 'low_confidence') {
       return const _ScanIssue(
         kind: _IssueKind.retake,
@@ -1462,16 +1389,6 @@ class _ScanIssue {
           'ลองถ่ายใบอื่นในแปลงที่เห็นอาการชัดกว่า',
           'ถ้าอาการลุกลาม ปรึกษาเจ้าหน้าที่ส่งเสริมการเกษตรหรือศูนย์วิจัยข้าวใกล้บ้าน',
         ],
-      );
-    }
-    if (e is SocketException || e is TimeoutException || e is http.ClientException || (e is ApiException && e.statusCode >= 500)) {
-      return _ScanIssue(
-        kind: _IssueKind.network,
-        tag: 'เชื่อมต่อไม่ได้',
-        title: 'ติดต่อระบบไม่สำเร็จ',
-        message: 'สัญญาณอินเทอร์เน็ตอาจไม่เสถียร ภาพของคุณยังอยู่ ลองวิเคราะห์อีกครั้งได้เลย',
-        tips: const ['ย้ายไปจุดที่สัญญาณดีขึ้น หรือเปิด-ปิดเน็ตมือถือ', 'ถ้ายังไม่ได้ ลองปิดแล้วเปิดแอปใหม่'],
-        detail: raw,
       );
     }
     if (raw.contains('เข้าสู่ระบบ') || raw.contains('Firebase Auth')) {

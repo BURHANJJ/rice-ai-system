@@ -52,27 +52,6 @@ class AdviceItem {
       );
 }
 
-class HistoryEntry {
-  final String diagId;
-  final String diseaseName;
-  final double confidence;
-  final String diagDate;
-  final String? province;
-  HistoryEntry(
-      {required this.diagId,
-      required this.diseaseName,
-      required this.confidence,
-      required this.diagDate,
-      this.province});
-  factory HistoryEntry.fromJson(Map<String, dynamic> j) => HistoryEntry(
-        diagId: j['diag_id'],
-        diseaseName: j['disease_name'],
-        confidence: (j['confidence'] as num).toDouble(),
-        diagDate: j['diag_date'],
-        province: j['province'],
-      );
-}
-
 class ProvinceStat {
   final String province;
   final String region;
