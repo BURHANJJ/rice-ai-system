@@ -138,7 +138,8 @@ export default function TryScan() {
   }, []);
 
   const onFiles = (files) => { const f = files?.[0]; if (f) run(f); };
-  const reset = () => { setPhase('idle'); setResult(null); setIssue(null); };
+  // Back to the empty upload area: forget the photo too (the effect above frees its object URL).
+  const reset = () => { setPreview(''); setPhase('idle'); setResult(null); setIssue(null); };
   const pickCamera = () => { warmUp(); cameraRef.current?.click(); };
   const pickGallery = () => { warmUp(); galleryRef.current?.click(); };
 
