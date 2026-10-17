@@ -1,0 +1,89 @@
+{
+ "duration": 389,
+ "chapters": [
+  {
+   "t": 3,
+   "id": "intro",
+   "th": "เปิดเรื่อง",
+   "en": "Introduction"
+  },
+  {
+   "t": 20,
+   "id": "goal",
+   "th": "เป้าหมาย",
+   "en": "The goal"
+  },
+  {
+   "t": 35,
+   "id": "data",
+   "th": "ข้อมูล",
+   "en": "The data"
+  },
+  {
+   "t": 66,
+   "id": "split",
+   "th": "แบ่งข้อมูล",
+   "en": "Splitting the data"
+  },
+  {
+   "t": 95,
+   "id": "transfer",
+   "th": "วิธีสอน",
+   "en": "Transfer learning"
+  },
+  {
+   "t": 124,
+   "id": "v1",
+   "th": "รุ่นแรก V1",
+   "en": "V1"
+  },
+  {
+   "t": 153,
+   "id": "v2",
+   "th": "รุ่นที่สอง V2",
+   "en": "V2"
+  },
+  {
+   "t": 182,
+   "id": "compare",
+   "th": "เปรียบเทียบ 6 โมเดล",
+   "en": "Six-model comparison"
+  },
+  {
+   "t": 209,
+   "id": "seeds",
+   "th": "Seed",
+   "en": "Seeds"
+  },
+  {
+   "t": 232,
+   "id": "results",
+   "th": "ผลเปรียบเทียบ",
+   "en": "Results"
+  },
+  {
+   "t": 266,
+   "id": "weakness",
+   "th": "จุดอ่อนของ V2",
+   "en": "V2's weak spot"
+  },
+  {
+   "t": 291,
+   "id": "v3",
+   "th": "รุ่นที่สาม V3",
+   "en": "V3"
+  },
+  {
+   "t": 329,
+   "id": "deploy",
+   "th": "ใช้งานจริง",
+   "en": "In the app"
+  },
+  {
+   "t": 354,
+   "id": "recap",
+   "th": "สรุป",
+   "en": "Summary"
+  }
+ ]
+}

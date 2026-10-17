@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import khaoHomMascot from '../../assets/khao_hom_scan.svg';
 import PublicHeader from '../components/PublicHeader';
 import PublicFooter from '../components/PublicFooter';
+import PromoVideo from '../components/landing/PromoVideo';
+import explainer from '../data/explainerChapters.json';
 import { useDocTitle, useI18n } from '../lib/i18n';
 import { ConfusionExplorer, Leaderboard, ModelCards, PerClassHeatmap, SeedSpread, Significance, TradeoffChart, data as cmp, mainModel, pct, pm } from '../components/research/ModelComparison';
 
@@ -211,7 +213,7 @@ export default function ResearchStudy() {
             </div>
           </div>
           <nav aria-label={tr('สารบัญงานศึกษา', 'Study contents')} className="mt-10 flex flex-wrap gap-2 border-t border-emerald-900/10 pt-5">
-            {[['#summary', tr('สรุป', 'Summary')], ['#study', tr('01 ข้อมูลและตัวชี้วัด', '01 Data & metrics')], ['#history', tr('02 V1 → V2', '02 V1 → V2')], ['#method', tr('03 วิธีเปรียบเทียบ', '03 Comparison method')], ['#results', tr('04 ผลเปรียบเทียบ', '04 Comparison results')], ['#deployed', tr('05 V3 ใช้งานจริง', '05 V3 in service')], ['#scope', tr('06 ข้อจำกัดและอ้างอิง', '06 Limits & references')]].map(([href, label]) => <a key={href} href={href} className="rounded-full border border-emerald-900/10 bg-white/70 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:border-emerald-800/40 hover:text-emerald-900">{label}</a>)}
+            {[['#summary', tr('สรุป', 'Summary')], ['#video', tr('▶ คลิปอธิบาย', '▶ Video')], ['#study', tr('01 ข้อมูล เงื่อนไข และตัวชี้วัด', '01 Data, setup & metrics')], ['#history', tr('02 V1 → V2', '02 V1 → V2')], ['#method', tr('03 วิธีเปรียบเทียบ', '03 Comparison method')], ['#results', tr('04 ผลเปรียบเทียบ', '04 Comparison results')], ['#deployed', tr('05 V3 ใช้งานจริง', '05 V3 in service')], ['#scope', tr('06 ข้อจำกัดและอ้างอิง', '06 Limits & references')]].map(([href, label]) => <a key={href} href={href} className="rounded-full border border-emerald-900/10 bg-white/70 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:border-emerald-800/40 hover:text-emerald-900">{label}</a>)}
           </nav>
         </div>
       </section>
@@ -257,6 +259,21 @@ export default function ResearchStudy() {
               </dl>
             </div></div>
           </div>
+        </div>
+      </section>
+
+      {/* The whole study as a narrated clip (built in video/, see video/README.md). */}
+      <section id="video" className="scroll-mt-28 mx-auto max-w-7xl px-5 pt-14 sm:px-8 sm:pt-16 lg:px-10">
+        <SectionHeading eyebrow={tr('คลิปอธิบาย', 'Video walkthrough')} title={tr(`ดูทั้งหมดในคลิป ${Math.round(explainer.duration / 60)} นาที`, `The whole study in ${Math.round(explainer.duration / 60)} minutes`)} body={tr('น้องข้าวหอมพาดูตั้งแต่ข้อมูล การแบ่งชุด V1 → V2 การเปรียบเทียบ 6 โมเดล จนถึง V3 และการใช้งานในแอป มีเสียงบรรยายและซับไทยทุกประโยค ตัวเลขในคลิปตรงกับหน้านี้', 'Khao Hom walks through the data, the split, V1 → V2, the six-model comparison, V3 and the app, with narration and Thai subtitles throughout. Every figure matches this page.')} />
+        <div className="mt-20 pb-4 sm:mt-28">
+          <PromoVideo
+            src="/media/rice-ai-model-explainer-720p.mp4"
+            poster="/media/rice-ai-model-explainer-poster.jpg"
+            duration={explainer.duration}
+            title={{ th: 'คลิปอธิบายการพัฒนาโมเดล AI จำแนกโรคใบข้าว', en: 'How the rice-disease AI model was built' }}
+            subtitled
+            chapters={explainer.chapters}
+          />
         </div>
       </section>
 
