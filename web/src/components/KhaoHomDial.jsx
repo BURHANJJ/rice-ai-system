@@ -10,7 +10,8 @@ import ChatPanel from './chat/ChatPanel';
 import khaoHomMascot from '../../assets/khao_hom_scan.svg';
 import { useI18n } from '../lib/i18n';
 
-const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const PHONE = '(max-width: 639px)';
+const reducedMotion =() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 export const scrollToTop = () => window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
 
 function useTyping(messages, paused) {
@@ -76,6 +77,16 @@ export default function KhaoHomDial({ actions: pageActions, bubble, bubbleTo, re
     ? [...pageActions, { key: 'chat', icon: MessageCircleMore, label: t({ th: 'คุยกับน้องข้าวหอม', en: 'Chat with Khao Hom' }), onClick: () => setChatOpen(true), accent: true }]
     : pageActions;
   const ref = useRef(null);
+  // Phones: the arc of labels crowds a small screen, so tapping Khao Hom goes straight to the chat.
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE);
+    const on = () => setPhone(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  const chatFirst = chat && phone;
+  useEffect(() => { if (chatFirst) setOpen(false); }, [chatFirst]);
   // revealAfter: px to scroll before he shows up (e.g. past a hero that already has a mascot in it)
   const [shown, setShown] = useState(revealAfter === 0);
   useEffect(() => {
@@ -149,10 +160,10 @@ export default function KhaoHomDial({ actions: pageActions, bubble, bubbleTo, re
 
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={open ? t({ th: 'ปิดเมนูน้องข้าวหอม', en: 'Close Khao Hom menu' }) : t({ th: 'เปิดเมนูน้องข้าวหอม', en: 'Open Khao Hom menu' })}
-        aria-expanded={open}
-        aria-haspopup="menu"
+        onClick={() => (chatFirst ? setChatOpen(true) : setOpen((v) => !v))}
+        aria-label={chatFirst ? t({ th: 'คุยกับน้องข้าวหอม', en: 'Chat with Khao Hom' }) : open ? t({ th: 'ปิดเมนูน้องข้าวหอม', en: 'Close Khao Hom menu' }) : t({ th: 'เปิดเมนูน้องข้าวหอม', en: 'Open Khao Hom menu' })}
+        aria-expanded={chatFirst ? chatOpen : open}
+        aria-haspopup={chatFirst ? 'dialog' : 'menu'}
         className="relative flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/25"
       >
         <img src={khaoHomMascot} alt="" aria-hidden="true" className="rs-quick-mascot h-20 w-20 object-contain transition-transform duration-500 ease-out group-hover:-translate-y-2 group-hover:rotate-[-3deg] group-hover:scale-110 motion-reduce:transition-none sm:h-24 sm:w-24 lg:h-28 lg:w-28" />
