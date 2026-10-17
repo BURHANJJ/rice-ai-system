@@ -70,6 +70,8 @@ body {
   outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
+/* chat composer shows its own focus ring on the wrapper */
+.rc-input:focus-visible { outline: none; }
 
 /* ReactBits-inspired production motion utilities */
 .rb-reveal {
