@@ -26,7 +26,7 @@
 
 Accuracy 4 คลาสลดลงเพราะภาพโรคที่รองรับ 15 ภาพถูกจัดเป็น `OTHER` (ผู้ใช้ได้คำแนะนำให้ปรึกษาเจ้าหน้าที่ ไม่ใช่ชื่อโรคผิด) McNemar ระหว่างสองรุ่นบน 761 ภาพ p = 0.096 ไม่มีนัยสำคัญ ไฟล์ TFLite 8.1 MB ทายตรงกับ Keras ทุกภาพ ผลทั้งหมดอยู่ใน `model/metrics.json`
 
-รุ่นที่ 2 เก็บไว้ที่ `model/rice_disease_model.v2.keras` และ `model/metrics.v2.json` ถ้าต้องย้อนกลับ ให้ก๊อปสองไฟล์นั้นทับ `rice_disease_model.keras` / `metrics.json`, ใช้ `class_indices.json` 4 คลาส และลบ `mobile/assets/model/model_config.json`
+รุ่นที่ 2 ไม่ได้รวมอยู่ใน repo นี้ เก็บไว้เฉพาะผลวัด (`model/metrics.v2.json`, `model/version_comparison.json`) ถ้าต้องการย้อนกลับให้เทรนซ้ำด้วย `train.py` แล้วใช้ `class_indices.json` 4 คลาส และลบ `mobile/assets/model/model_config.json`
 
 ```bash
 python prepare_v3_data.py                                         # Python ที่มี TensorFlow

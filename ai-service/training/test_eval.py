@@ -53,7 +53,8 @@ def metrics(y, prob):
 
 out = {}
 models = {
-    'v1': r'D:\Project\rice-ai-system\ai-service\model\rice_disease_model.v1.keras',
+    # the first model is not shipped in the repository; put your copy at this path to include it in the comparison
+    'v1': os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'model', 'rice_disease_model.v1.keras'),
     'v2': os.path.join(RUN, 'rice_disease_model.keras'),
 }
 loaded = {}
