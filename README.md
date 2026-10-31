@@ -141,6 +141,7 @@ cd ai-service/training && python test_eval.py             # ประเมิ�
 - เนื้อหาและภาพคลังความรู้โรคข้าว อ้างอิงข้อมูลจาก **Rice Knowledge Bank กรมการข้าว** ตรวจสอบเงื่อนไขการใช้ซ้ำก่อนนำไปเผยแพร่ต่อ
 - ขอบเขตการปกครอง: ชุดข้อมูลเปิดที่แนบใน `web/src/lib/*.json` · แผนที่พื้นหลัง © ผู้ร่วมจัดทำ OpenStreetMap
 - ตัวละคร "น้องข้าวหอม" และโลโก้เป็นผลงานของโครงงานนี้
+- รายการวัสดุของบุคคลที่สามที่ไม่อยู่ใต้สัญญาอนุญาต MIT: [NOTICE](NOTICE)
 
 ## ผู้จัดทำ
 
@@ -156,4 +157,4 @@ cd ai-service/training && python test_eval.py             # ประเมิ�
 - **Android beta**: https://github.com/BURHANJJ/rice-ai-beta/releases/latest
 - **Run your own copy**: this repository ships no credentials or project config. Create a Firebase project and follow [docs/SETUP.md](docs/SETUP.md). The trained models are included.
 - **Security**: [SECURITY.md](SECURITY.md). The Firestore rules are covered by emulator tests in [`tests/firestore`](tests/firestore).
-- **License**: MIT, see [LICENSE](LICENSE). The training data (Paddy Doctor) and the disease-library content from the Thai Rice Department are third-party and not covered by it.
+- **License**: MIT, see [LICENSE](LICENSE). The training data (Paddy Doctor) and the disease-library content from the Thai Rice Department are third-party and not covered by it, see [NOTICE](NOTICE).

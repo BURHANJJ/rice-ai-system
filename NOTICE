@@ -1,0 +1,13 @@
+Rice AI - third-party material
+
+The MIT license in LICENSE covers the source code and original assets of this repository.
+It does not cover:
+
+- Paddy Doctor training images (Kaggle). Not included in this repository; download them
+  under the publisher's terms.
+- Disease-library text and photographs derived from the Rice Knowledge Bank of the Thai
+  Rice Department (web/public/diseases, web/src/lib, mobile/assets). Check the source's
+  terms before redistributing or using them commercially.
+- OpenStreetMap map data and tiles (c) OpenStreetMap contributors.
+- Administrative-boundary GeoJSON files in web/src/lib, taken from public open datasets.
+- Third-party packages, each under its own license (see package.json, pubspec.yaml).

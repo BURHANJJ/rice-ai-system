@@ -8,3 +8,6 @@
 *.tflite binary
 *.onnx binary
 *.h5 binary
+
+# Notebooks hold large saved outputs; keep them out of the repository language statistics
+*.ipynb linguist-detectable=false
