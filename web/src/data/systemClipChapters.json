@@ -1,0 +1,13 @@
+{
+  "duration": 338,
+  "chapters": [
+    { "t": 0, "id": "intro", "th": "เปิดเรื่อง", "en": "Introduction" },
+    { "t": 10, "id": "channels", "th": "ระบบ 3 ช่องทาง", "en": "Three ways in" },
+    { "t": 26, "id": "web", "th": "เว็บไซต์สาธารณะ", "en": "Public website" },
+    { "t": 86, "id": "portal", "th": "พอร์ทัลผู้ดูแลและนักวิชาการ", "en": "Admin and researcher portals" },
+    { "t": 208, "id": "app", "th": "แอปมือถือ", "en": "Mobile app" },
+    { "t": 238, "id": "field", "th": "สมุดแปลงนา", "en": "Field notebook" },
+    { "t": 282, "id": "map", "th": "แผนที่และคลังความรู้", "en": "Map and library" },
+    { "t": 332, "id": "end", "th": "ปิดท้าย", "en": "Closing" }
+  ]
+}

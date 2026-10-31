@@ -7,6 +7,7 @@ import AppTour from '../components/landing/AppTour';
 import BetaDownload from '../components/landing/BetaDownload';
 import PaddyField from '../components/landing/PaddyField';
 import PromoVideo from '../components/landing/PromoVideo';
+import systemClip from '../data/systemClipChapters.json';
 import { Phone, CountUp } from '../components/landing/LandingKit';
 import { spotlight, useRevealAll, useTilt } from '../components/landing/landingHooks';
 import { useI18n, useDocTitle } from '../lib/i18n';
@@ -266,6 +267,27 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── Full system walkthrough (narrated, with chapters) ───── */}
+      <section id="walkthrough" className="relative scroll-mt-20 overflow-hidden pb-16 pt-4 sm:pb-24">
+        <div className="relative mx-auto max-w-7xl px-5 lg:px-6">
+          <SectionHead
+            badge={t({ th: 'ดูระบบทำงานจริง', en: 'Live walkthrough' })}
+            icon={PlayCircle}
+            title={t({ th: 'ทั้งระบบในคลิปเดียว 5 นาที', en: 'The whole system in one 5-minute clip' })}
+            copy={t({ th: 'พาดูเว็บไซต์ พอร์ทัลผู้ดูแลและนักวิชาการ และแอปมือถือ พร้อมเสียงบรรยาย กดบทด้านล่างเพื่อข้ามไปส่วนที่สนใจ', en: 'A narrated tour of the website, the admin and researcher portals and the mobile app. Tap a chapter to jump to the part you care about.' })}
+          />
+          <div className="rv mt-4 sm:mt-8">
+            <PromoVideo
+              src="/media/rice-ai-system-walkthrough-720p.mp4"
+              poster="/media/rice-ai-system-walkthrough-poster.jpg"
+              duration={systemClip.duration}
+              title={{ th: 'คลิปแนะนำระบบ Rice AI ทั้งระบบ', en: 'Rice AI full system walkthrough' }}
+              chapters={systemClip.chapters}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* ── Guided app tour (real screens) ──────────────────── */}
       <section id="tour" className="relative scroll-mt-20 overflow-x-clip bg-[linear-gradient(180deg,var(--color-paper)_0%,#f2f7f1_50%,var(--color-paper)_100%)] py-16 sm:py-20">
         <div className="absolute left-[-10%] top-40 h-96 w-96 rounded-full bg-emerald-200/30 blur-3xl" />
@@ -383,6 +405,7 @@ export default function Landing() {
           { key: 'try', icon: ScanLine, label: t({ th: 'ทดลองสแกนโรคฟรี', en: 'Try a free scan' }), hint: t({ th: 'ไม่ต้องสมัคร วันละ 5 ครั้ง', en: 'No sign-up, 5 a day' }), to: '/try-scan' },
           { key: 'app', icon: Smartphone, label: t({ th: 'ดาวน์โหลดแอป', en: 'Get the app' }), hint: t({ th: 'Android · ใช้ได้แม้ไม่มีเน็ต', en: 'Android · works offline' }), href: '#app' },
           { key: 'video', icon: Play, label: t({ th: 'ดูคลิปแนะนำ', en: 'Watch the intro' }), hint: t({ th: 'รู้จัก Rice AI ใน 43 วินาที', en: 'Rice AI in 43 seconds' }), href: '#video' },
+          { key: 'walkthrough', icon: PlayCircle, label: t({ th: 'ดูระบบทำงานจริง', en: 'Watch the walkthrough' }), hint: t({ th: 'ทั้งระบบใน 5 นาที มีเสียงบรรยาย', en: 'The whole system in 5 minutes, narrated' }), href: '#walkthrough' },
           { key: 'diseases', icon: BookOpen, label: t({ th: 'คลังความรู้โรคข้าว', en: 'Rice disease guide' }), hint: t({ th: '22 โรค จากกรมการข้าว', en: '22 diseases from the Rice Department' }), to: '/rice-diseases' },
           { key: 'feedback', icon: MessageSquareText, label: t({ th: 'ส่งข้อเสนอแนะ', en: 'Send feedback' }), hint: t({ th: 'แจ้งปัญหาหรือเสนอไอเดีย', en: 'Report a problem or share an idea' }), to: '/feedback' },
         ]}
