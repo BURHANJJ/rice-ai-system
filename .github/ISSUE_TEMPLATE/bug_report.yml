@@ -1,0 +1,34 @@
+name: แจ้งข้อผิดพลาด
+description: เจอสิ่งที่ทำงานไม่ถูกต้อง
+labels: [bug]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: ส่วนที่เกี่ยวข้อง
+      options: [แอปมือถือ, เว็บไซต์, พอร์ทัลนักวิชาการ/ผู้ดูแลระบบ, โมเดล AI, Cloud Functions, กฎ Firestore, เอกสาร]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: เกิดอะไรขึ้น และคาดว่าควรเป็นอย่างไร
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: ขั้นตอนที่ทำซ้ำได้
+      placeholder: |
+        1. เปิดหน้า ...
+        2. กด ...
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: อุปกรณ์และรุ่น
+      description: เช่น Android 13 / แอปรุ่น 0.9.4 หรือ Chrome 130 บน Windows
+  - type: markdown
+    attributes:
+      value: อย่าแนบรูปหรือข้อความที่มีรหัสผ่าน กุญแจ หรือข้อมูลส่วนตัวของผู้อื่น

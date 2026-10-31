@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: แจ้งช่องโหว่ความปลอดภัย (ส่วนตัว)
+    url: https://github.com/BURHANJJ/rice-ai-system/security/advisories/new
+    about: อย่าเปิดเป็น Issue สาธารณะ ใช้ลิงก์นี้เพื่อแจ้งแบบส่วนตัว
+  - name: ลองใช้งานและดาวน์โหลดแอป
+    url: https://rice-ai-appp.web.app/
+    about: เว็บไซต์และลิงก์ดาวน์โหลดแอป Android
