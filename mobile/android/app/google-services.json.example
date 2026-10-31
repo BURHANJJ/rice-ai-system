@@ -1,0 +1,20 @@
+{
+  "_comment": "Template. Download the real file from Firebase console -> Project settings -> Your apps -> Android app (package com.example.rice_ai_mobile) and save it as google-services.json next to this one. The real file is git-ignored.",
+  "project_info": {
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_PROJECT_ID.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "YOUR_ANDROID_APP_ID",
+        "android_client_info": { "package_name": "com.example.rice_ai_mobile" }
+      },
+      "oauth_client": [],
+      "api_key": [{ "current_key": "YOUR_ANDROID_API_KEY" }],
+      "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+    }
+  ],
+  "configuration_version": "1"
+}

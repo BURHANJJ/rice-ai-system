@@ -1,7 +1,7 @@
 // Video player framed by ripe rice sprigs. Only the poster loads until the visitor presses
 // play (preload="none"), so the page stays light. Used for the landing-page promo (defaults)
 // and the research-study explainer (with chapters the viewer can jump to).
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Play, Clock3, Volume2, Subtitles } from 'lucide-react';
 import RiceSprig from './RiceSprig';
 import { useI18n } from '../../lib/i18n';
@@ -20,6 +20,16 @@ export default function PromoVideo({
   const video = useRef(null);
   const [started, setStarted] = useState(false);
   const [now, setNow] = useState(0);
+  const [available, setAvailable] = useState(true);
+
+  // The video files are not part of the public source repository; without them there is nothing to show.
+  useEffect(() => {
+    let live = true;
+    fetch(src, { method: 'HEAD' })
+      .then((r) => live && setAvailable(r.ok && !String(r.headers.get('content-type')).includes('text/html')))
+      .catch(() => live && setAvailable(false));
+    return () => { live = false; };
+  }, [src]);
 
   const play = (at) => {
     setStarted(true);
@@ -29,6 +39,14 @@ export default function PromoVideo({
     v.play().catch(() => {});
   };
   const current = chapters.reduce((k, c, i) => (now >= c.t ? i : k), -1);
+
+  if (!available) {
+    return (
+      <div className="mx-auto w-full max-w-3xl rounded-3xl border border-dashed border-emerald-900/20 bg-white/60 px-6 py-10 text-center text-sm font-semibold text-slate-600">
+        {t({ th: 'ไฟล์วิดีโอไม่ได้รวมอยู่ในซอร์สโค้ดนี้ ดูคลิปได้ที่เว็บไซต์ rice-ai-appp.web.app', en: 'The video file is not part of this source copy. Watch it on rice-ai-appp.web.app.' })}
+      </div>
+    );
+  }
 
   return (
     <div className="relative mx-auto w-full max-w-5xl px-2 sm:px-6">

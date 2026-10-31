@@ -21,24 +21,36 @@ venv/
 *.db-wal
 *.db-shm
 
-# Secrets: never commit these (examples live in *.env.example)
+# Secrets and per-deployment config: never commit these (templates live next to them as *.example)
 .env
 .env.*
 !.env.example
 serviceAccountKey*.json
 *service-account*.json
+*-adminsdk-*.json
 kaggle.json
 *.keystore
 *.jks
 key.properties
+mobile/lib/firebase_options.dart
+mobile/firebase.json
+mobile/android/app/google-services.json
+mobile/ios/Runner/GoogleService-Info.plist
 
 # Release binaries are published on GitHub Releases, not in the repo
 *.apk
 *.aab
 web/public/downloads/*.apk
 
-# Rendered videos (regenerate with `npm run render` in video/)
-video/out/
+# Project report and presentation media are kept out of the repository
+/docs/report/
+/video/
+/web/public/media/
+/output/
+/*.pdf
+/*.docx
+/*.mp4
+/*.webm
 
 # Editor, OS and tool caches
 .idea/
@@ -50,10 +62,9 @@ video/out/
 Thumbs.db
 *.log
 
-# Old exported report (the current one is built from docs/)
-/การจำเเนกโรคของใบข้าวด้วย (Machine Learning) ล่าสุด.pdf
-
-# Old 800-byte placeholder from before the real model existed
+# Superseded model versions: kept locally, not in the repository
+ai-service/model/*.v1.keras
+ai-service/model/*.v2.keras
 ai-service/model/*.h5
 
 # Comparison-model weights are large (~1 GB in total); keep metrics, logs and histories only.
