@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/auth_provider.dart';
+import '../../services/location_helper.dart';
 import '../../services/navigation_provider.dart';
 import '../../services/app_version.dart';
 import '../../theme/app_theme.dart';
@@ -36,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        if (mounted) setState(() => _locationDesc = 'ปิดตำแหน่ง GPS อยู่');
+        if (mounted) setState(() => _locationDesc = 'ปิดตำแหน่ง GPS อยู่ (แตะเพื่อลองใหม่)');
         return;
       }
 
@@ -44,27 +44,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          if (mounted) setState(() => _locationDesc = 'ไม่ได้รับอนุญาต GPS');
+          if (mounted) setState(() => _locationDesc = 'ไม่ได้รับอนุญาต GPS (แตะเพื่ออนุญาต)');
           return;
         }
       }
 
-      final position = await Geolocator.getCurrentPosition();
-      final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) setState(() => _locationDesc = 'ถูกบล็อกสิทธิ์ GPS');
+        return;
+      }
 
-      if (placemarks.isNotEmpty) {
-        final place = placemarks[0];
-        final lat = position.latitude.toStringAsFixed(3);
-        final lon = position.longitude.toStringAsFixed(3);
-        final province = place.administrativeArea ?? 'ไม่ระบุ';
-        if (mounted) {
-          setState(() {
-            _locationDesc = '$lat°N, $lon°E - $province';
-          });
-        }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(timeLimit: Duration(seconds: 10)),
+      );
+      final lat = position.latitude.toStringAsFixed(4);
+      final lon = position.longitude.toStringAsFixed(4);
+
+      String address = '';
+      try {
+        address = await LocationHelper.getThaiAddress(position);
+      } catch (_) {}
+
+      if (mounted) {
+        setState(() {
+          if (address.isNotEmpty && address != 'พิกัดปัจจุบัน') {
+            _locationDesc = '$lat°N, $lon°E · $address';
+          } else {
+            _locationDesc = '$lat°N, $lon°E';
+          }
+        });
       }
     } catch (e) {
-      if (mounted) setState(() => _locationDesc = 'ระบุพิกัดด้วยตัวเอง');
+      if (mounted) setState(() => _locationDesc = 'ไม่สามารถระบุพิกัดได้ (แตะเพื่อลองใหม่)');
     }
   }
 

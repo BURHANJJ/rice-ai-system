@@ -255,11 +255,14 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.pal;
     final enabled = onPressed != null && !busy;
+    // ==========================================================================
+    // 🔘 จุดปรับแต่งสีปุ่มทุกประเภทในแอปมือถือ (Mobile AppButton Color Mapping)
+    // ==========================================================================
     final (bg, fg, border) = switch (kind) {
-      ButtonKind.primary => (p.primary, Colors.white, Colors.transparent),
-      ButtonKind.secondary => (p.surface, p.ink, p.line),
-      ButtonKind.danger => (p.surface, p.danger, p.danger.withOpacity(0.35)),
-      ButtonKind.soft => (p.subtle, p.ink, Colors.transparent),
+      ButtonKind.primary => (p.primary, Colors.white, Colors.transparent),       // ปุ่มหลัก: พื้นเขียว p.primary, อักษรขาว
+      ButtonKind.secondary => (p.surface, p.ink, p.line),                        // ปุ่มรอง: พื้นขาว p.surface, อักษรเข้ม, ขอบครีม
+      ButtonKind.danger => (p.surface, p.danger, p.danger.withOpacity(0.35)),    // ปุ่มอันตราย: พื้นขาว, อักษรแดง, ขอบแดงจาง
+      ButtonKind.soft => (p.subtle, p.ink, Colors.transparent),                  // ปุ่มพาสเทล: พื้นครีม p.subtle, อักษรเข้ม
     };
 
     final content = AnimatedSwitcher(

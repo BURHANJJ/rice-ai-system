@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,8 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:remixicon/remixicon.dart';
 
+import '../../models/rice_field.dart';
+import '../../services/field_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_ui.dart';
+import '../fields/field_detail_screen.dart';
+import '../fields/widgets/field_widgets.dart';
 import '../scan/scan_screen.dart' show ChemicalAdvice;
 import '../wiki/data/rice_department_data.dart';
 
@@ -25,6 +30,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic>? _data;
+  (RiceField, double)? _matchedField;
 
   @override
   void initState() {
@@ -37,12 +43,15 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
       final doc = await FirebaseFirestore.instance.collection('diagnoses').doc(widget.diagId).get();
       if (!doc.exists) throw Exception('ไม่พบข้อมูล');
 
+      final data = doc.data();
       if (mounted) {
         setState(() {
-          _data = doc.data();
+          _data = data;
           _isLoading = false;
         });
       }
+
+      _resolveField(data);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -51,6 +60,45 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
         });
       }
     }
+  }
+
+  Future<void> _resolveField(Map<String, dynamic>? data) async {
+    if (data == null) return;
+    try {
+      final loc = data['location'] as Map<String, dynamic>?;
+      final lat = (loc?['latitude'] as num?)?.toDouble();
+      final lng = (loc?['longitude'] as num?)?.toDouble();
+
+      (RiceField, double)? matched;
+      if (lat != null && lng != null) {
+        matched = await FieldService.nearestField(lat, lng);
+      }
+
+      // If nearestField didn't find by coordinate or if field_id was saved directly
+      if (matched == null && data['field_id'] != null) {
+        final fieldDoc =
+            await FirebaseFirestore.instance.collection('fields').doc(data['field_id'] as String).get();
+        if (fieldDoc.exists) {
+          final f = RiceField.fromDoc(fieldDoc);
+          final dist = (lat != null && lng != null && f.hasLocation)
+              ? FieldService.distanceM(lat, lng, f.lat!, f.lng!)
+              : 0.0;
+          matched = (f, dist);
+        }
+      }
+
+      if (mounted && matched != null) {
+        setState(() => _matchedField = matched);
+
+        // If field_id wasn't saved in the diagnosis record yet, backfill it silently
+        if (data['field_id'] == null) {
+          unawaited(FirebaseFirestore.instance.collection('diagnoses').doc(widget.diagId).update({
+            'field_id': matched.$1.id,
+            'field_name': matched.$1.name,
+          }).catchError((_) {}));
+        }
+      }
+    } catch (_) {}
   }
 
   // Clean location text from stored data (may contain legacy duplicates like จ.ต. or จ.จังหวัด)
@@ -270,6 +318,39 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                         : const StatusPill(label: 'ไม่ได้ระบุ GPS', tone: Tone.neutral, dot: false),
                   ],
                 ),
+                if (_matchedField != null) ...[
+                  const SizedBox(height: 12),
+                  Pressable(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => FieldDetailScreen(fieldId: _matchedField!.$1.id)),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(6, 6, 12, 6),
+                      decoration: BoxDecoration(color: p.primarySoft, borderRadius: BorderRadius.circular(14)),
+                      child: Row(
+                        children: [
+                          FieldAvatar(field: _matchedField!.$1, size: 34),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('สแกนในแปลง ${_matchedField!.$1.name}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: p.primaryText)),
+                                Text('ห่างจุดปักหมุดแปลง ${distanceLabel(_matchedField!.$2)} · ดูในสมุดแปลงนา',
+                                    style: TextStyle(fontSize: 11.5, color: p.muted)),
+                              ],
+                            ),
+                          ),
+                          Icon(Remix.arrow_right_s_line, color: p.primaryText),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 if (lat != null) ...[
                   const SizedBox(height: 14),
                   Text(displayLocation, style: TextStyle(fontSize: 14, color: p.ink, height: 1.4)),

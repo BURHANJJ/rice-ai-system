@@ -81,10 +81,13 @@ class Map3D extends StatefulWidget {
     this.maxHeight = 70,
     this.padding = EdgeInsets.zero,
     this.controller,
-    this.contextColor = const Color(0xFFE4DFD3),
-    this.edgeColor = const Color(0xFFFFFFFF),
-    this.labelColor = const Color(0xFF1C211E),
-    this.labelHalo = const Color(0xFFF4F1E8),
+    // ========================================================================
+    // 🗺️ จุดปรับแต่งสีโมเดล 3D ฝั่งมือถือ (Mobile 3D Map Styling)
+    // ========================================================================
+    this.contextColor = const Color(0xFFE4DFD3), // สีแผ่นดินจังหวัดข้างเคียง (ครีมอมเทา)
+    this.edgeColor = const Color(0xFFFFFFFF),    // สีเส้นขอบ 3D (สีขาว)
+    this.labelColor = const Color(0xFF1C211E),   // สีตัวหนังสือชื่อจังหวัดบนแผนที่
+    this.labelHalo = const Color(0xFFF4F1E8),    // สีเงารัศมีรอบตัวหนังสือ (ครีมกระดาษ)
   });
 
   final List<MapRegion> regions;

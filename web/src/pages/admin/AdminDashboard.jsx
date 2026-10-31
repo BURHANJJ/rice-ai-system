@@ -23,11 +23,14 @@ const STATE_LABEL = {
   offline: <span className="flex items-center gap-1 text-xs font-bold text-red-500"><AlertTriangle size={14} /> ติดต่อไม่ได้</span>,
 };
 
+// ==============================================================================
+// 📊 จุดปรับแต่งสีกราฟสถิติโรคข้าว (Chart Disease Colors - Pie & Bar Charts)
+// ==============================================================================
 const COLORS = {
-  'BLAST': '#EF4444',
-  'BLB': '#F97316',
-  'TUNGRO': '#EAB308',
-  'HEALTHY': '#22C55E'
+  'BLAST': '#EF4444',     // สีแดง: โรคไหม้ (Rice Blast)
+  'BLB': '#F97316',       // สีส้ม: โรคขอบใบแห้ง (Bacterial Leaf Blight)
+  'TUNGRO': '#EAB308',    // สีเหลืองทอง: โรคใบสีส้ม (Tungro)
+  'HEALTHY': '#22C55E'    // สีเขียวสด: ข้าวสุขภาพดี ปกติ (Healthy)
 };
 
 const LABEL_MAP = {

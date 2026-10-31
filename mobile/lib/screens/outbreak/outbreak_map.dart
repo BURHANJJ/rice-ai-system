@@ -166,10 +166,13 @@ class _OutbreakMapState extends State<OutbreakMap> {
     return stats;
   }
 
+  // ==========================================================================
+  // 🗺️ จุดปรับแต่งสีแท่งแผนที่ 3D บนมือถือ (Mobile 3D Outbreak Map Risk Colors)
+  // ==========================================================================
   Color _riskColor(Tone t, AppPalette p) => switch (t) {
-        Tone.danger => context.isDarkMode ? const Color(0xFFD9483B) : const Color(0xFFC0392B),
-        Tone.warn => const Color(0xFFE08A1E),
-        _ => context.isDarkMode ? const Color(0xFF3E7D58) : const Color(0xFF7DB394),
+        Tone.danger => context.isDarkMode ? const Color(0xFFD9483B) : const Color(0xFFC0392B), // สีแดงแท่งเสี่ยงสูง
+        Tone.warn => const Color(0xFFE08A1E),                                                   // สีส้มแท่งเฝ้าระวัง
+        _ => context.isDarkMode ? const Color(0xFF3E7D58) : const Color(0xFF7DB394),             // สีเขียวแท่งปกติ
       };
 
   @override

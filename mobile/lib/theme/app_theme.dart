@@ -2,29 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Brand palette: forest green on paddy cream, grain-gold accent.
+/// ============================================================================
+/// 🎨 จุดปรับแต่งโทนสีหลักของแอปทั้งระบบ (Rice AI Color Palette)
+/// ============================================================================
+/// หากต้องการเปลี่ยนสีธีม ให้แก้รหัสสี Hex ในคลาส AppColors นี้ได้เลย:
+/// รหัสสีขึ้นต้นด้วย 0xFF ตามด้วยรหัส Hex 6 ตัว (เช่น 0xFF1B4332 คือ #1B4332)
+/// ============================================================================
 class AppColors {
-  static const forest = Color(0xFF1B4332);
-  static const forestDeep = Color(0xFF0F2A1E);
-  static const forestSoft = Color(0xFFE3EDE5);
-  static const gold = Color(0xFFD4A84B);
-  static const cream = Color(0xFFF4F1E8);
-  static const creamDeep = Color(0xFFEFEBE0);
-  static const sheet = Color(0xFFFBF9F4);
-  static const line = Color(0xFFE4DFD3);
-  static const ink = Color(0xFF1C211E);
-  static const body = Color(0xFF3A403B);
-  static const muted = Color(0xFF6A706B);
-  static const faint = Color(0xFF9A9F98);
+  // --- โทนสีหลักของแบรนด์ (Brand Theme) ---
+  static const forest = Color(0xFF1B4332);     // สีเขียวเข้มหลัก (ปุ่มสแกน, หัวข้อ, แถบนำทาง)
+  static const forestDeep = Color(0xFF0F2A1E); // สีเขียวเข้มพิเศษ (เงา, การ์ดพิเศษ)
+  static const forestSoft = Color(0xFFE3EDE5); // สีเขียวอ่อนพาสเทล (พื้นหลังปุ่มที่เลือก, ชิป)
+  static const gold = Color(0xFFD4A84B);       // สีทองเมล็ดข้าว (ขอบอวาตาร์, แท็กเด่น, ไอคอนไฮไลต์)
+  
+  // --- โทนสีพื้นหลังและกระดาษ (Backgrounds & Surfaces) ---
+  static const cream = Color(0xFFF4F1E8);      // สีพื้นหลังหลักของแอป (โทนครีมธรรมชาติ)
+  static const creamDeep = Color(0xFFEFEBE0);  // สีครีมเข้มขึ้นเล็กน้อย (เส้นแบ่ง, การ์ดรอง)
+  static const sheet = Color(0xFFFBF9F4);      // สีพื้นหลังของ Bottom Sheet ที่เด้งขึ้นมา
+  static const line = Color(0xFFE4DFD3);       // สีเส้นขอบการ์ดและเส้นคั่น (Border & Divider)
+  
+  // --- โทนสีตัวอักษร (Typography) ---
+  static const ink = Color(0xFF1C211E);        // สีตัวอักษรหลัก (หัวข้อตัวหนา, ตัวหนังสือเข้ม)
+  static const body = Color(0xFF3A403B);       // สีเนื้อหาทั่วไป (อ่านง่าย สบายตา)
+  static const muted = Color(0xFF6A706B);      // สีตัวอักษรรอง (คำบรรยายย่อย, วันที่)
+  static const faint = Color(0xFF9A9F98);      // สีตัวอักษรจาง / ไอคอนที่ยังไม่ถูกเลือกในเมนูล่าง
 
-  static const danger = Color(0xFFB42318);
-  static const dangerSoft = Color(0xFFFBEAE8);
-  static const warn = Color(0xFFB45309);
-  static const warnSoft = Color(0xFFFCF1E1);
-  static const safe = Color(0xFF2D6A4F);
-  static const safeSoft = Color(0xFFE6F0EA);
-  static const info = Color(0xFF1E5A8A);
-  static const infoSoft = Color(0xFFE6EEF5);
+  // --- โทนสีสถานะและการแจ้งเตือน (Status & Alerts) ---
+  static const danger = Color(0xFFB42318);     // สีแดง (ระดับเสี่ยงสูง, เตือนภัย, เชื้อโรครุนแรง)
+  static const dangerSoft = Color(0xFFFBEAE8); // สีแดงอ่อน (พื้นหลังกล่องเตือนภัยสีแดง)
+  static const warn = Color(0xFFB45309);       // สีส้ม/เหลืองเข้ม (ระดับเฝ้าระวัง, ความเสี่ยงปานกลาง)
+  static const warnSoft = Color(0xFFFCF1E1);   // สีส้มอ่อน (พื้นหลังกล่องเฝ้าระวัง)
+  static const safe = Color(0xFF2D6A4F);       // สีเขียว (ระดับปลอดภัย, ข้าวสุขภาพดี ปกติ)
+  static const safeSoft = Color(0xFFE6F0EA);   // สีเขียวอ่อน (พื้นหลังสถานะปลอดภัย)
+  static const info = Color(0xFF1E5A8A);       // สีน้ำเงินข้อมูล (คำแนะนำ, คลังความรู้)
+  static const infoSoft = Color(0xFFE6EEF5);   // สีน้ำเงินอ่อน (พื้นหลังกล่องข้อมูล)
 
   // Legacy names kept so every existing reference resolves to the new palette.
   static const paddy = safe;
@@ -72,29 +83,33 @@ class AppPalette {
   final Color danger, dangerSoft, warn, warnSoft, safe, safeSoft, info, infoSoft;
   Color get gold => AppColors.gold;
 
+  // ==========================================================================
+  // 💡 โหมดสว่าง (Light Theme) - ค่าสีที่หน้าจอส่วนใหญ่ดึงไปใช้งานผ่าน context.pal
+  // เช่น final p = context.pal; จากนั้นเรียกใช้ p.bg, p.primary, p.surface
+  // ==========================================================================
   static const light = AppPalette(
-    bg: AppColors.cream,
-    surface: Color(0xFFFFFFFF),
-    sheet: AppColors.sheet,
-    subtle: AppColors.creamDeep,
-    line: AppColors.line,
-    ink: AppColors.ink,
-    body: AppColors.body,
-    muted: AppColors.muted,
-    faint: AppColors.faint,
-    primary: AppColors.forest,
-    primarySoft: AppColors.forestSoft,
-    primaryText: AppColors.forest,
-    hero: AppColors.forest,
-    heroText: Color(0xFFFFFFFF),
-    heroMuted: Color(0xFFC9DDCF),
-    danger: AppColors.danger,
+    bg: AppColors.cream,            // สีพื้นหลังทั้งจอ
+    surface: Color(0xFFFFFFFF),     // สีพื้นหลังการ์ดสีขาว (AppCard)
+    sheet: AppColors.sheet,         // สีพื้น BottomSheet
+    subtle: AppColors.creamDeep,    // สีพื้นหลังปุ่มรอง
+    line: AppColors.line,           // สีเส้นขอบ
+    ink: AppColors.ink,             // สีข้อความหัวข้อ
+    body: AppColors.body,           // สีข้อความเนื้อหา
+    muted: AppColors.muted,         // สีข้อความรอง
+    faint: AppColors.faint,         // สีข้อความจาง
+    primary: AppColors.forest,      // สีหลัก (ปุ่มเด่น, ไอคอนแอ็กชัน)
+    primarySoft: AppColors.forestSoft, // สีพื้นหลังปุ่มที่กำลังเลือก
+    primaryText: AppColors.forest,  // สีข้อความบนชิปที่เลือก
+    hero: AppColors.forest,         // สีส่วนหัว / Header
+    heroText: Color(0xFFFFFFFF),    // สีข้อความบนการ์ด Hero
+    heroMuted: Color(0xFFC9DDCF),   // สีข้อความรองบนการ์ด Hero
+    danger: AppColors.danger,       // สีสถานะอันตราย/เสี่ยงสูง
     dangerSoft: AppColors.dangerSoft,
-    warn: AppColors.warn,
+    warn: AppColors.warn,           // สีสถานะเฝ้าระวัง
     warnSoft: AppColors.warnSoft,
-    safe: AppColors.safe,
+    safe: AppColors.safe,           // สีสถานะปลอดภัย
     safeSoft: AppColors.safeSoft,
-    info: AppColors.info,
+    info: AppColors.info,           // สีสถานะข้อมูล
     infoSoft: AppColors.infoSoft,
   );
 

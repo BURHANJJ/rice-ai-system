@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,27 +35,46 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLocationError = false;
   bool _hasLocalRisk = false;
   WeatherSnapshot? _weather;
+  StreamSubscription? _scanCountSub;
+  StreamSubscription? _authSub;
 
   @override
   void initState() {
     super.initState();
     _determinePosition();
+    _listenScanCount();
+  }
+
+  @override
+  void dispose() {
+    _scanCountSub?.cancel();
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  void _listenScanCount() {
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      _scanCountSub?.cancel();
+      if (user != null) {
+        _scanCountSub = FirebaseFirestore.instance
+            .collection('diagnoses')
+            .where('user_id', isEqualTo: user.uid)
+            .snapshots()
+            .listen((qs) {
+          if (mounted) {
+            setState(() {
+              _scanCount = qs.docs.length;
+            });
+          }
+        }, onError: (e) => debugPrint('Firestore history count failed: $e'));
+      } else {
+        if (mounted) setState(() => _scanCount = 0);
+      }
+    });
   }
 
   Future<void> _fetchScanCount() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final qs = await FirebaseFirestore.instance.collection('diagnoses').where('user_id', isEqualTo: user.uid).get();
-        if (mounted) {
-          setState(() {
-            _scanCount = qs.docs.length;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Firestore history count failed: $e');
-    }
+    // Kept for backward compatibility; _listenScanCount handles live updates
   }
 
   Future<void> _determinePosition() async {

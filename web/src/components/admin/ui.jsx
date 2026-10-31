@@ -42,13 +42,16 @@ export function Panel({ title, desc, actions, children, className = '', bodyClas
   );
 }
 
+// ==============================================================================
+// 🏷️ จุดปรับแต่งสีป้าย Pill & Badge ของระบบแอดมิน (Admin Status Pill Tones)
+// ==============================================================================
 const TONES = {
-  green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  amber: 'bg-amber-50 text-amber-800 ring-amber-200',
-  red: 'bg-red-50 text-red-700 ring-red-200',
-  blue: 'bg-sky-50 text-sky-700 ring-sky-200',
-  gray: 'bg-gray-100 text-gray-600 ring-gray-200',
-  dark: 'bg-[var(--color-paddy)] text-white ring-[var(--color-paddy)]',
+  green: 'bg-emerald-50 text-emerald-700 ring-emerald-200',           // สำเร็จ / ปกติ (เขียว)
+  amber: 'bg-amber-50 text-amber-800 ring-amber-200',               // รออนุมัติ / เฝ้าระวัง (ส้มอำพัน)
+  red: 'bg-red-50 text-red-700 ring-red-200',                       // การระบาดใหม่ / ฉุกเฉิน (แดง)
+  blue: 'bg-sky-50 text-sky-700 ring-sky-200',                      // รอตรวจทาน AI (ฟ้า/น้ำเงิน)
+  gray: 'bg-gray-100 text-gray-600 ring-gray-200',                  // รับทราบแล้ว / ทั่วไป (เทา)
+  dark: 'bg-[var(--color-paddy)] text-white ring-[var(--color-paddy)]', // แบรนด์เข้ม (เขียวแบรนด์)
 };
 
 export function Pill({ tone = 'gray', icon: Icon, children, className = '' }) {
@@ -85,12 +88,15 @@ export function Kpi({ label, value, sub, icon: Icon, tone = 'green', to, loading
   return to ? <Link to={to} className={`${cls} transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
+// ==============================================================================
+// 🔘 จุดปรับแต่งสีปุ่มกดของระบบแอดมิน/เว็บ (Admin Web Button Variants)
+// ==============================================================================
 const BTN = {
-  primary: 'bg-[var(--color-paddy)] text-white shadow-sm shadow-emerald-950/20 hover:bg-[var(--color-paddy-dark)]',
-  secondary: 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 hover:text-gray-950',
-  ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-950',
-  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700',
-  soft: 'bg-emerald-50 text-[var(--color-paddy)] ring-1 ring-emerald-100 hover:bg-emerald-100',
+  primary: 'bg-[var(--color-paddy)] text-white shadow-sm shadow-emerald-950/20 hover:bg-[var(--color-paddy-dark)]', // ปุ่มหลัก (สีเขียวแบรนด์ Rice AI)
+  secondary: 'bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 hover:text-gray-950',                     // ปุ่มรอง (สีขาวขอบเทา)
+  ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-950',                                                        // ปุ่มโปร่งใส
+  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700',                                                           // ปุ่มลบ / อันตราย (สีแดง)
+  soft: 'bg-emerald-50 text-[var(--color-paddy)] ring-1 ring-emerald-100 hover:bg-emerald-100',                        // ปุ่มสีเขียวอ่อนพาสเทล
 };
 
 export function Btn({ variant = 'secondary', size = 'md', icon: Icon, busy, to, className = '', children, ...rest }) {

@@ -20,10 +20,15 @@ function getBounds(geoJsonData) {
   return bounds.isValid() ? bounds : null;
 }
 
+// ==============================================================================
+// 🗺️ จุดปรับแต่งสีแผนที่ 2D บนเว็บ (Leaflet Map Risk Colors)
+// ==============================================================================
+// หากต้องการเปลี่ยนสีจังหวัด/อำเภอตามระดับความเสี่ยง ให้แก้รหัส Hex ในฟังก์ชันนี้:
+// ==============================================================================
 function riskColor(riskLevel, hasCases) {
-  if (riskLevel === 'high') return '#ef4444';
-  if (riskLevel === 'medium') return '#f59e0b';
-  return hasCases ? '#10b981' : '#22c55e';
+  if (riskLevel === 'high') return '#ef4444';    // สีแดง (ระดับเสี่ยงสูง: พบโรค >= 5 จุด)
+  if (riskLevel === 'medium') return '#f59e0b';  // สีส้ม (ระดับเฝ้าระวัง: พบโรค 2-4 จุด)
+  return hasCases ? '#10b981' : '#22c55e';        // สีเขียว (ระดับปกติ: 0-1 จุด / เขียวมรกตเมื่อมีรายงานประปราย)
 }
 
 function riskLabel(riskLevel) {
@@ -103,9 +108,10 @@ export default function RiskMapLeaflet({ provinces, activeRegion, selectedProvin
     }
 
     return {
+      // สีพื้นหลังจังหวัด: ถ้าอยู่ในภูมิภาคที่เลือกจะใช้สีตามระดับความเสี่ยง ถ้าอยู่นอกเขตใช้สีเทา #cbd5e1
       fillColor: isInActiveRegion ? riskColor(data?.risk_level || 'low', hasCases) : '#cbd5e1',
       fillOpacity: isInActiveRegion ? 0.82 : 0.22,
-      color: '#ffffff',
+      color: '#ffffff', // เส้นขอบเขตจังหวัดสีขาว
       weight: 1,
       opacity: 1,
     };

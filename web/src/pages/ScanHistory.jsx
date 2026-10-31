@@ -155,7 +155,7 @@ export default function ScanHistory() {
                         <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100"><span className="block h-full rounded-full bg-[var(--color-paddy)]" style={{ width: `${Math.min(100, s.confidence || 0)}%` }} /></span>
                         <span className="text-[11px] font-bold tabular-nums text-gray-600">{s.confidence?.toFixed?.(1) ?? '–'}%</span>
                       </span>
-                      <span className="mt-1.5 flex items-center gap-1 truncate text-[11.5px] text-gray-500">{s.location?.latitude ? <MapPin size={12} className="shrink-0" /> : <MapPinOff size={12} className="shrink-0" />}<span className="truncate">{placeOf(s) || 'ไม่มีพิกัด'}</span></span>
+                      <span className="mt-1.5 flex items-center gap-1 truncate text-[11.5px] text-gray-500">{s.location?.latitude ? <MapPin size={12} className="shrink-0" /> : <MapPinOff size={12} className="shrink-0" />}<span className="truncate">{s.field_name ? `แปลง ${s.field_name} · ` : ''}{placeOf(s) || 'ไม่มีพิกัด'}</span></span>
                       <span className="mt-1 flex items-center justify-between gap-2 text-[11px] text-gray-400">
                         <span className="flex items-center gap-1"><CalendarDays size={11} />{thaiDateTime(s.date)}</span>
                         {r && <Pill tone={r.correct ? 'green' : 'amber'}>{r.correct ? 'ตรวจทานแล้ว ✓' : `ตรวจทาน: ${labelName(r.label)}`}</Pill>}
@@ -188,6 +188,11 @@ export default function ScanHistory() {
 
             <section className="rounded-2xl border border-gray-100 p-4">
               <h3 className="flex items-center gap-2 text-sm font-extrabold text-gray-900"><Crosshair size={15} className="text-[var(--color-paddy)]" />ตำแหน่งที่สแกน</h3>
+              {sel.field_name && (
+                <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                  <Leaf size={13} /> แปลง {sel.field_name}
+                </div>
+              )}
               {sel.location?.latitude ? (
                 <dl className="mt-2.5 grid gap-1.5 text-[13px]">
                   <div className="grid grid-cols-[88px_1fr] gap-2"><dt className="text-gray-500">ที่อยู่</dt><dd className="font-semibold text-gray-900">{placeOf(sel) || '–'}</dd></div>

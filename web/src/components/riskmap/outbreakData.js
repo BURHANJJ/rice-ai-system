@@ -7,6 +7,13 @@ export { DISEASE_NAMES };
 /** Same thresholds as the mobile app and the researcher map. */
 export const riskOf = (cases) => (cases >= 5 ? 'high' : cases >= 2 ? 'medium' : 'low');
 
+// ==============================================================================
+// 🗺️ จุดปรับแต่งสีแท่งแผนที่ 3D บนเว็บ (3D Map Extrusion Bar Colors)
+// ==============================================================================
+// - color: สีของแท่ง 3D ที่ยื่นขึ้นมาบนแผนที่
+// - pill: สไตล์คลาส Tailwind ของชิปความเสี่ยง
+// - dot: สีจุดวงกลมบอกระดับความเสี่ยง
+// ==============================================================================
 export const RISK = {
   high: { label: 'เสี่ยงสูง', color: '#C0392B', pill: 'bg-red-50 text-red-700 ring-red-200', dot: 'bg-[#C0392B]', criteria: 'ตรวจพบโรค ≥ 5 จุด', action: 'แจ้งเจ้าหน้าที่เกษตรด่วน' },
   medium: { label: 'เฝ้าระวัง', color: '#E08A1E', pill: 'bg-amber-50 text-amber-800 ring-amber-200', dot: 'bg-[#E08A1E]', criteria: 'ตรวจพบโรค 2–4 จุด', action: 'เฝ้าระวังแปลงนาใกล้ชิด' },

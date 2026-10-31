@@ -161,6 +161,14 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
       // 2. The classifier also returns a ≤800 px JPEG so the record fits Firestore's 1 MB limit.
       final base64Image = data['compressed_base64'] ?? base64Encode(bytes);
 
+      // Pre-match field if position is already known
+      (RiceField, double)? initialMatched;
+      if (_position != null) {
+        try {
+          initialMatched = await FieldService.nearestField(_position!.latitude, _position!.longitude);
+        } catch (_) {}
+      }
+
       // 3. Save to Firestore (Diagnoses collection)
       final diagData = {
         'user_id': user.uid,
@@ -171,6 +179,10 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
         'image_base64': base64Image, // Save the Base64 string directly
         'advice': data['advice'],
         'ai_source': data['ai_source'],
+        if (initialMatched != null) ...{
+          'field_id': initialMatched.$1.id,
+          'field_name': initialMatched.$1.name,
+        },
         'location': _position != null
             ? {
                 'latitude': _position!.latitude,
@@ -204,8 +216,11 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
       // Inject doc ID so local model parses it
       data['diagnosis_id'] = docRef.id;
       HapticFeedback.heavyImpact();
+      _matchedField = initialMatched;
       setState(() => _result = DiagnosisResult.fromJson(data));
-      _matchField();
+      if (_matchedField == null) {
+        _matchField();
+      }
     } catch (e) {
       _fail(_ScanIssue.from(e));
     } finally {
@@ -226,14 +241,30 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
       await _requestLocation();
 
       if (_position != null) {
-        unawaited(FirebaseFirestore.instance.collection('diagnoses').doc(result.diagnosisId).update({
+        if (_matchedField == null) {
+          try {
+            _matchedField = await FieldService.nearestField(_position!.latitude, _position!.longitude);
+          } catch (_) {}
+        }
+
+        final updateData = <String, dynamic>{
           'location': {
             'latitude': _position!.latitude,
             'longitude': _position!.longitude,
             'province': _locationNote ?? 'พิกัดปัจจุบัน',
             'address': _locationNote ?? 'พิกัดปัจจุบัน',
           }
-        }).then((_) {}, onError: (Object e) => debugPrint('location sync failed: $e')));
+        };
+        if (_matchedField != null) {
+          updateData['field_id'] = _matchedField!.$1.id;
+          updateData['field_name'] = _matchedField!.$1.name;
+        }
+
+        unawaited(FirebaseFirestore.instance
+            .collection('diagnoses')
+            .doc(result.diagnosisId)
+            .update(updateData)
+            .then((_) {}, onError: (Object e) => debugPrint('location sync failed: $e')));
       }
 
       // Firestore keeps writes on the phone until there's signal. Wait briefly so the
@@ -275,11 +306,20 @@ class _ScanScreenState extends State<ScanScreen> with SingleTickerProviderStateM
 
   /// Links the scan to the farmer's field it was taken in (if they keep fields).
   Future<void> _matchField() async {
-    _matchedField = null;
+    if (_matchedField != null) return;
     if (_position == null) return;
     try {
       final m = await FieldService.nearestField(_position!.latitude, _position!.longitude);
-      if (mounted && m != null) setState(() => _matchedField = m);
+      if (mounted && m != null) {
+        setState(() => _matchedField = m);
+        final diagId = _result?.diagnosisId;
+        if (diagId != null) {
+          unawaited(FirebaseFirestore.instance.collection('diagnoses').doc(diagId).update({
+            'field_id': m.$1.id,
+            'field_name': m.$1.name,
+          }).catchError((_) {}));
+        }
+      }
     } catch (_) {}
   }
 

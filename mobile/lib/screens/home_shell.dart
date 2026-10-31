@@ -99,12 +99,15 @@ class _BottomNav extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           clipBehavior: Clip.none,
           children: [
+            // ====================================================================
+            // 📱 จุดปรับแต่งสีแถบเมนูล่าง (Mobile Bottom Navigation Bar)
+            // ====================================================================
             Container(
               height: 68,
               decoration: BoxDecoration(
-                color: p.surface,
+                color: p.surface, // สีพื้นหลังแถบเมนูล่าง (สีขาว p.surface หรือ AppPalette)
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: p.line),
+                border: Border.all(color: p.line), // สีเส้นขอบแถบเมนู (สีครีม p.line)
                 boxShadow: [
                   BoxShadow(
                       color: Colors.black.withOpacity(context.isDarkMode ? 0.4 : 0.1),
@@ -243,14 +246,17 @@ class _ScanButton extends StatelessWidget {
         scale: 0.92,
         child: Column(
           children: [
+            // ====================================================================
+            // 🔘 จุดปรับแต่งสีปุ่มสแกนกลมใหญ่ตรงกลาง (Center Floating Scan Button)
+            // ====================================================================
             AnimatedContainer(
               duration: const Duration(milliseconds: 280),
               width: 62,
               height: 62,
               decoration: BoxDecoration(
-                color: p.primary,
+                color: p.primary, // สีพื้นหลังปุ่มสแกนกลม (สีเขียวหลัก p.primary)
                 shape: BoxShape.circle,
-                border: Border.all(color: p.bg, width: 5),
+                border: Border.all(color: p.bg, width: 5), // ขอบหนาสีพื้นหลังจอ (สีครีม p.bg)
                 boxShadow: [
                   BoxShadow(
                     color: p.primary.withOpacity(selected ? 0.45 : 0.3),

@@ -11,11 +11,14 @@ import {
 } from 'lucide-react';
 import { ALL_PROVINCES } from '../../lib/provinces';
 
+// ==============================================================================
+// 📊 จุดปรับแต่งสีกราฟสถิติโรคข้าวของนักวิชาการ (Researcher Chart Colors)
+// ==============================================================================
 const COLORS = {
-  'BLAST': '#EF4444',     // Red
-  'BLB': '#F97316',       // Orange
-  'TUNGRO': '#EAB308',    // Yellow
-  'HEALTHY': '#22C55E'    // Green
+  'BLAST': '#EF4444',     // สีแดง: โรคไหม้ (Rice Blast)
+  'BLB': '#F97316',       // สีส้ม: โรคขอบใบแห้ง (Bacterial Leaf Blight)
+  'TUNGRO': '#EAB308',    // สีเหลืองทอง: โรคใบสีส้ม (Tungro)
+  'HEALTHY': '#22C55E'    // สีเขียวสด: ข้าวปกติ (Healthy)
 };
 
 const LABEL_MAP = {

@@ -66,10 +66,13 @@ export default function Map3D({
   maxHeight = 70,
   padding = { top: 0, right: 0, bottom: 0, left: 0 },
   apiRef,
-  contextColor = '#E4DFD3',
-  edgeColor = 'rgba(255,255,255,0.75)',
-  labelColor = '#1C211E',
-  labelHalo = '#F4F1E8',
+  // ============================================================================
+  // 🗺️ จุดปรับแต่งสีโมเดล 3D บนเว็บ (3D Canvas Styling)
+  // ============================================================================
+  contextColor = '#E4DFD3',             // สีแผ่นดินจังหวัดข้างเคียง (โทนครีมอมเทา)
+  edgeColor = 'rgba(255,255,255,0.75)', // สีเส้นขอบโมเดล 3D (ขาวโปร่งแสง)
+  labelColor = '#1C211E',              // สีตัวอักษรชื่อจังหวัดบนแผนที่
+  labelHalo = '#F4F1E8',               // สีเงารัศมีรอบตัวหนังสือให้อ่านง่าย (โทนกระดาษ)
   font = "'IBM Plex Sans Thai', sans-serif",
 }) {
   const canvasRef = useRef(null);
