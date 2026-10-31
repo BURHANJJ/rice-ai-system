@@ -23,19 +23,35 @@ service cloud.firestore {
     }
 
     // 1. Users Collection Rules
+    //
+    // A profile document also says what its owner may do (role, status), so a signed-in user
+    // may never write those two fields about themselves. A profile starts as a farmer (mobile
+    // sign-up) or as a researcher awaiting approval (web application); only an admin changes
+    // it afterwards.
+    function ownProfileCreate(userId) {
+      return isAuthenticated() && request.auth.uid == userId && (
+        !request.resource.data.keys().hasAny(['role', 'status'])
+        || (request.resource.data.role == 'farmer' && request.resource.data.status == 'active')
+        || (request.resource.data.role == 'researcher' && request.resource.data.status == 'pending'));
+    }
+
+    function ownProfileUpdate(userId) {
+      return isAuthenticated() && request.auth.uid == userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status']);
+    }
+
     match /users/{userId} {
       // Users read their own profile; only admins read others'. Researchers work with
       // anonymized diagnosis data and never need names or emails.
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      
-      // Users can only create/update their own profile
-      // Admins can update any profile
-      allow create, update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      
+
+      allow create: if isAdmin() || ownProfileCreate(userId);
+      allow update: if isAdmin() || ownProfileUpdate(userId);
+
       // Only admins can delete users
       allow delete: if isAdmin();
     }
-    
+
     // 2. Diagnoses (Scans) Collection Rules
     match /diagnoses/{diagnosisId} {
       // Allow public read access to diagnoses for the Public Risk Map to work
@@ -69,11 +85,13 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       // Only Admins can read audit logs
       allow read: if isAdmin();
-      
-      // System/Admin can write (or any authenticated user if the system logs their actions, but let's restrict to authenticated for now)
-      allow write: if isAuthenticated();
+
+      // Append-only: any signed-in user's actions are logged, but nobody (admins included)
+      // can edit or remove an entry afterwards.
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
     }
-    
+
     // 4. Field notebook (สมุดแปลงนา) — private to the farmer who owns it
     match /fields/{fieldId} {
       allow read, delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;

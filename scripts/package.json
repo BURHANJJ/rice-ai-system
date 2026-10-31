@@ -1,0 +1,12 @@
+{
+  "name": "rice-ai-admin-scripts",
+  "private": true,
+  "type": "module",
+  "description": "One-off maintenance scripts that need Admin SDK credentials",
+  "scripts": {
+    "make-admin": "node make-admin.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
