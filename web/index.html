@@ -37,7 +37,24 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Shown while the app downloads; React replaces it on first render. -->
+      <style>
+        #boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(120% 90% at 50% 18%,#1d4a38 0%,#143327 55%,#0d2219 100%);color:#e8f3ec;font:600 13px/1.5 system-ui,sans-serif}
+        #boot b{font:800 28px/1.2 'Noto Serif Thai',serif;color:#fff;letter-spacing:.02em}
+        #boot .bar{width:148px;height:3px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+        #boot .bar i{display:block;width:42%;height:100%;border-radius:3px;background:linear-gradient(90deg,transparent,#C89B3C,transparent);animation:bootslide 1.3s cubic-bezier(.45,0,.55,1) infinite}
+        @keyframes bootslide{from{transform:translateX(-110%)}to{transform:translateX(260%)}}
+        @media (prefers-reduced-motion:reduce){#boot .bar i{animation:none;width:100%;opacity:.6}}
+      </style>
+      <div id="boot" role="status" aria-live="polite">
+        <img src="/brand/logo_mark_ondark.svg" alt="" width="84" height="84" />
+        <b>Rice AI</b>
+        <div class="bar"><i></i></div>
+        <span>กำลังเตรียมระบบ</span>
+        <noscript>ต้องเปิดใช้งาน JavaScript เพื่อใช้งาน Rice AI</noscript>
+      </div>
+    </div>
     <script>
       (() => {
         const officialHosts = new Set([

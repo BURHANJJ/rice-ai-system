@@ -4,12 +4,13 @@ import { useSettings } from '../lib/settings';
 import { hasTotp } from '../lib/mfa';
 import { needs2fa } from '../pages/Account';
 import Layout from './Layout';
+import BrandSplash from './BrandSplash';
 
 export default function ProtectedRoute({ roles, children }) {
   const { user, loading } = useAuth();
   const { settings } = useSettings();
   const location = useLocation();
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-[var(--color-muted)]">กำลังโหลด...</div>;
+  if (loading) return <BrandSplash label="กำลังตรวจสอบสิทธิ์การเข้าใช้งาน" />;
   if (!user) return <Navigate to="/login" replace />;
   
   // Admins bypass some status checks, but even admins shouldn't be suspended

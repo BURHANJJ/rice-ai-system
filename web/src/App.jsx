@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import BrandSplash from './components/BrandSplash';
 import { AuthProvider } from './lib/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Account from './pages/Account';
@@ -38,18 +40,27 @@ import MaintenancePage from './pages/MaintenancePage';
 import { useSettings } from './lib/settings';
 import { useAuth } from './lib/AuthContext';
 
+// The last maintenance state seen on this device. While the live setting is still loading, the site
+// opens straight away unless this device last saw maintenance mode, so visitors never wait on a check.
+const MAINTENANCE_KEY = 'rice-ai:maintenance';
+const lastSeenMaintenance = () => { try { return localStorage.getItem(MAINTENANCE_KEY) === '1'; } catch { return false; } };
+
 function MaintenanceGate({ children }) {
   const { settings, loaded } = useSettings();
   const { user } = useAuth();
   const location = useLocation();
+  const active = !!settings.maintenance?.active;
+
+  useEffect(() => {
+    if (!loaded) return;
+    try { localStorage.setItem(MAINTENANCE_KEY, active ? '1' : '0'); } catch { /* storage unavailable */ }
+  }, [loaded, active]);
 
   // Keep sign-in and the private portal reachable so an administrator can disable maintenance.
   const isPrivateArea = ['/admin', '/research'].some((prefix) => location.pathname.startsWith(prefix));
   if (location.pathname === '/login' || (user?.role === 'admin' && isPrivateArea)) return children;
-  if (!loaded) {
-    return <div className="flex min-h-screen items-center justify-center bg-[var(--color-paper)] text-sm font-semibold text-[var(--color-muted)]">กำลังตรวจสอบสถานะระบบ…</div>;
-  }
-  if (settings.maintenance?.active) return <MaintenancePage maintenance={settings.maintenance} />;
+  if (!loaded) return lastSeenMaintenance() ? <BrandSplash label="กำลังตรวจสอบสถานะระบบ" /> : children;
+  if (active) return <MaintenancePage maintenance={settings.maintenance} />;
   return children;
 }
 

@@ -750,3 +750,34 @@ body {
 .ts-halo { animation: ts-halo 2.6s ease-in-out infinite; }
 @keyframes ts-halo { 0%, 100% { transform: scale(.92); opacity: .55; } 50% { transform: scale(1.06); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .ts-halo { animation: none; } }
+
+/* ---------- Branded loading screen (BrandSplash, and the matching #boot splash in index.html) ---------- */
+.rb-splash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: radial-gradient(120% 90% at 50% 18%, #1d4a38 0%, #143327 55%, #0d2219 100%);
+  color: #e8f3ec; text-align: center; padding: 24px;
+}
+.rb-splash-mark { position: relative; display: grid; place-items: center; width: 108px; height: 108px; }
+.rb-splash-mark img { position: relative; animation: rb-splash-breathe 2.4s ease-in-out infinite; }
+.rb-splash-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 1.5px solid rgba(200, 155, 60, .55);
+  animation: rb-pulse-ring 2.4s ease-out infinite;
+}
+.rb-splash-name { font-size: 28px; font-weight: 800; letter-spacing: .02em; color: #fff; }
+.rb-splash-bar { width: 148px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.rb-splash-bar i {
+  display: block; width: 42%; height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #C89B3C, transparent);
+  animation: rb-splash-slide 1.3s cubic-bezier(.45, 0, .55, 1) infinite;
+}
+.rb-splash-label { font-size: 13px; font-weight: 600; color: rgba(232, 243, 236, .85); }
+.rb-splash-hint { font-size: 12px; color: rgba(232, 243, 236, .55); max-width: 320px; line-height: 1.6; }
+@keyframes rb-splash-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes rb-splash-slide { from { transform: translateX(-110%); } to { transform: translateX(260%); } }
+@media (prefers-reduced-motion: reduce) {
+  .rb-splash-mark img, .rb-splash-ring { animation: none; }
+  .rb-splash-ring { opacity: 0; }
+  .rb-splash-bar i { animation: none; width: 100%; opacity: .6; }
+}
