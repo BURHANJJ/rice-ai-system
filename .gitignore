@@ -71,3 +71,8 @@ ai-service/model/*.h5
 # Rebuild them with ai-service/model-comparison/train.py
 ai-service/model-comparison/models/**/*.keras
 ai-service/model-comparison/models/**/*.tflite
+
+# Backups and leftovers
+*.old
+*.bak
+*.orig

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Blocks a commit that would put forbidden files, secrets or a personal e-mail address in the repository.
+# Enable once per clone:  git config core.hooksPath .githooks   (or: node scripts/install-hooks.mjs)
+if ! command -v node >/dev/null 2>&1; then
+  echo "The leak check needs Node.js (node was not found). Install Node 20+ or skip with --no-verify only if you are sure." >&2
+  exit 1
+fi
+exec node "$(git rev-parse --show-toplevel)/scripts/check-leaks.mjs" --staged --identity

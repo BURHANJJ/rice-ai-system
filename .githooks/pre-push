@@ -1,0 +1,7 @@
+#!/bin/sh
+# Checks every commit about to be published (files, secrets, author e-mail). Pushes to the private archive are not checked.
+if ! command -v node >/dev/null 2>&1; then
+  echo "The leak check needs Node.js (node was not found)." >&2
+  exit 1
+fi
+exec node "$(git rev-parse --show-toplevel)/scripts/check-leaks.mjs" --pre-push "$1" "$2" --identity

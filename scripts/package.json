@@ -4,7 +4,9 @@
   "type": "module",
   "description": "One-off maintenance scripts that need Admin SDK credentials",
   "scripts": {
-    "make-admin": "node make-admin.mjs"
+    "make-admin": "node make-admin.mjs",
+    "test": "node --test check-leaks.test.mjs",
+    "install-hooks": "node install-hooks.mjs"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0"

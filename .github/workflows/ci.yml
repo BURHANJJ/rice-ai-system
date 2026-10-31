@@ -9,6 +9,31 @@ permissions:
   contents: read
 
 jobs:
+  leak-check:
+    name: Leak check (files, secrets, history)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Test the checker and its git hooks
+        run: node --test scripts/check-leaks.test.mjs
+      - name: Whole tree
+        run: node scripts/check-leaks.mjs --all
+      - name: Every commit in this push or pull request
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [ -n "$BASE" ]; then range="$BASE..$HEAD_SHA"
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then range="$BEFORE..$HEAD_SHA"
+          else exit 0; fi
+          node scripts/check-leaks.mjs --range "$range"
+
   web:
     name: Web (lint + build)
     runs-on: ubuntu-latest

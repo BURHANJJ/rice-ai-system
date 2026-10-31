@@ -71,7 +71,7 @@ describe('users: normal sign-up and profile edits still work', () => {
 
   it('owners edit their profile, settings and push tokens', async () => {
     const db = as('farmer');
-    await assertSucceeds(updateDoc(doc(db, 'users/farmer'), { full_name: 'New Name', phone: '0812345678', updated_at: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, 'users/farmer'), { full_name: 'New Name', phone: '0000000000', updated_at: serverTimestamp() }));
     await assertSucceeds(updateDoc(doc(db, 'users/farmer'), { 'settings.language': 'th' }));
     await assertSucceeds(setDoc(doc(db, 'users/farmer'), { fcm_tokens: arrayUnion('t'), notifications_enabled: true }, { merge: true }));
     await assertSucceeds(updateDoc(doc(db, 'users/farmer'), { last_login_at: serverTimestamp() }));

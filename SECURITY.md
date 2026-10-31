@@ -38,4 +38,5 @@
 
 - อย่า commit กุญแจ รหัสผ่าน ไฟล์ `.env*` ไฟล์ service account หรือ keystore ถ้าหลุดไปแล้ว ให้ถือว่ารั่ว เปลี่ยนกุญแจทันที แล้วค่อยลบออกจากประวัติ การลบอย่างเดียวไม่พอ
 - ก่อนแก้ `firestore.rules` ให้เพิ่มหรืออัปเดตข้อทดสอบใน `tests/firestore/rules.test.mjs` และรัน `npm test`
+- เปิดด่านตรวจก่อน commit/push ด้วย `node scripts/install-hooks.mjs` ([CONTRIBUTING.md](CONTRIBUTING.md)) ด่านเดียวกันรันบน GitHub ทุก push ด้วย (งาน `leak-check`) และ GitHub เปิด secret scanning กับ push protection ไว้
 - อัปเดต dependency ผ่าน Dependabot ที่ตั้งไว้ใน `.github/dependabot.yml`
